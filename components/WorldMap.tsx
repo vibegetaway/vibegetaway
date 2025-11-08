@@ -32,11 +32,11 @@ export default function WorldMap() {
       <ComposableMap
         projection="geoMercator"
         projectionConfig={{
-          center: [0, 0],
+          center: [0, 44],
           scale: 155,
         }}
         width={1000}
-        height={1000}
+        height={640}
         style={{ width: "100%", height: "auto" }} 
             >
         <defs>
