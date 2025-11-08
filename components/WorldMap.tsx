@@ -7,25 +7,7 @@ const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
 export default function WorldMap() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null)
-
-  useEffect(() => {
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        const { width, height } = containerRef.current.getBoundingClientRect()
-        console.log(width, height)
-        setDimensions({ width, height })
-      }
-    }
-
-    // Set initial dimensions
-    updateDimensions()
-
-    // Update on window resize
-    window.addEventListener('resize', updateDimensions)
-    return () => window.removeEventListener('resize', updateDimensions)
-  }, [])
 
   return (
     <div ref={containerRef} className="w-full h-full">
