@@ -29,14 +29,12 @@ export default function Home() {
       const result = await generateSuitableDestinationInfo({
         vibe: vibe,
         timePeriod: month,
-        // price and from are optional for now
       })
       
       setDestinations(result)
       
-      // Log countries to console
-      const countries = result.map(dest => dest.country)
-      console.log('Destination countries:', countries)
+      // Log entire destination list with all information to console
+      console.log('Destination list:', result)
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -49,7 +47,7 @@ export default function Home() {
     <main>
     <div className="flex items-center justify-center p-6 bg-background">
       <div className="max-w-5xl w-full">
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight text-balance">
+        <h1 className="text-5xl font-bold leading-tight text-balance">
           <span className="text-foreground">I want to </span>
           <span className="inline-block align-middle">
             <AnimatedVibeInput value={vibe} onChange={setVibe} />
@@ -62,19 +60,22 @@ export default function Home() {
 
         {vibe && month && (
           <div className="mt-12 space-y-4">
-            <div className="p-6 bg-card border-2 border-border rounded-lg">
-              <p className="text-muted-foreground text-lg">
-                Your travel plan: <span className="text-accent font-semibold">{vibe}</span> in{" "}
-                <span className="text-accent font-semibold">{month}</span>
-              </p>
-            </div>
-            
             <button
               onClick={handleFindDestinations}
               disabled={loading}
-              className="w-full py-4 px-6 bg-accent text-accent-foreground font-semibold text-lg rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              className="w-full py-5 px-8 bg-accent text-accent-foreground font-bold text-xl rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg transition-all duration-200 ease-in-out transform"
             >
-              {loading ? 'Finding destinations...' : 'Find Destinations'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Finding destinations...
+                </span>
+              ) : (
+                'Find Destinations'
+              )}
             </button>
 
             {error && (
