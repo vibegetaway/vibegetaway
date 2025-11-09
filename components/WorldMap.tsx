@@ -1,11 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
-export default function WorldMap() {
+interface WorldMapProps {
+  highlightedCountries?: string[]
+}
+
+export default function WorldMap({ highlightedCountries = [] }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null)
 
@@ -49,11 +53,12 @@ export default function WorldMap() {
               .filter((geo: any) => geo.properties.name !== 'Antarctica')
               .map((geo: any) => {
                 const isHovered = hoveredCountry === geo.rsmKey
+                const isHighlighted = highlightedCountries.includes(geo.properties.name)
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={isHovered ? "url(#dot-pattern-blue)" : "url(#dot-pattern)"}
+                    fill={isHovered || isHighlighted ? "url(#dot-pattern-blue)" : "url(#dot-pattern)"}
                     onMouseEnter={() => setHoveredCountry(geo.rsmKey)}
                     onMouseLeave={() => setHoveredCountry(null)}
                     style={{
