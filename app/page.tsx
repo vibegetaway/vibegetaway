@@ -21,9 +21,8 @@ export default function Home() {
   const [vibe, setVibe] = useState('')
   const [month, setMonth] = useState('')
 
-  // Debounced inputs (500ms)
+  // Debounced input (500ms)
   const debouncedVibe = useDebouncedValue(vibe, 500)
-  const debouncedMonth = useDebouncedValue(month, 500)
 
   // Ensure only the latest async call updates state
   const callIdRef = useRef(0)
@@ -54,8 +53,8 @@ export default function Home() {
   }
 
   useEffect(() => {
-    handleFindDestinations(debouncedVibe, debouncedMonth)
-  }, [debouncedVibe, debouncedMonth])
+    handleFindDestinations(debouncedVibe, month)
+  }, [debouncedVibe, month])
 
   return (
     <main>
