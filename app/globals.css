@@ -18,3 +18,18 @@ body {
   height: 100%;
 }
 
+@keyframes greyPulse {
+  0%, 100% {
+    fill: #999;
+    opacity: 0.5;
+  }
+  50% {
+    fill: #666;
+    opacity: 0.7;
+  }
+}
+
+.loading-dot {
+  animation: greyPulse 1.5s ease-in-out infinite;
+}
+

@@ -6,10 +6,11 @@ import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
 interface WorldMapProps {
+  loading: boolean
   highlightedCountries?: string[]
 }
 
-export default function WorldMap({ highlightedCountries = [] }: WorldMapProps) {
+export default function WorldMap({ loading, highlightedCountries = [] }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null)
 
@@ -46,6 +47,16 @@ export default function WorldMap({ highlightedCountries = [] }: WorldMapProps) {
           >
             <circle cx="1" cy="1" r="1" fill="#3b82f6" opacity="0.7" />
           </pattern>
+          <pattern
+            id="dot-pattern-loading"
+            x="0"
+            y="0"
+            width="3"
+            height="3"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle className="loading-dot" cx="1" cy="1" r="1" />
+          </pattern>
         </defs>
         <Geographies geography={geoUrl}>
           {({ geographies }: { geographies: any[] }) =>
@@ -54,11 +65,14 @@ export default function WorldMap({ highlightedCountries = [] }: WorldMapProps) {
               .map((geo: any) => {
                 const isHovered = hoveredCountry === geo.rsmKey
                 const isHighlighted = highlightedCountries.includes(geo.properties.name)
+                const fillPattern = loading 
+                  ? "url(#dot-pattern-loading)"
+                  : (isHovered || isHighlighted ? "url(#dot-pattern-blue)" : "url(#dot-pattern)")
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={isHovered || isHighlighted ? "url(#dot-pattern-blue)" : "url(#dot-pattern)"}
+                    fill={fillPattern}
                     onMouseEnter={() => setHoveredCountry(geo.rsmKey)}
                     onMouseLeave={() => setHoveredCountry(null)}
                     style={{

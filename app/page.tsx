@@ -60,7 +60,7 @@ export default function Home() {
         </h1>
       </div>
     </div>
-      <WorldMap highlightedCountries={destinations.map(dest => dest.country)} />
+      <WorldMap loading={loading} highlightedCountries={destinations.map(dest => dest.country)} />
     </main>
   )
 }
