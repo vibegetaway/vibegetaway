@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -22,28 +22,35 @@ const months = [
 export function MonthSelect({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const [isOpen, setIsOpen] = useState(false)
 
+  useEffect(() => {
+    if (!value) {
+      const currentMonth = new Date().getMonth()
+      onChange(months[currentMonth])
+    }
+  }, [])
+
   return (
     <div className="relative inline-block">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "h-12 px-6 pr-10 bg-card border-2 border-border rounded-lg",
+          "h-12 px-6 pr-10 bg-transparent border-b-2 border-border",
           "text-foreground flex items-center gap-2",
-          "focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent",
+          "focus:outline-none focus:border-accent",
           "transition-all duration-200",
           "hover:border-accent/50",
-          "min-w-[180px]",
+          "min-w-[280px]",
         )}
       >
-        <span>{value || "Select month"}</span>
+        <span>{value}</span>
         <ChevronDown
           className={cn("h-5 w-5 absolute right-3 text-muted-foreground transition-transform", isOpen && "rotate-180")}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full mt-2 left-0 w-full bg-card border-2 border-border rounded-lg shadow-lg overflow-hidden z-10 max-h-[300px] overflow-y-auto">
+        <div className="absolute top-full mt-2 left-0 w-full bg-card rounded-lg shadow-lg overflow-hidden z-10 max-h-[300px] overflow-y-auto">
           {months.map((month) => (
             <button
               key={month}

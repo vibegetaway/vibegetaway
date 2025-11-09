@@ -50,17 +50,18 @@ export function AnimatedVibeInput({ value, onChange }: { value: string; onChange
   return (
     <div className="relative inline-flex items-center group">
       <div className="relative">
-        <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-accent pointer-events-none" />
+        {/* <Sparkles className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-5 text-accent pointer-events-none mr-2" /> */}
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={displayedText}
           className={cn(
-            "h-12 pl-11 pr-4 bg-card border-2 border-border rounded-lg",
+            "h-12 pl-8 pr-10 bg-transparent border-b-2 border-border",
             "text-foreground placeholder:text-muted-foreground",
-            "focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent",
+            "focus:outline-none focus:border-accent",
             "transition-all duration-200",
+            "min-w-[10px] md:min-w-[300px]",
           )}
         />
       </div>
