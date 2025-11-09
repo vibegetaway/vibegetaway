@@ -19,7 +19,7 @@ export default function Home() {
     <main>
     <div className="flex items-center justify-center p-6 bg-background">
       <div className="max-w-5xl w-full">
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight text-balance">
+        <h1 className="text-5xl font-bold leading-tight text-balance">
           <span className="text-foreground">I want to </span>
           <span className="inline-block align-middle">
             <AnimatedVibeInput value={vibe} onChange={setVibe} />
