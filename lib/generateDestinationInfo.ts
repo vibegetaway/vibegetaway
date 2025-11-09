@@ -42,7 +42,7 @@ function stripMarkdownFences(text: string): string {
 }
 
 const SYSTEM_PROMPT = `
-You are a travel destination expert. Analyze free-form text about travel preferences and generate 10 suitable destinations ranked by relevance.
+You are a travel destination expert. Analyze free-form text about travel preferences and generate up to10 suitable destinations ranked by relevance.
 
 Parse for: activities/interests, timing/season, budget, travel style, climate/geography preferences.
 
