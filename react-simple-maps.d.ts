@@ -8,6 +8,7 @@ declare module 'react-simple-maps' {
   }
 
   export interface ComposableMapProps {
+    className?: string
     width?: number
     height?: number
     projection?: string

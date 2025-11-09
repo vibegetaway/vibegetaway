@@ -197,79 +197,81 @@ export default function WorldMap({ loading, highlightedCountries = [] }: WorldMa
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null)
 
   return (
-    <ComposableMap
-      projection="geoMercator"
-      projectionConfig={{
-        center: [0, 44],
-        scale: 155,
-      }}
-      width={1000}
-      height={640}
-      style={{ width: "100%" }}>
-      <defs>
-        <pattern
-          id="dot-pattern"
-          x="0"
-          y="0"
-          width="3"
-          height="3"
-          patternUnits="userSpaceOnUse"
-        >
-          <circle cx="1" cy="1" r="1" fill="#999" opacity="0.5" />
-        </pattern>
-        <pattern
-          id="dot-pattern-blue"
-          x="0"
-          y="0"
-          width="3"
-          height="3"
-          patternUnits="userSpaceOnUse"
-        >
-          <circle cx="1" cy="1" r="1" fill="#3b82f6" opacity="0.7" />
-        </pattern>
-        <pattern
-          id="dot-pattern-loading"
-          x="0"
-          y="0"
-          width="3"
-          height="3"
-          patternUnits="userSpaceOnUse"
-        >
-          <circle className="loading-dot" cx="1" cy="1" r="1" />
-        </pattern>
-      </defs>
-      <Geographies geography={geoUrl}>
-        {({ geographies }: { geographies: any[] }) =>
-          geographies
-            .filter((geo: any) => geo.properties.name !== 'Antarctica')
-            .map((geo: any) => {
-              const isHovered = hoveredCountry === geo.rsmKey
-              const isHighlighted = highlightedCountries
-                .map((code: string) => codeToCountry.get(code) || [])
-                .flat()
-                .includes(geo.properties.name);
-              const fillPattern = loading 
-                ? "url(#dot-pattern-loading)"
-                : (isHovered || isHighlighted ? "url(#dot-pattern-blue)" : "url(#dot-pattern)")
-              return (
-                <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
-                  fill={fillPattern}
-                  onMouseEnter={() => setHoveredCountry(geo.rsmKey)}
-                  onMouseLeave={() => setHoveredCountry(null)}
-                  style={{
-                    default: { outline: "none" },
-                    hover: { outline: "none", cursor: "pointer" },
-                    pressed: { outline: "none" },
-                  }}
-                />
-              )
-            })
-        }
-      </Geographies>
-      
-    </ComposableMap>
+    <div className="min-h-[80dvh] grid place-items-center">
+      <ComposableMap
+        projection="geoMercator"
+        projectionConfig={{
+          center: [0, 44],
+          scale: 155,
+        }}
+        width={1000}
+        height={640}
+        className="block mx-auto h-auto w-full max-w-[calc(80dvh*(1000/640))]"
+      >
+        <defs>
+          <pattern
+            id="dot-pattern"
+            x="0"
+            y="0"
+            width="3"
+            height="3"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="1" cy="1" r="1" fill="#999" opacity="0.5" />
+          </pattern>
+          <pattern
+            id="dot-pattern-blue"
+            x="0"
+            y="0"
+            width="3"
+            height="3"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="1" cy="1" r="1" fill="#3b82f6" opacity="0.7" />
+          </pattern>
+          <pattern
+            id="dot-pattern-loading"
+            x="0"
+            y="0"
+            width="3"
+            height="3"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle className="loading-dot" cx="1" cy="1" r="1" />
+          </pattern>
+        </defs>
+        <Geographies geography={geoUrl}>
+          {({ geographies }: { geographies: any[] }) =>
+            geographies
+              .filter((geo: any) => geo.properties.name !== 'Antarctica')
+              .map((geo: any) => {
+                const isHovered = hoveredCountry === geo.rsmKey
+                const isHighlighted = highlightedCountries
+                  .map((code: string) => codeToCountry.get(code) || [])
+                  .flat()
+                  .includes(geo.properties.name);
+                const fillPattern = loading 
+                  ? "url(#dot-pattern-loading)"
+                  : (isHovered || isHighlighted ? "url(#dot-pattern-blue)" : "url(#dot-pattern)")
+                return (
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    fill={fillPattern}
+                    onMouseEnter={() => setHoveredCountry(geo.rsmKey)}
+                    onMouseLeave={() => setHoveredCountry(null)}
+                    style={{
+                      default: { outline: "none" },
+                      hover: { outline: "none", cursor: "pointer" },
+                      pressed: { outline: "none" },
+                    }}
+                  />
+                )
+              })
+          }
+        </Geographies>
+      </ComposableMap>
+    </div>
   )
 }
 
