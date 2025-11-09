@@ -4,12 +4,7 @@ import { AnimatedVibeInput } from '@/components/AnimatedVibeInput'
 import { MonthSelect } from '@/components/MonthSelect'
 import WorldMap from '@/components/WorldMap'
 import { useState, useEffect } from 'react'
-import { generateSuitableDestinationInfo, type Destination } from '@/lib/generateDestinationInfo'
-
-const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-]
+import { generateSuitableCountries, type Destination } from '@/lib/generateDestinationInfo'
 
 export default function Home() {
   const [destinations, setDestinations] = useState<Destination[]>([])
@@ -24,14 +19,14 @@ export default function Home() {
     setDestinations([])
 
     try {
-      const result = await generateSuitableDestinationInfo({
+      const result = await generateSuitableCountries({
         vibe: vibe,
         timePeriod: month,
       })
       
       setDestinations(result)
       
-      console.log('Destination list:', result)
+      console.log(`Vibe: ${vibe}, Month: ${month}, Destinations: ${JSON.stringify(result)}`)
       
     } catch (err) {
       console.error(err instanceof Error ? err.message : 'An error occurred')

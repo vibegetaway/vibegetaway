@@ -15,9 +15,9 @@ export interface DestinationPricing {
 
 export interface Destination {
   country: string
-  region: string
-  description: string[]
-  pricing: DestinationPricing
+  region?: string
+  description?: string[]
+  pricing?: DestinationPricing
 }
 
 export interface GenerateDestinationParams {
@@ -41,8 +41,19 @@ function stripMarkdownFences(text: string): string {
   return cleaned.trim()
 }
 
+const COUNTRIES_SYSTEM_PROMPT = `
+You are a travel destination expert. Analyze free-form text about travel preferences and generate all suitable destinations YOU WOULD PERSONALLY RECOMMEND.
+
+Parse for: activities/interests, timing/season, budget, travel style, climate/geography preferences.
+
+Format STRICTLY as JSON array of country names:
+e.g. ["Japan", "Thailand", "Italy"]
+
+Output ONLY valid JSON—no preamble or additional text. Give back all suitable destinations as options.
+`
+
 const SYSTEM_PROMPT = `
-You are a travel destination expert. Analyze free-form text about travel preferences and generate up to10 suitable destinations ranked by relevance.
+You are a travel destination expert. Analyze free-form text about travel preferences and generate up to 10 suitable destinations ranked by relevance.
 
 Parse for: activities/interests, timing/season, budget, travel style, climate/geography preferences.
 
@@ -90,6 +101,54 @@ Format STRICTLY as JSON array:
 
 Output ONLY valid JSON—no preamble or additional text. Give back 10 destinations as options.
 `
+
+export async function generateSuitableCountries(
+  params: GenerateDestinationParams
+): Promise<Destination[]> {
+  try {
+    const { vibe, timePeriod, price, from } = params
+
+    if (!vibe || vibe.trim().length === 0) {
+      throw new Error('Vibe is required')
+    }
+    if (!timePeriod || timePeriod.trim().length === 0) {
+      throw new Error('Time period is required')
+    }
+
+    // Build a natural language prompt from structured parameters
+    let prompt = `I want to ${vibe} in ${timePeriod}.`
+    
+    if (from) {
+      prompt += ` I'm traveling from ${from}.`
+    }
+    
+    if (price) {
+      prompt += ` My budget is ${price}.`
+    }
+
+    const { text } = await generateText({
+      model: google('gemini-2.5-flash'),
+      system: COUNTRIES_SYSTEM_PROMPT,
+      prompt: prompt,
+    })
+
+    // Strip markdown fences if present, then parse the JSON response
+    const cleanedText = stripMarkdownFences(text)
+    const countries: string[] = JSON.parse(cleanedText)
+    const destinations: Destination[] = countries.map(country => ({
+      country: country,
+    }))
+    
+    return destinations
+  } catch (error) {
+    console.error('Error generating destination info:', error)
+    throw new Error(
+      error instanceof Error 
+        ? `Failed to generate destination info: ${error.message}`
+        : 'Failed to generate destination info'
+    )
+  }
+}
 
 export async function generateSuitableDestinationInfo(
   params: GenerateDestinationParams
