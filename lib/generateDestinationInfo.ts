@@ -17,6 +17,7 @@ export interface Destination {
   country: string
   region: string
   description: string[]
+  
   pricing: DestinationPricing
 }
 
