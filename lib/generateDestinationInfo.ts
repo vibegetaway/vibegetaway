@@ -46,8 +46,8 @@ You are a travel destination expert. Analyze free-form text about travel prefere
 
 Parse for: activities/interests, timing/season, budget, travel style, climate/geography preferences.
 
-Format STRICTLY as JSON array of country names:
-e.g. ["Japan", "Thailand", "Italy"]
+Format STRICTLY as JSON array of ISO 3166-1 alpha-3 country codes:
+e.g. ["JPN", "THA", "ITA"]
 
 Output ONLY valid JSON—no preamble or additional text. Give back all suitable destinations as options.
 `
@@ -78,7 +78,7 @@ Format STRICTLY as JSON array:
 
 [
   {
-    "country": "Country Name",
+    "country": "ISO 3166-1 alpha-3 country code",
     "region": "Region or City Name",
     "description": [
       "Bullet point 1 — Description",
