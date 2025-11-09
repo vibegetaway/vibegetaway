@@ -35,12 +35,13 @@ export function MonthSelect({ value, onChange }: { value: string; onChange: (val
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "h-12 px-6 pr-10 bg-transparent border-b-2 border-border",
+          "pl-8 pr-10 bg-transparent border-b-2 border-border",
           "text-foreground flex items-center gap-2",
           "focus:outline-none focus:border-accent",
           "transition-all duration-200",
           "hover:border-accent/50",
-          "min-w-[280px]",
+          "w-72",
+          "py-2",
         )}
       >
         <span>{value}</span>

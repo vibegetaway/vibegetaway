@@ -57,11 +57,12 @@ export function AnimatedVibeInput({ value, onChange }: { value: string; onChange
           onChange={(e) => onChange(e.target.value)}
           placeholder={displayedText}
           className={cn(
-            "h-12 pl-8 pr-10 bg-transparent border-b-2 border-border",
+            "pl-8 pr-10 bg-transparent border-b-2 border-border",
             "text-foreground placeholder:text-muted-foreground",
             "focus:outline-none focus:border-accent",
             "transition-all duration-200",
             "min-w-[10px] md:min-w-[300px]",
+            "py-2",
           )}
         />
       </div>
