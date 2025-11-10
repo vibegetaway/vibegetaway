@@ -107,8 +107,8 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
                   .includes(geo.properties.name)
                 
                 const matchingDest = destinations.find(d => {
-                  // Match by country name directly (for full destination objects)
-                  if (d.region && d.description) {
+                  // Match by country code to ensure consistency with highlighting
+                  if (d.country) {
                     const codeNames = codeToCountry.get(d.country) || []
                     return codeNames.includes(geo.properties.name)
                   }
