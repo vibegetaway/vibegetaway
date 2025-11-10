@@ -1,9 +1,11 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { X, ArrowRight } from 'lucide-react'
 import type { Destination, UnsplashImage } from '@/lib/generateDestinationInfo'
 import { fetchUnsplashImages } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
+import type { Flight } from '@/lib/getTravelPayoutsFlights'
+import { fetchFlights, createAffiliateLink } from '@/lib/getTravelPayoutsFlights'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useEffect, useState } from 'react'
@@ -22,11 +24,45 @@ function parsePricing(value: string | number): number {
   return match ? parseInt(match[1], 10) : 0
 }
 
+// Helper to format duration from minutes to "Xh Ym" format
+function formatDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  return `${hours}h ${mins}m`
+}
+
+// Helper to format date/time from ISO string
+function formatDateTime(isoString: string): string {
+  const date = new Date(isoString)
+  const hours = date.getHours().toString().padStart(2, '0')
+  const mins = date.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${mins}`
+}
+
+// Helper to format date from ISO string (e.g., "Mon, Dec 10")
+function formatDate(isoString: string): string {
+  const date = new Date(isoString)
+  const options: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' }
+  return date.toLocaleDateString('en-US', options)
+}
+
+// Helper to calculate stay duration in days between departure and return
+function calculateStayDuration(departureIso: string, returnIso: string): number {
+  const departure = new Date(departureIso)
+  const returnDate = new Date(returnIso)
+  const diffTime = Math.abs(returnDate.getTime() - departure.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  return diffDays
+}
+
 export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
   const [images, setImages] = useState<UnsplashImage[]>([])
   const [loadingImages, setLoadingImages] = useState(false)
   const [coverImage, setCoverImage] = useState<UnsplashImage | null>(null)
   const [loadingCover, setLoadingCover] = useState(false)
+  const [flights, setFlights] = useState<Flight[]>([])
+  const [loadingFlights, setLoadingFlights] = useState(false)
+  const [affiliateLinks, setAffiliateLinks] = useState<Record<string, string>>({})
 
   useEffect(() => {
     async function loadImages() {
@@ -63,9 +99,35 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
       }
     }
 
+    async function loadFlights() {
+      setLoadingFlights(true)
+      try {
+        // Use destination's airport code if available, otherwise default to BCN
+        const airportCode = destination?.destinationAirportCode
+        const fetchedFlights = await fetchFlights(airportCode)
+        setFlights(fetchedFlights)
+        
+        // Create affiliate links for each flight
+        const links: Record<string, string> = {}
+        for (const flight of fetchedFlights) {
+          const affiliateUrl = await createAffiliateLink(flight.link)
+          if (affiliateUrl) {
+            links[flight.link] = affiliateUrl
+          }
+        }
+        setAffiliateLinks(links)
+      } catch (error) {
+        console.error('Error loading flights:', error)
+        setFlights([])
+      } finally {
+        setLoadingFlights(false)
+      }
+    }
+
     if (isOpen && destination) {
       loadCoverImage()
       loadImages()
+      loadFlights()
     }
   }, [destination, isOpen])
 
@@ -168,29 +230,6 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
             </div>
           </div>
 
-          {/* Flight Details */}
-          <div className="mb-8">
-            <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-widest mb-4">Flight Details</h3>
-            <div className="space-y-3">
-              <div className="p-4 rounded-lg bg-gradient-to-br from-amber-100/50 to-orange-100/50 border border-amber-300/50">
-                <p className="text-xs text-stone-600 mb-2">Outbound Flight</p>
-                <p className="text-lg font-semibold text-stone-900 mb-1">DEP 08:30 → ARR 18:45</p>
-                <p className="text-sm text-stone-700">Direct Flight • 14h 15m</p>
-                <p className="text-sm text-stone-700">Departure: New York (JFK)</p>
-              </div>
-              <div className="p-4 rounded-lg bg-gradient-to-br from-amber-100/50 to-orange-100/50 border border-amber-300/50">
-                <p className="text-xs text-stone-600 mb-2">Return Flight</p>
-                <p className="text-lg font-semibold text-stone-900 mb-1">DEP 14:20 → ARR 04:30+1</p>
-                <p className="text-sm text-stone-700">Direct Flight • 15h 10m</p>
-                <p className="text-sm text-stone-700">Arrival: New York (JFK)</p>
-              </div>
-              <div className="p-4 rounded-lg bg-stone-100 border border-stone-300/50">
-                <p className="text-xs text-stone-600 mb-1">Estimated Flight Cost</p>
-                <p className="text-2xl font-bold text-amber-700">$450 - $850</p>
-              </div>
-            </div>
-          </div>
-
           {/* Trip Summary */}
           <div className="mb-8 p-4 rounded-lg bg-gradient-to-r from-amber-100/60 to-orange-100/60 border border-amber-300/50">
             <p className="text-sm font-semibold text-stone-800 mb-3">7-Day Trip Estimate</p>
@@ -218,10 +257,108 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
             </div>
           </div>
 
-          {/* CTA */}
-          <button className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-400 hover:from-amber-600 hover:to-orange-500 text-white font-semibold rounded-lg transition-all duration-200">
-            Book This Trip
-          </button>
+          {/* Flight Details */}
+          <div className="mb-8">
+            <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-widest mb-4">Available Flights</h3>
+            {loadingFlights ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="text-stone-600 text-sm">Loading flights...</div>
+              </div>
+            ) : flights.length > 0 ? (
+              <div className="space-y-4">
+                {flights.map((flight, index) => {
+                  const affiliateUrl = affiliateLinks[flight.link]
+                  const departureTime = formatDateTime(flight.departure_at)
+                  const departureDate = formatDate(flight.departure_at)
+                  const returnTime = formatDateTime(flight.return_at)
+                  const returnDate = formatDate(flight.return_at)
+                  const flightDuration = formatDuration(flight.duration)
+                  const stayDuration = calculateStayDuration(flight.departure_at, flight.return_at)
+                  const isDirectFlight = flight.transfers === 0
+                  
+                  // Badge labels and colors for each flight
+                  const badges = [
+                    { label: 'Recommended', color: 'bg-amber-600', emoji: '⭐' },
+                    { label: 'Popular', color: 'bg-yellow-600', emoji: '🔥' },
+                    { label: 'May be of interest', color: 'bg-orange-600', emoji: '✨' }
+                  ]
+                  
+                  // Card gradient colors
+                  const cardColors = [
+                    'from-amber-100/60 to-orange-100/60 border-amber-300/50',
+                    'from-yellow-100/60 to-amber-100/60 border-yellow-300/50',
+                    'from-orange-100/60 to-red-100/60 border-orange-300/50'
+                  ]
+                  
+                  const badge = badges[index]
+                  const cardColor = cardColors[index]
+                  
+                  return (
+                    <div key={flight.flight_number + index} className={`p-5 rounded-lg bg-gradient-to-br ${cardColor} border transition-all hover:shadow-lg`}>
+                      {/* Badge */}
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white ${badge.color}`}>
+                          {badge.emoji} {badge.label}
+                        </span>
+                        <p className="text-2xl font-bold text-amber-800">€{flight.price}</p>
+                      </div>
+                      
+                      {/* Flight Route */}
+                      <div className="mb-4">
+                        <p className="text-lg font-semibold text-stone-900">
+                          {flight.origin} → {flight.destination}
+                        </p>
+                        <p className="text-xs text-stone-600">
+                          {isDirectFlight ? 'Direct Flight' : `${flight.transfers} Stop${flight.transfers > 1 ? 's' : ''}`} • {flight.airline} • {flightDuration}
+                        </p>
+                      </div>
+                      
+                      {/* Flight Details */}
+                      <div className="space-y-2 text-sm mb-4">
+                        <div className="flex justify-between text-stone-700">
+                          <span>Outbound:</span>
+                          <span className="font-semibold">{departureDate} at {departureTime}</span>
+                        </div>
+                        <div className="flex justify-between text-stone-700">
+                          <span>Return:</span>
+                          <span className="font-semibold">{returnDate} at {returnTime}</span>
+                        </div>
+                        <div className="flex justify-between text-stone-700">
+                          <span>Stay Duration:</span>
+                          <span className="font-semibold">{stayDuration} {stayDuration === 1 ? 'day' : 'days'}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Book Button */}
+                      {affiliateUrl ? (
+                        <a
+                          href={affiliateUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                        >
+                          <span>Book</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </a>
+                      ) : (
+                        <button
+                          disabled
+                          className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed"
+                        >
+                          <span>Book</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center p-8 bg-stone-100 rounded-lg border border-stone-200">
+                <div className="text-stone-500 text-sm">No flights available</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>

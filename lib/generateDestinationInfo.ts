@@ -30,6 +30,8 @@ export interface Destination {
   description?: string[]
   imagesKeywords?: ImageKeywords
   pricing?: DestinationPricing
+  recommendedDuration?: string
+  destinationAirportCode?: string
 }
 
 export interface GenerateDestinationParams {
@@ -77,6 +79,8 @@ For each destination provide:
    - Accommodation (budget/mid-range/luxury range)
    - Food (typical daily cost)
    - Activities (cost for their specific interests)
+6. Recommended duration (in days)
+7. Airport code for the main international airport in the destination country (IATA code)
 
 
 Format STRICTLY as JSON array:
@@ -100,7 +104,9 @@ Format STRICTLY as JSON array:
       "accommodation": "20-40",
       "food": "15-30",
       "activities": "30-50"
-    }
+    },
+    "recommendedDuration": "7",
+    "destinationAirportCode": "HND"
   }
 ]
 
@@ -132,7 +138,7 @@ export async function generateSuitableCountries(
     }
 
     const { text } = await generateText({
-      model: google('gemini-2.5-flash'),
+      model: google('gemini-2.0-flash'),
       system: COUNTRIES_SYSTEM_PROMPT,
       prompt: prompt,
     })
@@ -180,7 +186,7 @@ export async function generateSuitableDestinationInfo(
     }
 
     const { text } = await generateText({
-      model: google('gemini-2.5-flash'),
+      model: google('gemini-2.0-flash'),
       system: SYSTEM_PROMPT,
       prompt: prompt,
     })
