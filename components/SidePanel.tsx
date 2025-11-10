@@ -1,10 +1,12 @@
 'use client'
 
 import { X } from 'lucide-react'
-import type { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination, UnsplashImage } from '@/lib/generateDestinationInfo'
+import { fetchUnsplashImages } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useEffect, useState } from 'react'
 
 interface SidePanelProps {
   destination: Destination | null
@@ -21,6 +23,52 @@ function parsePricing(value: string | number): number {
 }
 
 export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
+  const [images, setImages] = useState<UnsplashImage[]>([])
+  const [loadingImages, setLoadingImages] = useState(false)
+  const [coverImage, setCoverImage] = useState<UnsplashImage | null>(null)
+  const [loadingCover, setLoadingCover] = useState(false)
+
+  useEffect(() => {
+    async function loadImages() {
+      if (destination?.imagesKeywords?.gallery) {
+        setLoadingImages(true)
+        try {
+          const fetchedImages = await fetchUnsplashImages(destination.imagesKeywords.gallery, 10)
+          setImages(fetchedImages)
+        } catch (error) {
+          console.error('Error loading images:', error)
+          setImages([])
+        } finally {
+          setLoadingImages(false)
+        }
+      } else {
+        setImages([])
+      }
+    }
+
+    async function loadCoverImage() {
+      if (destination?.imagesKeywords?.cover) {
+        setLoadingCover(true)
+        try {
+          const fetchedImages = await fetchUnsplashImages(destination.imagesKeywords.cover, 1)
+          setCoverImage(fetchedImages[0] || null)
+        } catch (error) {
+          console.error('Error loading cover image:', error)
+          setCoverImage(null)
+        } finally {
+          setLoadingCover(false)
+        }
+      } else {
+        setCoverImage(null)
+      }
+    }
+
+    if (isOpen && destination) {
+      loadCoverImage()
+      loadImages()
+    }
+  }, [destination, isOpen])
+
   if (!destination) return null
 
   const accommodationPrice = parsePricing(destination.pricing?.accommodation || 0)
@@ -35,6 +83,22 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
+        {/* Cover Image */}
+        {loadingCover ? (
+          <div className="w-full h-64 bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+            <div className="text-stone-600 text-sm">Loading cover...</div>
+          </div>
+        ) : coverImage ? (
+          <div className="w-full h-64 relative overflow-hidden">
+            <img
+              src={coverImage.urls.regular}
+              alt={coverImage.altDescription}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-transparent to-transparent" />
+          </div>
+        ) : null}
+
         <div className="p-8">
           {/* Header */}
           <div className="flex items-start justify-between mb-8">
@@ -57,6 +121,32 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Image Gallery */}
+          <div className="mb-8">
+            <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-widest mb-3">Gallery</h3>
+            {loadingImages ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="text-stone-600 text-sm">Loading images...</div>
+              </div>
+            ) : images.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                {images.map((image) => (
+                  <div key={image.id} className="relative aspect-square rounded-lg overflow-hidden border border-amber-200/50 hover:border-amber-300 transition-colors">
+                    <img
+                      src={image.urls.small}
+                      alt={image.altDescription}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center p-8 bg-stone-100 rounded-lg border border-stone-200">
+                <div className="text-stone-500 text-sm">No images available</div>
+              </div>
+            )}
           </div>
 
           {/* Pricing Details */}
