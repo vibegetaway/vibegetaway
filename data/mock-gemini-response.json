@@ -1,0 +1,202 @@
+[
+  {
+    "country": "MEX",
+    "region": "Yucatan Peninsula",
+    "description": [
+      "✨ **World-Class Cave Diving**: Explore the extensive network of freshwater cenotes (underwater sinkholes) like Dos Ojos, El Pit, and Angelita, renowned globally for their stunning formations and crystal-clear visibility.",
+      "🌊 **Ideal November Conditions**: November marks the end of hurricane season and the beginning of the dry season, offering stable weather, comfortable water temperatures (around 26-28°C / 79-82°F), and fewer crowds than peak winter months.",
+      "🐠 **Unique Geological Formations**: Witness breathtaking stalactites, stalagmites, and haloclines (where fresh and saltwater meet), creating surreal visual effects unique to these ancient Mayan sacred sites.",
+      "🏛️ **Rich Cultural Experience**: Combine your diving adventure with visits to nearby Mayan ruins such as Tulum, Chichen Itza, or Coba, offering a glimpse into ancient civilizations.",
+      "🍔 **Vibrant Food Scene**: Savor authentic Mexican cuisine, from street tacos and cochinita pibil to fresh seafood, especially in towns like Tulum and Playa del Carmen."
+    ],
+    "imagesKeywords": {
+      "cover": "yucatan cenote diving underwater",
+      "gallery": "cenote cave diving mexico tulum underwater formations"
+    },
+    "pricing": {
+      "accommodation": "40-150",
+      "food": "25-60",
+      "activities": "200-450"
+    }
+  },
+  {
+    "country": "USA",
+    "region": "North Florida",
+    "description": [
+      "✨ **Freshwater Cave Diving Mecca**: Dive into some of the world's most extensive and challenging freshwater cave systems, including Ginnie Springs, Peacock Springs, and Devil's Den, offering diverse experiences for all certification levels.",
+      "🌊 **Excellent November Visibility**: November typically brings cooler air temperatures but stable water conditions, ensuring excellent visibility in the springs and caves, which remain a constant 22°C (72°F) year-round.",
+      "🐠 **Diverse Underwater Ecosystems**: Encounter unique aquatic life adapted to spring environments, alongside intricate geological features and ancient fossils embedded in the limestone.",
+      "🎓 **Premier Training Ground**: Florida is a hub for cave diving training and certification, with numerous experienced instructors and dive shops catering to technical divers.",
+      "🍔 **Southern Comfort Food**: Enjoy classic American Southern cuisine in local diners and restaurants, from BBQ to fresh seafood, in towns like High Springs and Live Oak."
+    ],
+    "imagesKeywords": {
+      "cover": "florida cave diving ginnie springs",
+      "gallery": "florida springs underwater caves technical diving"
+    },
+    "pricing": {
+      "accommodation": "50-180",
+      "food": "30-70",
+      "activities": "250-500"
+    }
+  },
+  {
+    "country": "BHS",
+    "region": "Andros & Long Island",
+    "description": [
+      "✨ **Oceanic Blue Hole Exploration**: Discover the unique geological wonders of the Bahamas' blue holes, such as Dean's Blue Hole (one of the deepest in the world) and the extensive systems on Andros Island, offering both ocean and inland cave diving.",
+      "🌊 **Post-Hurricane Season Calm**: November offers excellent diving conditions with calm seas and warm water temperatures (around 26-28°C / 79-82°F), after the peak hurricane season has passed.",
+      "🐠 **Diverse Marine Life**: Experience the vibrant coral reefs and abundant marine life surrounding the blue holes, often visible from the cave entrances.",
+      "🏝️ **Secluded Island Charm**: Enjoy the tranquility and natural beauty of less-developed islands, perfect for a focused diving trip away from mass tourism.",
+      "🍔 **Fresh Seafood Delights**: Indulge in fresh conch salad, grilled fish, and other Bahamian specialties, often prepared with local spices and flavors."
+    ],
+    "imagesKeywords": {
+      "cover": "bahamas blue hole diving",
+      "gallery": "dean's blue hole andros underwater caves bahamas"
+    },
+    "pricing": {
+      "accommodation": "80-250",
+      "food": "40-90",
+      "activities": "300-600"
+    }
+  },
+  {
+    "country": "AUS",
+    "region": "Mount Gambier, South Australia",
+    "description": [
+      "✨ **Limestone Coast Sinkholes**: Dive into the crystal-clear freshwater sinkholes and caves of the Limestone Coast, including world-renowned sites like Kilsby Sinkhole, Piccaninnie Ponds, and the Ewens Ponds.",
+      "🌊 **Spring/Early Summer Conditions**: November is late spring/early summer in Australia, offering pleasant weather for surface activities and consistent water temperatures (around 15-18°C / 59-64°F) in the caves, requiring dry suits.",
+      "🐠 **Exceptional Visibility**: Experience unparalleled visibility, often exceeding 40 meters (130 feet), allowing for stunning views of the underwater forests and geological formations.",
+      "🎓 **Strict Safety Standards**: Australia has very high safety standards for cave diving, ensuring a well-regulated and professional diving experience.",
+      "🍔 **Local Produce & Wine**: Savor fresh local produce, including seafood, and explore the Coonawarra wine region nearby for excellent food and wine pairings."
+    ],
+    "imagesKeywords": {
+      "cover": "mount gambier cave diving kilsby sinkhole",
+      "gallery": "australia freshwater caves piccaninnie ponds underwater"
+    },
+    "pricing": {
+      "accommodation": "60-200",
+      "food": "35-80",
+      "activities": "250-550"
+    }
+  },
+  {
+    "country": "DOM",
+    "region": "Samaná Peninsula & Bayahibe",
+    "description": [
+      "✨ **Caribbean Cave Systems**: Explore a variety of freshwater and brackish water caves and cenotes, offering a less crowded alternative to Mexico with unique Caribbean geological features.",
+      "🌊 **Warm November Waters**: Enjoy warm water temperatures (around 27-29°C / 81-84°F) and generally calm conditions in November, ideal for comfortable diving.",
+      "🐠 **Hidden Gems**: Discover lesser-known but equally stunning underwater environments, often surrounded by lush tropical vegetation.",
+      "🏝️ **Tropical Paradise**: Combine your diving with the vibrant culture and beautiful beaches of the Dominican Republic, offering a relaxing post-dive experience.",
+      "🍔 **Creole & Caribbean Flavors**: Indulge in delicious Dominican cuisine, featuring fresh seafood, plantains, rice and beans, and tropical fruits."
+    ],
+    "imagesKeywords": {
+      "cover": "dominican republic cenote diving",
+      "gallery": "dominican republic underwater caves samana bayahibe"
+    },
+    "pricing": {
+      "accommodation": "50-180",
+      "food": "25-65",
+      "activities": "180-400"
+    }
+  },
+  {
+    "country": "BRA",
+    "region": "Bonito, Mato Grosso do Sul",
+    "description": [
+      "✨ **Crystal-Clear Freshwater Diving**: Experience the incredibly clear waters of Bonito's rivers and caves, famous for their high visibility and unique underwater landscapes, including the Gruta do Lago Azul (Blue Lake Cave).",
+      "🌊 **Springtime Beauty**: November is spring in Bonito, offering pleasant weather and optimal conditions for exploring the region's natural attractions, with water temperatures around 24-26°C (75-79°F).",
+      "🐠 **Abundant Freshwater Fish**: Dive alongside schools of colorful freshwater fish in the rivers and explore the geological wonders of the submerged caves and sinkholes.",
+      "🌿 **Ecotourism Hub**: Bonito is a renowned ecotourism destination, offering a range of activities beyond diving, such as snorkeling, river tubing, and wildlife spotting in the Pantanal wetlands.",
+      "🍔 **Brazilian Regional Cuisine**: Savor delicious regional dishes, often featuring fresh fish from the rivers, local meats, and tropical fruits."
+    ],
+    "imagesKeywords": {
+      "cover": "bonito brazil underwater cave",
+      "gallery": "gruta do lago azul bonito freshwater diving brazil"
+    },
+    "pricing": {
+      "accommodation": "40-150",
+      "food": "20-55",
+      "activities": "150-350"
+    }
+  },
+  {
+    "country": "ITA",
+    "region": "Sardinia",
+    "description": [
+      "✨ **Mediterranean Sea Caves**: Explore the dramatic sea caves and grottoes along Sardinia's coastline, particularly around Cala Gonone and the Gulf of Orosei, offering unique marine cave diving experiences.",
+      "🌊 **Autumn Diving**: November offers cooler but still manageable water temperatures (around 18-20°C / 64-68°F), with fewer tourists, providing a more serene diving environment. A wetsuit of 7mm or dry suit is recommended.",
+      "🐠 **Historical Wrecks & Formations**: Discover a mix of natural cave formations and historical wrecks often found near cave entrances, adding another layer of interest to your dives.",
+      "⛰️ **Stunning Coastal Scenery**: Enjoy the rugged beauty of Sardinia's coastline, with its towering cliffs, hidden coves, and pristine beaches.",
+      "🍔 **Sardinian Culinary Delights**: Indulge in unique Sardinian cuisine, known for its fresh seafood, traditional pasta dishes, roasted meats, and excellent local wines."
+    ],
+    "imagesKeywords": {
+      "cover": "sardinia sea cave diving",
+      "gallery": "cala gonone underwater grotto sardinia diving"
+    },
+    "pricing": {
+      "accommodation": "60-200",
+      "food": "35-80",
+      "activities": "180-400"
+    }
+  },
+  {
+    "country": "HRV",
+    "region": "Vis Island & Velebit",
+    "description": [
+      "✨ **Adriatic Underwater Caves**: Discover a range of underwater caves and grottoes in the Adriatic Sea, including the famous Blue Cave (Modra špilja) near Vis Island, offering stunning light effects and unique geological features.",
+      "🌊 **Off-Season Tranquility**: November is off-season, meaning fewer crowds and a more peaceful experience. Water temperatures are cooler (around 16-18°C / 61-64°F), requiring appropriate thermal protection (dry suit or thick wetsuit).",
+      "🐠 **Historical & Natural Wonders**: Explore caves that often hold historical significance or are part of larger natural parks, combining diving with cultural exploration.",
+      "🏞️ **Dramatic Landscapes**: The Croatian coast and islands offer breathtaking scenery, with limestone cliffs and clear waters, providing a beautiful backdrop for your trip.",
+      "🍔 **Mediterranean & Balkan Flavors**: Enjoy fresh seafood, olive oil, and local wines, alongside hearty Balkan-influenced dishes, especially in coastal towns."
+    ],
+    "imagesKeywords": {
+      "cover": "croatia blue cave diving",
+      "gallery": "vis island underwater caves croatia adriatic diving"
+    },
+    "pricing": {
+      "accommodation": "40-150",
+      "food": "30-70",
+      "activities": "150-350"
+    }
+  },
+  {
+    "country": "PHL",
+    "region": "Coron, Palawan",
+    "description": [
+      "✨ **Wreck & Cavern Diving**: While primarily known for its WWII wreck diving, Coron also offers fascinating cavern and limited cave penetration opportunities within some wrecks and natural formations like Barracuda Lake.",
+      "🌊 **Dry Season Diving**: November marks the beginning of the dry season, ensuring excellent weather, calm seas, and warm water temperatures (around 27-29°C / 81-84°F), ideal for diving.",
+      "🐠 **Unique Thermoclines**: Experience the dramatic thermoclines in Barracuda Lake, where layers of hot and cold water create a surreal underwater environment.",
+      "🏝️ **Island Hopping & Lagoons**: Combine your diving with exploring Coron's stunning limestone karsts, hidden lagoons, and pristine beaches, perfect for surface intervals.",
+      "🍔 **Filipino & Fresh Seafood**: Savor fresh seafood barbecues, traditional Filipino dishes like adobo and sinigang, and tropical fruits, often enjoyed in scenic island settings."
+    ],
+    "imagesKeywords": {
+      "cover": "coron palawan wreck diving underwater",
+      "gallery": "barracuda lake coron palawan cavern diving"
+    },
+    "pricing": {
+      "accommodation": "30-120",
+      "food": "20-50",
+      "activities": "150-300"
+    }
+  },
+  {
+    "country": "THA",
+    "region": "Krabi & Phang Nga",
+    "description": [
+      "✨ **Limestone Karst Caverns**: Explore the dramatic sea caves and caverns formed within the iconic limestone karsts of Krabi and Phang Nga Bay, offering stunning underwater landscapes and light effects.",
+      "🌊 **Perfect Dry Season**: November is the start of the dry season, providing excellent weather, calm seas, and warm water temperatures (around 28-30°C / 82-86°F), ideal for comfortable diving and boat trips.",
+      "🐠 **Biodiverse Marine Life**: Encounter a rich variety of marine life in the surrounding reefs and within the cavern entrances, adding to the visual spectacle.",
+      "🛶 **Scenic Boat Tours**: Combine diving with kayaking or longtail boat tours through the majestic bays, exploring hidden lagoons and sea caves from the surface.",
+      "🍔 **Authentic Thai Cuisine**: Indulge in world-renowned Thai food, from spicy curries and fresh seafood to aromatic stir-fries, available at local markets and restaurants."
+    ],
+    "imagesKeywords": {
+      "cover": "krabi sea cave diving thailand",
+      "gallery": "phang nga bay underwater caverns thailand diving"
+    },
+    "pricing": {
+      "accommodation": "25-100",
+      "food": "15-40",
+      "activities": "120-250"
+    }
+  }
+]

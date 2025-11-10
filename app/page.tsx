@@ -4,7 +4,10 @@ import { AnimatedVibeInput } from '@/components/AnimatedVibeInput'
 import { MonthSelect } from '@/components/MonthSelect'
 import WorldMap from '@/components/WorldMap'
 import { useState, useEffect, useRef } from 'react'
-import { generateSuitableCountries, type Destination } from '@/lib/generateDestinationInfo'
+import { generateSuitableDestinationInfo, type Destination } from '@/lib/generateDestinationInfo'
+import mockDestinations from '@/data/mock-gemini-response.json'
+
+const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
 
 function useDebouncedValue<T>(value: T, delay = 500) {
   const [debounced, setDebounced] = useState(value)
@@ -18,8 +21,8 @@ function useDebouncedValue<T>(value: T, delay = 500) {
 export default function Home() {
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [loading, setLoading] = useState(false)
-  const [vibe, setVibe] = useState('')
-  const [month, setMonth] = useState('')
+  const [vibe, setVibe] = useState(isDev ? 'climb' : '')
+  const [month, setMonth] = useState(isDev ? 'November' : '')
 
   // Debounced input (500ms)
   const debouncedVibe = useDebouncedValue(vibe, 500)
@@ -35,7 +38,7 @@ export default function Home() {
     setDestinations([])
 
     try {
-      const result = await generateSuitableCountries({
+      const result = await generateSuitableDestinationInfo({
         vibe: v,
         timePeriod: m,
       })
@@ -53,6 +56,13 @@ export default function Home() {
   }
 
   useEffect(() => {
+    if (isDev && debouncedVibe === 'climb' && month === 'November') {
+      console.log('[DEV MODE] Skipping API call for initial values, using pre-loaded mock data:', mockDestinations)
+      setDestinations(mockDestinations as Destination[])
+      setLoading(false)
+      return
+    }
+    
     handleFindDestinations(debouncedVibe, month)
   }, [debouncedVibe, month])
 
@@ -74,7 +84,7 @@ export default function Home() {
       </div>
       <WorldMap
         loading={loading}
-        highlightedCountries={destinations.map(dest => dest.country)}
+        destinations={destinations}
       />
     </main>
   )

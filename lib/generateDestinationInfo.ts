@@ -4,19 +4,31 @@ import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
 
 export interface DestinationPricing {
-  accommodation: {
-    budget: string
-    midRange: string
-    luxury: string
-  }
+  accommodation: string
   food: string
   activities: string
+}
+
+export interface UnsplashImage {
+  id: string
+  urls: {
+    small: string
+    regular: string
+    full: string
+  }
+  altDescription: string
+}
+
+export interface ImageKeywords {
+  cover?: string
+  gallery?: string
 }
 
 export interface Destination {
   country: string
   region?: string
   description?: string[]
+  imagesKeywords?: ImageKeywords
   pricing?: DestinationPricing
 }
 
@@ -27,17 +39,11 @@ export interface GenerateDestinationParams {
   from?: string
 }
 
-// Helper function to strip markdown code fences from JSON responses
+// Helper function to strip markdown code fences from JSON responses (```json, ```JSON, or just ```)
 function stripMarkdownFences(text: string): string {
-  // Remove markdown code fences (```json, ```, etc.)
   let cleaned = text.trim()
-  
-  // Remove opening fence (```json, ```JSON, or just ```)
   cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  
-  // Remove closing fence
   cleaned = cleaned.replace(/\n?```$/, '')
-  
   return cleaned.trim()
 }
 
@@ -58,43 +64,45 @@ You are a travel destination expert. Analyze free-form text about travel prefere
 Parse for: activities/interests, timing/season, budget, travel style, climate/geography preferences.
 
 For each destination provide:
-1. Country name
+1. Country (ISO 3166-1 alpha-3 code)
 2. Region/city name  
 3. Description with 4-6 bullet points covering:
-   - Why it matches their specific interests and activities
+   - Why it matches their specific interests and activities. Focus on what they want to do, not generic tourist information.
    - Seasonal suitability and timing
+   - Tailor descriptions to user's stated interests. 
    - Key cultural sites and landmarks
    - Food scene highlights
-   - Local atmosphere (markets, street life)
-   - Nightlife or unique features (if relevant)
-4. Price estimates (in USD per day):
+   - Use markdown formatting for bullet points.
+4. Image keywords object with:
+   - cover: 2-3 keywords for the country and region.
+   - gallery: 3-5 keywords that describe the destination, region and activities the user wants to do
+5. Price estimates (in USD per day):
    - Accommodation (budget/mid-range/luxury range)
    - Food (typical daily cost)
    - Activities (cost for their specific interests)
 
-Tailor descriptions to user's stated interests. Focus on what they want to do, not generic tourist information.
 
 Format STRICTLY as JSON array:
 
 [
   {
-    "country": "ISO 3166-1 alpha-3 country code",
-    "region": "Region or City Name",
+    "country": "JPN",
+    "region": "Tokyo",
     "description": [
-      "Bullet point 1 — Description",
-      "Bullet point 2 — Description",
-      "Bullet point 3 — Description",
-      "Bullet point 4 — Description",
-      "Bullet point 5 — Description"
+      "✨ **Highlight 1**: Description 1",
+      "🌊 **Highlight 2**: Description 2",
+      "🍔 **Highlight 3**: Description 3",
+      "🎉 **Highlight 4**: Description 4",
+      "🎆 **Highlight 5**: Description 5"
     ],
+    "imagesKeywords": {
+      "cover": "japan tokyo",
+      "gallery": "tokyo street food sushi ramen shibuya"
+    },
     "pricing": {
-      "accommodation": {
-        "budget": 20-40,
-        "midRange": 60-100,
-        "luxury": 150-300
-      },
-      "food": 15-30,
-      "activities": 30-50
+      "accommodation": "20-40",
+      "food": "15-30",
+      "activities": "30-50"
     }
   }
 ]
@@ -192,6 +200,52 @@ export async function generateSuitableDestinationInfo(
         ? `Failed to generate destination info: ${error.message}`
         : 'Failed to generate destination info'
     )
+  }
+}
+
+export async function fetchUnsplashImages(
+  keywords: string,
+  limit: number = 10
+): Promise<UnsplashImage[]> {
+  try {
+    const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY
+    
+    if (!UNSPLASH_ACCESS_KEY) {
+      console.error('UNSPLASH_ACCESS_KEY environment variable is not set')
+      return []
+    }
+    
+    if (!keywords || keywords.trim().length === 0) {
+      console.warn('No keywords provided for Unsplash search')
+      return []
+    }
+
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(keywords)}&per_page=${limit}`
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`Unsplash API error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    
+    return data.results.map((photo: any) => ({
+      id: photo.id,
+      urls: {
+        small: photo.urls.small,
+        regular: photo.urls.regular,
+        full: photo.urls.full
+      },
+      altDescription: photo.alt_description || 'Destination image'
+    }))
+  } catch (error) {
+    console.error('Error fetching Unsplash images:', error)
+    return []
   }
 }
 
