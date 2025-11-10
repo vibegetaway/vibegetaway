@@ -69,9 +69,6 @@ For each destination provide:
 3. Description with 4-6 bullet points covering:
    - Why it matches their specific interests and activities. Focus on what they want to do, not generic tourist information.
    - Seasonal suitability and timing
-   - Tailor descriptions to user's stated interests. 
-   - Key cultural sites and landmarks
-   - Food scene highlights
    - Use markdown formatting for bullet points.
 4. Image keywords object with:
    - cover: 2-3 keywords for the country and region.
