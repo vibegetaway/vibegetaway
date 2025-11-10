@@ -19,7 +19,7 @@ function useDebouncedValue<T>(value: T, delay = 500) {
 }
 
 export default function Home() {
-  const [destinations, setDestinations] = useState<Destination[]>(isDev ? mockDestinations as Destination[] : [])
+  const [destinations, setDestinations] = useState<Destination[]>([])
   const [loading, setLoading] = useState(false)
   const [vibe, setVibe] = useState(isDev ? 'climb' : '')
   const [month, setMonth] = useState(isDev ? 'November' : '')
@@ -29,20 +29,9 @@ export default function Home() {
 
   // Ensure only the latest async call updates state
   const callIdRef = useRef(0)
-  
-  // Track if this is the initial load (for dev mode only)
-  const isInitialLoadRef = useRef(true)
 
   const handleFindDestinations = async (v: string, m: string) => {
     if (!v.trim() || !m) return
-
-    // In dev mode, use mock data only on initial load
-    if (isDev && isInitialLoadRef.current) {
-      console.log(`[DEV MODE] Using mock data for initial load: Vibe: ${v}, Month: ${m}`)
-      setDestinations(mockDestinations as Destination[])
-      isInitialLoadRef.current = false
-      return
-    }
 
     const callId = ++callIdRef.current
     setLoading(true)
@@ -67,6 +56,13 @@ export default function Home() {
   }
 
   useEffect(() => {
+    if (isDev && debouncedVibe === 'climb' && month === 'November') {
+      console.log('[DEV MODE] Skipping API call for initial values, using pre-loaded mock data:', mockDestinations)
+      setDestinations(mockDestinations as Destination[])
+      setLoading(false)
+      return
+    }
+    
     handleFindDestinations(debouncedVibe, month)
   }, [debouncedVibe, month])
 
