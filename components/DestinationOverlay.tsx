@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Destination } from '@/lib/generateDestinationInfo'
+import { getCountryName } from '@/lib/countryCodeMapping'
 
 interface DestinationOverlayProps {
   destination: Destination
@@ -47,10 +48,10 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
     setPosition({ x, y })
   }, [mousePosition])
 
-  const budgetPrice = parsePricing(destination.pricing.accommodation.budget)
-  const midRangePrice = parsePricing(destination.pricing.accommodation.midRange)
-  const foodPrice = parsePricing(destination.pricing.food)
-  const activitiesPrice = parsePricing(destination.pricing.activities)
+  const budgetPrice = parsePricing(destination.pricing?.accommodation.budget || 0)
+  const midRangePrice = parsePricing(destination.pricing?.accommodation.midRange || 0)
+  const foodPrice = parsePricing(destination.pricing?.food || 0)
+  const activitiesPrice = parsePricing(destination.pricing?.activities || 0)
 
   return (
     <div
@@ -68,7 +69,7 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
 
           <div className="p-6 space-y-5">
             <div>
-              <h3 className="text-2xl font-bold text-stone-900 mb-2">{destination.country}</h3>
+              <h3 className="text-2xl font-bold text-stone-900 mb-2">{getCountryName(destination.country)}</h3>
               <div className="flex items-center gap-2 text-sm text-stone-600">
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -88,7 +89,7 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
               </div>
             </div>
 
-            {destination.description[0] && (
+            {destination.description?.[0] && (
               <p className="text-sm leading-relaxed text-stone-700">{destination.description[0]}</p>
             )}
 
@@ -105,7 +106,7 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
                     <span className="text-xs font-medium text-stone-700">Accommodation</span>
                   </div>
                   <span className="text-sm font-semibold text-amber-700">
-                    ${destination.pricing.accommodation.budget} - ${destination.pricing.accommodation.midRange}
+                    ${destination.pricing?.accommodation.budget || 0} - ${destination.pricing?.accommodation.midRange || 0}
                   </span>
                 </div>
 
@@ -117,7 +118,7 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
                     </svg>
                     <span className="text-xs font-medium text-stone-700">Food & Dining</span>
                   </div>
-                  <span className="text-sm font-semibold text-orange-700">${destination.pricing.food}/day</span>
+                  <span className="text-sm font-semibold text-orange-700">${destination.pricing?.food || 0}/day</span>
                 </div>
 
                 {/* Activities */}
@@ -128,7 +129,7 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
                     </svg>
                     <span className="text-xs font-medium text-stone-700">Activities</span>
                   </div>
-                  <span className="text-sm font-semibold text-yellow-700">${destination.pricing.activities}/day</span>
+                  <span className="text-sm font-semibold text-yellow-700">${destination.pricing?.activities || 0}/day</span>
                 </div>
 
                 {/* Total */}

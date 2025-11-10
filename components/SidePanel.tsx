@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react'
 import type { Destination } from '@/lib/generateDestinationInfo'
+import { getCountryName } from '@/lib/countryCodeMapping'
 
 interface SidePanelProps {
   destination: Destination | null
@@ -20,32 +21,24 @@ function parsePricing(value: string | number): number {
 export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
   if (!destination) return null
 
-  const budgetPrice = parsePricing(destination.pricing.accommodation.budget)
-  const midRangePrice = parsePricing(destination.pricing.accommodation.midRange)
-  const foodPrice = parsePricing(destination.pricing.food)
-  const activitiesPrice = parsePricing(destination.pricing.activities)
+  const budgetPrice = parsePricing(destination.pricing?.accommodation.budget || 0)
+  const midRangePrice = parsePricing(destination.pricing?.accommodation.midRange || 0)
+  const foodPrice = parsePricing(destination.pricing?.food || 0)
+  const activitiesPrice = parsePricing(destination.pricing?.activities || 0)
 
   return (
     <>
-      {/* Backdrop - no blur so map stays clear */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 z-40 transition-opacity duration-300"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Panel - positioned on RIGHT side */}
+      {/* Panel - positioned on LEFT side, 1/4 width */}
       <div
-        className={`fixed right-0 top-0 h-screen w-full max-w-2xl bg-stone-50 border-l border-amber-200/50 shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed left-0 top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="p-8">
           {/* Header */}
           <div className="flex items-start justify-between mb-8">
             <div>
-              <h2 className="text-4xl font-bold text-stone-900 mb-2">{destination.country}</h2>
+              <h2 className="text-4xl font-bold text-stone-900 mb-2">{getCountryName(destination.country)}</h2>
               <p className="text-stone-600">{destination.region}</p>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-amber-100 rounded-lg transition-colors">
@@ -57,7 +50,7 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
           <div className="mb-8">
             <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-widest mb-3">About</h3>
             <div className="space-y-3">
-              {destination.description.map((desc, idx) => (
+              {destination.description?.map((desc, idx) => (
                 <p key={idx} className="text-stone-700 leading-relaxed">
                   {desc}
                 </p>
@@ -71,21 +64,27 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
             <div className="space-y-3">
               <div className="p-4 rounded-lg bg-amber-50 border border-amber-200/50">
                 <p className="text-xs text-stone-600 mb-1">Budget Accommodation</p>
-                <p className="text-2xl font-bold text-amber-700">${destination.pricing.accommodation.budget}/night</p>
+                <p className="text-2xl font-bold text-amber-700">${destination.pricing?.accommodation.budget || 0}/night</p>
               </div>
               <div className="p-4 rounded-lg bg-orange-50 border border-orange-200/50">
                 <p className="text-xs text-stone-600 mb-1">Mid-Range Accommodation</p>
                 <p className="text-2xl font-bold text-orange-700">
-                  ${destination.pricing.accommodation.midRange}/night
+                  ${destination.pricing?.accommodation.midRange || 0}/night
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-red-50 border border-red-200/50">
+                <p className="text-xs text-stone-600 mb-1">Luxury Accommodation</p>
+                <p className="text-2xl font-bold text-red-700">
+                  ${destination.pricing?.accommodation.luxury || 0}/night
                 </p>
               </div>
               <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200/50">
                 <p className="text-xs text-stone-600 mb-1">Food & Dining</p>
-                <p className="text-2xl font-bold text-yellow-700">${destination.pricing.food}/day</p>
+                <p className="text-2xl font-bold text-yellow-700">${destination.pricing?.food || 0}/day</p>
               </div>
               <div className="p-4 rounded-lg bg-amber-50 border border-amber-200/50">
                 <p className="text-xs text-stone-600 mb-1">Activities & Entertainment</p>
-                <p className="text-2xl font-bold text-amber-700">${destination.pricing.activities}/day</p>
+                <p className="text-2xl font-bold text-amber-700">${destination.pricing?.activities || 0}/day</p>
               </div>
             </div>
           </div>

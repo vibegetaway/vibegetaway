@@ -72,7 +72,9 @@ For each destination provide:
    - Food (typical daily cost)
    - Activities (cost for their specific interests)
 
-Tailor descriptions to user's stated interests. Focus on what they want to do, not generic tourist information.
+Tailor descriptions to user's stated interests. 
+Focus on what they want to do, not generic tourist information.
+Start every bullet with an emoji.
 
 Format STRICTLY as JSON array:
 
@@ -81,11 +83,11 @@ Format STRICTLY as JSON array:
     "country": "JPN",
     "region": "Tokyo",
     "description": [
-      "Bullet point 1 — Description",
-      "Bullet point 2 — Description",
-      "Bullet point 3 — Description",
-      "Bullet point 4 — Description",
-      "Bullet point 5 — Description"
+      "✨ Description 1",
+      "🌊 Description 2",
+      "🍔 Description 3",
+      "🎉 Description 4",
+      "🎆 Description 5"
     ],
     "pricing": {
       "accommodation": {
