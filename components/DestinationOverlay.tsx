@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface DestinationOverlayProps {
   destination: Destination
@@ -48,8 +50,8 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
     setPosition({ x, y })
   }, [mousePosition])
 
-  const budgetPrice = parsePricing(destination.pricing?.accommodation.budget || 0)
-  const midRangePrice = parsePricing(destination.pricing?.accommodation.midRange || 0)
+  // Parse accommodation range (e.g., "30-70" or "30")
+  const accommodationPrice = parsePricing(destination.pricing?.accommodation || 0)
   const foodPrice = parsePricing(destination.pricing?.food || 0)
   const activitiesPrice = parsePricing(destination.pricing?.activities || 0)
 
@@ -90,7 +92,9 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
             </div>
 
             {destination.description?.[0] && (
-              <p className="text-sm leading-relaxed text-stone-700">{destination.description[0]}</p>
+              <div className="text-sm leading-relaxed text-stone-700 prose prose-sm max-w-none prose-p:my-0">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{destination.description[0]}</ReactMarkdown>
+              </div>
             )}
 
             <div className="pt-2 border-t border-amber-200/50">
@@ -106,7 +110,7 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
                     <span className="text-xs font-medium text-stone-700">Accommodation</span>
                   </div>
                   <span className="text-sm font-semibold text-amber-700">
-                    ${destination.pricing?.accommodation.budget || 0} - ${destination.pricing?.accommodation.midRange || 0}
+                    ${destination.pricing?.accommodation || 0}/night
                   </span>
                 </div>
 
@@ -136,7 +140,7 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
                 <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-amber-100/60 to-orange-100/60 border border-amber-300/50">
                   <span className="text-xs font-semibold text-stone-800">Total Daily</span>
                   <span className="text-sm font-bold text-amber-800">
-                    ${budgetPrice + foodPrice + activitiesPrice} - ${midRangePrice + foodPrice + activitiesPrice}
+                    ${accommodationPrice + foodPrice + activitiesPrice}
                   </span>
                 </div>
               </div>

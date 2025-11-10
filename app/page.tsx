@@ -5,6 +5,9 @@ import { MonthSelect } from '@/components/MonthSelect'
 import WorldMap from '@/components/WorldMap'
 import { useState, useEffect, useRef } from 'react'
 import { generateSuitableDestinationInfo, type Destination } from '@/lib/generateDestinationInfo'
+import mockDestinations from '@/data/mock-gemini-response.json'
+
+const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
 
 function useDebouncedValue<T>(value: T, delay = 500) {
   const [debounced, setDebounced] = useState(value)
@@ -16,19 +19,30 @@ function useDebouncedValue<T>(value: T, delay = 500) {
 }
 
 export default function Home() {
-  const [destinations, setDestinations] = useState<Destination[]>([])
+  const [destinations, setDestinations] = useState<Destination[]>(isDev ? mockDestinations as Destination[] : [])
   const [loading, setLoading] = useState(false)
-  const [vibe, setVibe] = useState('')
-  const [month, setMonth] = useState('')
+  const [vibe, setVibe] = useState(isDev ? 'climb' : '')
+  const [month, setMonth] = useState(isDev ? 'November' : '')
 
   // Debounced input (500ms)
   const debouncedVibe = useDebouncedValue(vibe, 500)
 
   // Ensure only the latest async call updates state
   const callIdRef = useRef(0)
+  
+  // Track if this is the initial load (for dev mode only)
+  const isInitialLoadRef = useRef(true)
 
   const handleFindDestinations = async (v: string, m: string) => {
     if (!v.trim() || !m) return
+
+    // In dev mode, use mock data only on initial load
+    if (isDev && isInitialLoadRef.current) {
+      console.log(`[DEV MODE] Using mock data for initial load: Vibe: ${v}, Month: ${m}`)
+      setDestinations(mockDestinations as Destination[])
+      isInitialLoadRef.current = false
+      return
+    }
 
     const callId = ++callIdRef.current
     setLoading(true)

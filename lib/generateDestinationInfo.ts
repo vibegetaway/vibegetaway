@@ -4,11 +4,7 @@ import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
 
 export interface DestinationPricing {
-  accommodation: {
-    budget: string
-    midRange: string
-    luxury: string
-  }
+  accommodation: string
   food: string
   activities: string
 }
@@ -27,17 +23,11 @@ export interface GenerateDestinationParams {
   from?: string
 }
 
-// Helper function to strip markdown code fences from JSON responses
+// Helper function to strip markdown code fences from JSON responses (```json, ```JSON, or just ```)
 function stripMarkdownFences(text: string): string {
-  // Remove markdown code fences (```json, ```, etc.)
   let cleaned = text.trim()
-  
-  // Remove opening fence (```json, ```JSON, or just ```)
   cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  
-  // Remove closing fence
   cleaned = cleaned.replace(/\n?```$/, '')
-  
   return cleaned.trim()
 }
 
@@ -61,20 +51,17 @@ For each destination provide:
 1. Country (ISO 3166-1 alpha-3 code)
 2. Region/city name  
 3. Description with 4-6 bullet points covering:
-   - Why it matches their specific interests and activities
+   - Why it matches their specific interests and activities. Focus on what they want to do, not generic tourist information.
    - Seasonal suitability and timing
+   - Tailor descriptions to user's stated interests. 
    - Key cultural sites and landmarks
    - Food scene highlights
-   - Local atmosphere (markets, street life)
-   - Nightlife or unique features (if relevant)
+   - Use markdown formatting for bullet points.
 4. Price estimates (in USD per day):
    - Accommodation (budget/mid-range/luxury range)
    - Food (typical daily cost)
    - Activities (cost for their specific interests)
 
-Tailor descriptions to user's stated interests. 
-Focus on what they want to do, not generic tourist information.
-Start every bullet with an emoji.
 
 Format STRICTLY as JSON array:
 
@@ -83,18 +70,14 @@ Format STRICTLY as JSON array:
     "country": "JPN",
     "region": "Tokyo",
     "description": [
-      "✨ Description 1",
-      "🌊 Description 2",
-      "🍔 Description 3",
-      "🎉 Description 4",
-      "🎆 Description 5"
+      "✨ **Highlight 1**: Description 1",
+      "🌊 **Highlight 2**: Description 2",
+      "🍔 **Highlight 3**: Description 3",
+      "🎉 **Highlight 4**: Description 4",
+      "🎆 **Highlight 5**: Description 5"
     ],
     "pricing": {
-      "accommodation": {
-        "budget": "20-40",
-        "midRange": "60-100",
-        "luxury": "150-300"
-      },
+      "accommodation": "20-40",
       "food": "15-30",
       "activities": "30-50"
     }

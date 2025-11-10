@@ -3,6 +3,8 @@
 import { X } from 'lucide-react'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface SidePanelProps {
   destination: Destination | null
@@ -21,8 +23,7 @@ function parsePricing(value: string | number): number {
 export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
   if (!destination) return null
 
-  const budgetPrice = parsePricing(destination.pricing?.accommodation.budget || 0)
-  const midRangePrice = parsePricing(destination.pricing?.accommodation.midRange || 0)
+  const accommodationPrice = parsePricing(destination.pricing?.accommodation || 0)
   const foodPrice = parsePricing(destination.pricing?.food || 0)
   const activitiesPrice = parsePricing(destination.pricing?.activities || 0)
 
@@ -51,9 +52,9 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
             <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-widest mb-3">About</h3>
             <div className="space-y-3">
               {destination.description?.map((desc, idx) => (
-                <p key={idx} className="text-stone-700 leading-relaxed">
-                  {desc}
-                </p>
+                <div key={idx} className="text-stone-700 leading-relaxed prose prose-sm max-w-none prose-p:my-0 prose-strong:text-stone-900 prose-strong:font-semibold">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{desc}</ReactMarkdown>
+                </div>
               ))}
             </div>
           </div>
@@ -63,28 +64,16 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
             <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-widest mb-4">Pricing Details</h3>
             <div className="space-y-3">
               <div className="p-4 rounded-lg bg-amber-50 border border-amber-200/50">
-                <p className="text-xs text-stone-600 mb-1">Budget Accommodation</p>
-                <p className="text-2xl font-bold text-amber-700">${destination.pricing?.accommodation.budget || 0}/night</p>
-              </div>
-              <div className="p-4 rounded-lg bg-orange-50 border border-orange-200/50">
-                <p className="text-xs text-stone-600 mb-1">Mid-Range Accommodation</p>
-                <p className="text-2xl font-bold text-orange-700">
-                  ${destination.pricing?.accommodation.midRange || 0}/night
-                </p>
-              </div>
-              <div className="p-4 rounded-lg bg-red-50 border border-red-200/50">
-                <p className="text-xs text-stone-600 mb-1">Luxury Accommodation</p>
-                <p className="text-2xl font-bold text-red-700">
-                  ${destination.pricing?.accommodation.luxury || 0}/night
-                </p>
+                <p className="text-xs text-stone-600 mb-1">Accommodation Range</p>
+                <p className="text-2xl font-bold text-amber-700">${destination.pricing?.accommodation || 0}/night</p>
               </div>
               <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200/50">
                 <p className="text-xs text-stone-600 mb-1">Food & Dining</p>
                 <p className="text-2xl font-bold text-yellow-700">${destination.pricing?.food || 0}/day</p>
               </div>
-              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200/50">
+              <div className="p-4 rounded-lg bg-orange-50 border border-orange-200/50">
                 <p className="text-xs text-stone-600 mb-1">Activities & Entertainment</p>
-                <p className="text-2xl font-bold text-amber-700">${destination.pricing?.activities || 0}/day</p>
+                <p className="text-2xl font-bold text-orange-700">${destination.pricing?.activities || 0}/day</p>
               </div>
             </div>
           </div>
@@ -119,22 +108,21 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
               <div className="flex justify-between text-stone-700">
                 <span>Accommodation</span>
                 <span>
-                  ${budgetPrice * 7} - ${midRangePrice * 7}
+                  ${accommodationPrice * 7}/week
                 </span>
               </div>
               <div className="flex justify-between text-stone-700">
                 <span>Food</span>
-                <span>${foodPrice * 7}</span>
+                <span>${foodPrice * 7}/week</span>
               </div>
               <div className="flex justify-between text-stone-700">
                 <span>Activities</span>
-                <span>${activitiesPrice * 7}</span>
+                <span>${activitiesPrice * 7}/week</span>
               </div>
               <div className="border-t border-amber-300/50 pt-2 flex justify-between font-semibold text-amber-800">
                 <span>Total</span>
                 <span>
-                  ${budgetPrice * 7 + foodPrice * 7 + activitiesPrice * 7} - $
-                  {midRangePrice * 7 + foodPrice * 7 + activitiesPrice * 7}
+                  ${accommodationPrice * 7 + foodPrice * 7 + activitiesPrice * 7}/week
                 </span>
               </div>
             </div>
