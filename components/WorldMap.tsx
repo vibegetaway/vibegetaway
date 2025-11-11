@@ -36,7 +36,7 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
 
   return (
     <div 
-      className="min-h-[80dvh] grid place-items-center relative"
+      className="min-h-[40dvh] grid place-items-center relative"
       onMouseMove={(e) => setMousePosition({ x: e.clientX, y: e.clientY })}
     >
       <ComposableMap
@@ -47,7 +47,7 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
         }}
         width={1000}
         height={640}
-        className="block mx-auto h-auto w-full max-w-[calc(80dvh*(1000/640))]"
+        className="block mx-auto h-auto w-full max-w-[calc((100dvh-220px)*(1000/640))]"
         style={{ width: "100%", height: "auto" }}
       >
         <defs>
