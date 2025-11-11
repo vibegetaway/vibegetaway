@@ -95,6 +95,6 @@
 }
 
 .loading-dot {
-  animation: greyPulse 1.5s ease-in-out infinite;
+  animation: greyPulse 1s ease-in-out infinite;
 }
 

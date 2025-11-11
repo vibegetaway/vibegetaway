@@ -162,19 +162,6 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
           mousePosition={mousePosition} 
         />
       )}
-      {hoveredCountryName && !hoveredDestination && (
-        <div
-          className="fixed pointer-events-none z-50"
-          style={{
-            left: `${mousePosition.x + 16}px`,
-            top: `${mousePosition.y + 16}px`,
-          }}
-        >
-          <div className="bg-stone-50/95 backdrop-blur-md border border-amber-200/50 rounded-lg shadow-lg px-3 py-2">
-            <p className="text-sm font-medium text-stone-900">{hoveredCountryName}</p>
-          </div>
-        </div>
-      )}
       <SidePanel 
         destination={selectedDestination}
         isOpen={isPanelOpen}
