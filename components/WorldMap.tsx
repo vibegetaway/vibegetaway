@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 import { geoPath, geoMercator } from 'd3-geo'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { codeToCountry } from '@/lib/countryCodeMapping'
 import { SidePanel } from './SidePanel'
+import { CountryLabel } from './CountryLabel'
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
@@ -27,6 +28,8 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
   const [hoveredDestination, setHoveredDestination] = useState<Destination | null>(null)
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [geographies, setGeographies] = useState<any[]>([])
+  const geographiesRef = useRef<any[]>([])
 
   const handleCountryClick = (destination: Destination | undefined) => {
     if (destination) {
@@ -43,6 +46,44 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
     .scale(155)
     .translate([1000 / 2, 640 / 2])
   const pathGenerator = geoPath().projection(projection)
+
+  // Get centroids for all destination countries
+  const getDestinationLabels = () => {
+    if (!geographies.length || loading) return []
+
+    const labels: Array<{ centroid: [number, number]; countryName: string }> = []
+    const processedCountries = new Set<string>()
+
+    destinations.forEach((dest) => {
+      if (!dest.country) return
+
+      const countryNames = codeToCountry.get(dest.country) || []
+      if (countryNames.length === 0) return
+
+      // Use the first country name from the mapping
+      const countryName = countryNames[0]
+      
+      // Skip if we've already processed this country
+      if (processedCountries.has(countryName)) return
+      processedCountries.add(countryName)
+
+      // Find the matching geography
+      const matchingGeo = geographies.find(
+        (geo: any) => geo.properties.name === countryName
+      )
+
+      if (matchingGeo) {
+        try {
+          const centroid = CENTROID_OVERRIDES[countryName] || pathGenerator.centroid(matchingGeo)
+          labels.push({ centroid, countryName })
+        } catch (e) {
+          // Skip if centroid calculation fails
+        }
+      }
+    })
+
+    return labels
+  }
 
   return (
     <div className="min-h-[40dvh] grid place-items-center relative">
@@ -72,9 +113,15 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
           </pattern>
         </defs>
         <Geographies geography={geoUrl}>
-          {({ geographies }: { geographies: any[] }) =>
-            geographies
-              .filter((geo: any) => geo.properties.name !== 'Antarctica')
+          {({ geographies: geoData }: { geographies: any[] }) => {
+            // Store geographies for destination label calculation
+            const filteredGeos = geoData.filter((geo: any) => geo.properties.name !== 'Antarctica')
+            if (filteredGeos.length > 0 && geographiesRef.current.length === 0) {
+              geographiesRef.current = filteredGeos
+              setGeographies(filteredGeos)
+            }
+
+            return filteredGeos
               .map((geo: any) => {
                 const isHovered = hoveredCountry === geo.rsmKey
 
@@ -137,67 +184,24 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
                   />
                 )
               })
+            }
           }
         </Geographies>
-        {hoveredCentroid && hoveredCountryName && (
-          <g className="pointer-events-none">
-            {/* Center dot at country centroid */}
-            <circle
-              cx={hoveredCentroid[0]}
-              cy={hoveredCentroid[1]}
-              r="2.5"
-              fill="currentColor"
-              className="text-foreground"
-            />
-            {/* Diagonal line extending from center */}
-            <line
-              x1={hoveredCentroid[0]}
-              y1={hoveredCentroid[1]}
-              x2={hoveredCentroid[0] + 35}
-              y2={hoveredCentroid[1] - 35}
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="text-foreground"
-              opacity="0.8"
-              strokeDasharray="56.57"
-              strokeDashoffset="0"
-              style={{
-                animation: "drawLine 0.3s ease-out forwards",
-              }}
-            />
-            <g
-              style={{
-                animation: "fadeIn 0.3s ease-out forwards",
-              }}
-            >
-            <text
-                x={hoveredCentroid[0] + 40}
-                y={hoveredCentroid[1] - 38}
-              className="text-foreground font-medium"
-              fontSize="14"
-              textAnchor="start"
-              style={{ pointerEvents: "none" }}
-            >
-              {hoveredCountryName}
-            </text>
-              {/* Underline connecting to diagonal line */}
-              <line
-                x1={hoveredCentroid[0] + 35}
-                y1={hoveredCentroid[1] - 35}
-                x2={hoveredCentroid[0] + 45 + hoveredCountryName.length * 7}
-                y2={hoveredCentroid[1] - 35}
-                stroke="currentColor"
-                strokeWidth="1.5"
-                className="text-foreground"
-                opacity="0.8"
-                strokeDasharray={hoveredCountryName.length * 7 + 5}
-                strokeDashoffset="0"
-                style={{
-                  animation: "ease-in 1s forwards",
-                }}
-              />
-            </g>
-          </g>
+        {/* Show labels for all destinations */}
+        {getDestinationLabels().map((label, index) => (
+          <CountryLabel
+            key={`${label.countryName}-${index}`}
+            centroid={label.centroid}
+            countryName={label.countryName}
+          />
+        ))}
+        {/* Show label for hovered country (if not already a destination) */}
+        {hoveredCentroid && hoveredCountryName && 
+         !getDestinationLabels().some(label => label.countryName === hoveredCountryName) && (
+          <CountryLabel
+            centroid={hoveredCentroid}
+            countryName={hoveredCountryName}
+          />
         )}
       </ComposableMap>
       <SidePanel
