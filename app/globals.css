@@ -3,7 +3,6 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated to warm beige color palette */
   --background: oklch(0.98 0.01 70);
   --foreground: oklch(0.25 0.02 70);
   --card: oklch(1 0 0);
@@ -40,8 +39,6 @@
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -81,9 +78,6 @@
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   body {
     @apply bg-background text-foreground;
   }
@@ -101,6 +95,6 @@
 }
 
 .loading-dot {
-  animation: greyPulse 1.5s ease-in-out infinite;
+  animation: greyPulse 1s ease-in-out infinite;
 }
 
