@@ -14,22 +14,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <Script
-          id="site-verification"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function () {
-                var script = document.createElement("script");
-                script.async = 1;
-                script.src = 'https://emrldtp.com/NDcyNDU3.js?t=472457';
-                document.head.appendChild(script);
-              })();
-            `,
-          }}
-        />
-      </head>
       <body>{children}</body>
     </html>
   )
