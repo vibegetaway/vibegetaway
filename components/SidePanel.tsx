@@ -251,7 +251,6 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
                   const departureDate = formatDate(flight.departure_at)
                   const returnTime = formatDateTime(flight.return_at)
                   const returnDate = formatDate(flight.return_at)
-                  const flightDuration = formatDuration(flight.duration)
                   const stayDuration = flight.stayDuration
                   const isDirectFlight = flight.transfers === 0
                   
@@ -282,28 +281,28 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
                         <p className="text-2xl font-bold text-amber-800">€{Math.round(flight.price)}</p>
                       </div>
                       
-                      {/* Flight Route */}
-                      <div className="mb-4">
-                        <p className="text-lg font-semibold text-stone-900">
-                          {flight.origin} → {flight.destination}
+                      {/* Flight Route - Compact */}
+                      <div className="mb-3">
+                        <p className="text-base font-semibold text-stone-900">
+                          {flight.origin} ↔ {flight.destination}
                         </p>
-                        <p className="text-xs text-stone-600">
-                          {isDirectFlight ? 'Direct Flight' : `${flight.transfers} Stop${flight.transfers > 1 ? 's' : ''}`} • {flight.airline} • {flightDuration}
+                        <p className="text-xs text-stone-600 mt-0.5">
+                          {flight.originName} ↔ {flight.destinationName}
                         </p>
                       </div>
                       
-                      {/* Flight Details */}
-                      <div className="space-y-2 text-sm mb-4">
-                        <div className="flex justify-between text-stone-700">
-                          <span>Outbound:</span>
-                          <span className="font-semibold">{departureDate} at {departureTime}</span>
+                      {/* Flight Details - Compact Single Row */}
+                      <div className="mb-3 space-y-1.5 text-xs">
+                        <div className="flex items-center justify-between text-stone-700">
+                          <span className="font-medium">Outbound:</span>
+                          <span>{departureDate} {departureTime} • {formatDuration(flight.outboundDuration)} {flight.outboundTransfers > 0 && `• ${flight.outboundTransfers} Stop${flight.outboundTransfers > 1 ? 's' : ''}`}</span>
                         </div>
-                        <div className="flex justify-between text-stone-700">
-                          <span>Return:</span>
-                          <span className="font-semibold">{returnDate} at {returnTime}</span>
+                        <div className="flex items-center justify-between text-stone-700">
+                          <span className="font-medium">Return:</span>
+                          <span>{returnDate} {returnTime} • {formatDuration(flight.inboundDuration)} {flight.inboundTransfers > 0 && `• ${flight.inboundTransfers} Stop${flight.inboundTransfers > 1 ? 's' : ''}`}</span>
                         </div>
-                        <div className="flex justify-between text-stone-700">
-                          <span>Stay Duration:</span>
+                        <div className="flex items-center justify-between text-stone-700 pt-1 border-t border-amber-200/30">
+                          <span>Stay:</span>
                           <span className="font-semibold">{stayDuration} {stayDuration === 1 ? 'day' : 'days'}</span>
                         </div>
                       </div>

@@ -55,9 +55,21 @@ export interface RapidApiFlight {
       segment: {
         source: {
           localTime: string
+          station: {
+            code: string
+            name: string
+          }
         }
         destination: {
           localTime: string
+          station: {
+            code: string
+            name: string
+          }
+        }
+        carrier: {
+          code: string
+          name: string
         }
       }
     }>
@@ -72,6 +84,12 @@ export interface RapidApiResponse {
   itineraries: RapidApiFlight[]
 }
 
+// Intermediate stop information
+export interface FlightStop {
+  code: string
+  name: string
+}
+
 // Simplified flight interface for the UI
 export interface SimplifiedFlight {
   id: string
@@ -81,9 +99,17 @@ export interface SimplifiedFlight {
   return_at: string
   airline: string
   origin: string
+  originName: string
   destination: string
-  duration: number
-  transfers: number
+  destinationName: string
+  duration: number // Total duration in minutes
+  outboundDuration: number // Outbound duration in minutes
+  inboundDuration: number // Return duration in minutes
+  outboundTransfers: number
+  inboundTransfers: number
+  transfers: number // Total transfers
+  outboundStops: FlightStop[] // Intermediate stops for outbound
+  inboundStops: FlightStop[] // Intermediate stops for return
   bookingUrl: string
   stayDuration: number
 }
@@ -108,7 +134,7 @@ export async function fetchRapidApiFlights(
 
     // Default values
     const source = originCode || 'City:amsterdam_nl'
-    const destination = destinationCode ? `airport:${destinationCode}` : 'City:barcelona_es'
+    const destination = destinationCode ? `Airport:${destinationCode}` : 'City:barcelona_es'
 
     // Build query parameters
     const params = new URLSearchParams({
@@ -162,13 +188,55 @@ export async function fetchRapidApiFlights(
 
     // Transform to simplified format and take top 3
     const simplifiedFlights: SimplifiedFlight[] = data.itineraries.slice(0, 3).map((flight) => {
-      const outboundSegment = flight.outbound.sectorSegments[0]?.segment
-      const inboundSegment = flight.inbound.sectorSegments[0]?.segment
+      // Get first segment for origin and departure time
+      const outboundFirstSegment = flight.outbound.sectorSegments[0]?.segment
+      const inboundFirstSegment = flight.inbound.sectorSegments[0]?.segment
       
-      // Calculate total transfers (number of segments - 1 for each direction)
+      // Get last segment for final destination and arrival time
+      const outboundLastSegment = flight.outbound.sectorSegments[flight.outbound.sectorSegments.length - 1]?.segment
+      const inboundLastSegment = flight.inbound.sectorSegments[flight.inbound.sectorSegments.length - 1]?.segment
+      
+      // Calculate transfers (number of segments - 1 for each direction)
       const outboundTransfers = Math.max(0, flight.outbound.sectorSegments.length - 1)
       const inboundTransfers = Math.max(0, flight.inbound.sectorSegments.length - 1)
       const totalTransfers = outboundTransfers + inboundTransfers
+
+      // Extract intermediate stops for outbound (all segments except first and last)
+      const outboundStops: FlightStop[] = []
+      if (flight.outbound.sectorSegments.length > 1) {
+        // Intermediate stops are the destinations of segments (except the last one)
+        for (let i = 0; i < flight.outbound.sectorSegments.length - 1; i++) {
+          const stop = flight.outbound.sectorSegments[i].segment.destination.station
+          outboundStops.push({
+            code: stop.code,
+            name: stop.name
+          })
+        }
+      }
+
+      // Extract intermediate stops for inbound (all segments except first and last)
+      const inboundStops: FlightStop[] = []
+      if (flight.inbound.sectorSegments.length > 1) {
+        // Intermediate stops are the destinations of segments (except the last one)
+        for (let i = 0; i < flight.inbound.sectorSegments.length - 1; i++) {
+          const stop = flight.inbound.sectorSegments[i].segment.destination.station
+          inboundStops.push({
+            code: stop.code,
+            name: stop.name
+          })
+        }
+      }
+
+      // API returns duration in minutes (typical for flight APIs)
+      // If value seems too large (> 2000), it might be in seconds, so convert
+      // Otherwise use as-is (already in minutes)
+      const outboundDurationMinutes = flight.outbound.duration > 2000
+        ? Math.round(flight.outbound.duration / 60)
+        : Math.round(flight.outbound.duration)
+      const inboundDurationMinutes = flight.inbound.duration > 2000
+        ? Math.round(flight.inbound.duration / 60)
+        : Math.round(flight.inbound.duration)
+      const totalDurationMinutes = outboundDurationMinutes + inboundDurationMinutes
 
       // Get booking URL (prefer first booking option)
       const bookingUrl = flight.bookingOptions.edges[0]?.node.bookingUrl || ''
@@ -177,13 +245,21 @@ export async function fetchRapidApiFlights(
         id: flight.id,
         price: parseFloat(flight.price.amount),
         currency: 'EUR',
-        departure_at: outboundSegment.source.localTime,
-        return_at: inboundSegment.destination.localTime,
-        airline: outboundSegment.carrier.code,
-        origin: outboundSegment.source.station.code,
-        destination: outboundSegment.destination.station.code,
-        duration: flight.outbound.duration + flight.inbound.duration,
+        departure_at: outboundFirstSegment.source.localTime,
+        return_at: inboundLastSegment.destination.localTime,
+        airline: outboundFirstSegment.carrier.code,
+        origin: outboundFirstSegment.source.station.code,
+        originName: outboundFirstSegment.source.station.name,
+        destination: outboundLastSegment.destination.station.code,
+        destinationName: outboundLastSegment.destination.station.name,
+        duration: totalDurationMinutes,
+        outboundDuration: outboundDurationMinutes,
+        inboundDuration: inboundDurationMinutes,
+        outboundTransfers,
+        inboundTransfers,
         transfers: totalTransfers,
+        outboundStops,
+        inboundStops,
         bookingUrl: `https://www.kiwi.com${bookingUrl}`,
         stayDuration: flight.stopover.nightsCount
       }
