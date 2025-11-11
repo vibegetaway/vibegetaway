@@ -4,8 +4,8 @@ import { X, ArrowRight } from 'lucide-react'
 import type { Destination, UnsplashImage } from '@/lib/generateDestinationInfo'
 import { fetchUnsplashImages } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
-import type { Flight } from '@/lib/getTravelPayoutsFlights'
-import { fetchFlights, createAffiliateLink } from '@/lib/getTravelPayoutsFlights'
+import type { SimplifiedFlight } from '@/lib/getRapidApiFlights'
+import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useEffect, useState } from 'react'
@@ -46,23 +46,13 @@ function formatDate(isoString: string): string {
   return date.toLocaleDateString('en-US', options)
 }
 
-// Helper to calculate stay duration in days between departure and return
-function calculateStayDuration(departureIso: string, returnIso: string): number {
-  const departure = new Date(departureIso)
-  const returnDate = new Date(returnIso)
-  const diffTime = Math.abs(returnDate.getTime() - departure.getTime())
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  return diffDays
-}
-
 export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
   const [images, setImages] = useState<UnsplashImage[]>([])
   const [loadingImages, setLoadingImages] = useState(false)
   const [coverImage, setCoverImage] = useState<UnsplashImage | null>(null)
   const [loadingCover, setLoadingCover] = useState(false)
-  const [flights, setFlights] = useState<Flight[]>([])
+  const [flights, setFlights] = useState<SimplifiedFlight[]>([])
   const [loadingFlights, setLoadingFlights] = useState(false)
-  const [affiliateLinks, setAffiliateLinks] = useState<Record<string, string>>({})
 
   useEffect(() => {
     async function loadImages() {
@@ -102,20 +92,10 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
     async function loadFlights() {
       setLoadingFlights(true)
       try {
-        // Use destination's airport code if available, otherwise default to BCN
+        // Use destination's airport code if available
         const airportCode = destination?.destinationAirportCode
-        const fetchedFlights = await fetchFlights(airportCode)
+        const fetchedFlights = await fetchRapidApiFlights('City:amsterdam_nl', airportCode)
         setFlights(fetchedFlights)
-        
-        // Create affiliate links for each flight
-        const links: Record<string, string> = {}
-        for (const flight of fetchedFlights) {
-          const affiliateUrl = await createAffiliateLink(flight.link)
-          if (affiliateUrl) {
-            links[flight.link] = affiliateUrl
-          }
-        }
-        setAffiliateLinks(links)
       } catch (error) {
         console.error('Error loading flights:', error)
         setFlights([])
@@ -267,13 +247,12 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
             ) : flights.length > 0 ? (
               <div className="space-y-4">
                 {flights.map((flight, index) => {
-                  const affiliateUrl = affiliateLinks[flight.link]
                   const departureTime = formatDateTime(flight.departure_at)
                   const departureDate = formatDate(flight.departure_at)
                   const returnTime = formatDateTime(flight.return_at)
                   const returnDate = formatDate(flight.return_at)
                   const flightDuration = formatDuration(flight.duration)
-                  const stayDuration = calculateStayDuration(flight.departure_at, flight.return_at)
+                  const stayDuration = flight.stayDuration
                   const isDirectFlight = flight.transfers === 0
                   
                   // Badge labels and colors for each flight
@@ -294,13 +273,13 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
                   const cardColor = cardColors[index]
                   
                   return (
-                    <div key={flight.flight_number + index} className={`p-5 rounded-lg bg-gradient-to-br ${cardColor} border transition-all hover:shadow-lg`}>
+                    <div key={flight.id} className={`p-5 rounded-lg bg-gradient-to-br ${cardColor} border transition-all hover:shadow-lg`}>
                       {/* Badge */}
                       <div className="flex items-center justify-between mb-3">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white ${badge.color}`}>
                           {badge.emoji} {badge.label}
                         </span>
-                        <p className="text-2xl font-bold text-amber-800">€{flight.price}</p>
+                        <p className="text-2xl font-bold text-amber-800">€{Math.round(flight.price)}</p>
                       </div>
                       
                       {/* Flight Route */}
@@ -330,25 +309,15 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
                       </div>
                       
                       {/* Book Button */}
-                      {affiliateUrl ? (
-                        <a
-                          href={affiliateUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-                        >
-                          <span>Book</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </a>
-                      ) : (
-                        <button
-                          disabled
-                          className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed"
-                        >
-                          <span>Book</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </button>
-                      )}
+                      <a
+                        href={flight.bookingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                      >
+                        <span>Book</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </a>
                     </div>
                   )
                 })}
