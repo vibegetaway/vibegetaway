@@ -1,9 +1,18 @@
 interface CountryLabelProps {
   centroid: [number, number]
   countryName: string
+  direction?: 'left' | 'right'
 }
 
-export function CountryLabel({ centroid, countryName }: CountryLabelProps) {
+export function CountryLabel({ centroid, countryName, direction = 'right' }: CountryLabelProps) {
+  const isLeft = direction === 'left'
+  const diagonalOffset = isLeft ? -35 : 35
+  const textOffset = isLeft ? -40 : 40
+  const underlineStart = centroid[0] + diagonalOffset
+  const underlineEnd = isLeft 
+    ? centroid[0] - 45 - countryName.length * 7
+    : centroid[0] + 45 + countryName.length * 7
+
   return (
     <g className="pointer-events-none">
       {/* Center dot at country centroid */}
@@ -18,7 +27,7 @@ export function CountryLabel({ centroid, countryName }: CountryLabelProps) {
       <line
         x1={centroid[0]}
         y1={centroid[1]}
-        x2={centroid[0] + 35}
+        x2={centroid[0] + diagonalOffset}
         y2={centroid[1] - 35}
         stroke="currentColor"
         strokeWidth="1.5"
@@ -36,20 +45,20 @@ export function CountryLabel({ centroid, countryName }: CountryLabelProps) {
         }}
       >
         <text
-          x={centroid[0] + 40}
+          x={centroid[0] + textOffset}
           y={centroid[1] - 38}
           className="text-foreground font-medium"
           fontSize="14"
-          textAnchor="start"
+          textAnchor={isLeft ? "end" : "start"}
           style={{ pointerEvents: "none" }}
         >
           {countryName}
         </text>
         {/* Underline connecting to diagonal line */}
         <line
-          x1={centroid[0] + 35}
+          x1={underlineStart}
           y1={centroid[1] - 35}
-          x2={centroid[0] + 45 + countryName.length * 7}
+          x2={underlineEnd}
           y2={centroid[1] - 35}
           stroke="currentColor"
           strokeWidth="1.5"
