@@ -17,7 +17,7 @@ export function LeftSidebar({ onMenuClick, onRecentClick }: LeftSidebarProps) {
         onClick={onMenuClick}
         aria-label="Menu"
       >
-        <Menu className="w-6 h-6 text-amber-700" strokeWidth={2} />
+        <Menu className="w-5 h-5 text-amber-700" strokeWidth={2} />
       </button>
       
       {/* Saved icon */}
@@ -26,7 +26,7 @@ export function LeftSidebar({ onMenuClick, onRecentClick }: LeftSidebarProps) {
         className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-amber-100/60 transition-colors cursor-pointer"
         aria-label="Saved"
       >
-        <Bookmark className="w-6 h-6 text-amber-700" strokeWidth={2} />
+        <Bookmark className="w-5 h-5 text-amber-700" strokeWidth={2} />
       </button>
       
       {/* Recent icon */}
@@ -36,7 +36,7 @@ export function LeftSidebar({ onMenuClick, onRecentClick }: LeftSidebarProps) {
         onClick={onRecentClick}
         aria-label="Recent"
       >
-        <Clock className="w-6 h-6 text-amber-700" strokeWidth={2} />
+        <Clock className="w-5 h-5 text-amber-700" strokeWidth={2} />
       </button>
       
       {/* Favorites icon */}
@@ -45,7 +45,7 @@ export function LeftSidebar({ onMenuClick, onRecentClick }: LeftSidebarProps) {
         className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-amber-100/60 transition-colors cursor-pointer"
         aria-label="Favorites"
       >
-        <Heart className="w-6 h-6 text-amber-700" strokeWidth={2} />
+        <Heart className="w-5 h-5 text-amber-700" strokeWidth={2} />
       </button>
       
       {/* Flex spacer */}
@@ -57,7 +57,7 @@ export function LeftSidebar({ onMenuClick, onRecentClick }: LeftSidebarProps) {
         className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-amber-100/60 transition-colors cursor-pointer"
         aria-label="Settings"
       >
-        <Settings className="w-6 h-6 text-amber-700" strokeWidth={2} />
+        <Settings className="w-5 h-5 text-amber-700" strokeWidth={2} />
       </button>
     </div>
   )
