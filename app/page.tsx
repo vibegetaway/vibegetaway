@@ -9,6 +9,9 @@ import mockDestinations from '@/data/mock-gemini-response.json'
 
 const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
 
+// Number of destinations to fetch in parallel per batch
+const BATCH_SIZE = 5
+
 function useDebouncedValue<T>(value: T, delay = 500) {
   const [debounced, setDebounced] = useState(value)
   useEffect(() => {
@@ -54,35 +57,56 @@ export default function Home() {
       // Stop showing loading indicator - destinations are now visible on the map
       setLoading(false)
 
-      // Step 2: Sequentially fetch detailed info for each destination (in background)
-      for (let i = 0; i < destinationNames.length; i++) {
+      // Step 2: Fetch detailed info in batches (parallel within each batch)
+      const totalDestinations = destinationNames.length
+      
+      for (let batchStart = 0; batchStart < totalDestinations; batchStart += BATCH_SIZE) {
         // Check if a newer call started
         if (callId !== callIdRef.current) return
 
-        const dest = destinationNames[i]
-        if (!dest.country || !dest.region) continue
+        const batchEnd = Math.min(batchStart + BATCH_SIZE, totalDestinations)
+        const batch = destinationNames.slice(batchStart, batchEnd)
 
-        try {
-          const detailedInfo = await generateDestinationInfo(
-            { country: dest.country, region: dest.region },
-            { vibe: v, timePeriod: m }
-          )
+        console.log(`Fetching batch ${Math.floor(batchStart / BATCH_SIZE) + 1}: destinations ${batchStart + 1}-${batchEnd}`)
 
-          // Check again if a newer call started
-          if (callId !== callIdRef.current) return
+        // Fetch all destinations in this batch in parallel
+        const batchPromises = batch.map(async (dest, batchIndex) => {
+          const actualIndex = batchStart + batchIndex
+          
+          if (!dest.country || !dest.region) {
+            return { index: actualIndex, data: null }
+          }
 
-          // Update the specific destination with detailed info
-          setDestinations(prev => {
-            const updated = [...prev]
-            updated[i] = detailedInfo
-            return updated
+          try {
+            const detailedInfo = await generateDestinationInfo(
+              { country: dest.country, region: dest.region },
+              { vibe: v, timePeriod: m }
+            )
+            return { index: actualIndex, data: detailedInfo }
+          } catch (err) {
+            console.error(`Error fetching details for ${dest.region}:`, err)
+            return { index: actualIndex, data: null }
+          }
+        })
+
+        // Wait for all requests in this batch to complete
+        const batchResults = await Promise.all(batchPromises)
+
+        // Check again if a newer call started
+        if (callId !== callIdRef.current) return
+
+        // Update destinations with all results from this batch
+        setDestinations(prev => {
+          const updated = [...prev]
+          batchResults.forEach(result => {
+            if (result.data) {
+              updated[result.index] = result.data
+            }
           })
+          return updated
+        })
 
-          console.log(`Fetched details for ${dest.region}, ${dest.country}`)
-        } catch (err) {
-          console.error(`Error fetching details for ${dest.region}:`, err)
-          // Continue with next destination even if one fails
-        }
+        console.log(`Completed batch ${Math.floor(batchStart / BATCH_SIZE) + 1}`)
       }
     } catch (err) {
       console.error(err instanceof Error ? err.message : 'An error occurred')
