@@ -77,11 +77,11 @@ Output ONLY valid JSON—no preamble or additional text. Return exactly 10 desti
 `
 
 const DESTINATION_DETAIL_SYSTEM_PROMPT = `
-You are a travel destination expert. Provide detailed information about a specific destination based on the user's travel preferences.
+You are a travel destination expert. Provide detailed information about specific destinations based on the user's travel preferences.
 
 Parse for: activities/interests, timing/season, budget, travel style, climate/geography preferences.
 
-Provide detailed information for the destination:
+For EACH destination provided, generate detailed information:
 1. Country (ISO 3166-1 alpha-3 code) - must match the provided country
 2. Region/city name - must match the provided region
 3. Description with 4-6 bullet points covering:
@@ -98,32 +98,34 @@ Provide detailed information for the destination:
 6. Recommended duration (in days as string, e.g., "7")
 7. Airport code for the main international airport in the destination region or country (IATA code, e.g., "HND" for Tokyo)
 
-Format STRICTLY as a single JSON object:
+Format STRICTLY as a JSON array with one object per destination:
 
-{
-  "country": "JPN",
-  "region": "Tokyo",
-  "description": [
-    "✨ **Perfect for Adventure**: Tokyo offers incredible hiking trails within 2 hours of the city",
-    "🏔️ **Mountain Access**: Easy access to Mount Takao and the Japanese Alps",
-    "🍜 **Food Scene**: Amazing post-hike ramen and local cuisine",
-    "🌸 **November Weather**: Crisp autumn weather perfect for outdoor activities",
-    "🚇 **Easy Navigation**: Excellent public transport to trailheads"
-  ],
-  "imagesKeywords": {
-    "cover": "japan tokyo mountains",
-    "gallery": "tokyo hiking mount takao autumn trails japanese alps"
-  },
-  "pricing": {
-    "accommodation": "30-60",
-    "food": "20-35",
-    "activities": "25-45"
-  },
-  "recommendedDuration": "7",
-  "destinationAirportCode": "NRT"
-}
+[
+  {
+    "country": "JPN",
+    "region": "Tokyo",
+    "description": [
+      "✨ **Perfect for Adventure**: Tokyo offers incredible hiking trails within 2 hours of the city",
+      "🏔️ **Mountain Access**: Easy access to Mount Takao and the Japanese Alps",
+      "🍜 **Food Scene**: Amazing post-hike ramen and local cuisine",
+      "🌸 **November Weather**: Crisp autumn weather perfect for outdoor activities",
+      "🚇 **Easy Navigation**: Excellent public transport to trailheads"
+    ],
+    "imagesKeywords": {
+      "cover": "japan tokyo mountains",
+      "gallery": "tokyo hiking mount takao autumn trails japanese alps"
+    },
+    "pricing": {
+      "accommodation": "30-60",
+      "food": "20-35",
+      "activities": "25-45"
+    },
+    "recommendedDuration": "7",
+    "destinationAirportCode": "NRT"
+  }
+]
 
-Output ONLY valid JSON—no preamble or additional text.
+Output ONLY valid JSON array—no preamble or additional text. Return exactly one object per requested destination in the same order.
 `
 
 export async function generateDestinationNames(
@@ -171,10 +173,13 @@ export async function generateDestinationNames(
   }
 }
 
+/**
+ * Generate detailed information for MULTIPLE destinations in a single LLM call
+ */
 export async function generateDestinationInfo(
-  destination: { country: string; region: string },
+  destinations: Array<{ country: string; region: string }>,
   params: GenerateDestinationParams
-): Promise<Destination> {
+): Promise<Destination[]> {
   try {
     const { vibe, timePeriod, price, from } = params
 
@@ -184,8 +189,8 @@ export async function generateDestinationInfo(
     if (!timePeriod || timePeriod.trim().length === 0) {
       throw new Error('Time period is required')
     }
-    if (!destination.country || !destination.region) {
-      throw new Error('Destination country and region are required')
+    if (!destinations || destinations.length === 0) {
+      throw new Error('At least one destination is required')
     }
 
     // Build a natural language prompt from structured parameters
@@ -199,7 +204,13 @@ export async function generateDestinationInfo(
       prompt += ` My budget is ${price}.`
     }
 
-    prompt += `\n\nProvide detailed information for: ${destination.region}, ${destination.country}`
+    // List all destinations in the prompt
+    prompt += `\n\nProvide detailed information for the following ${destinations.length} destinations:\n`
+    destinations.forEach((dest, index) => {
+      prompt += `${index + 1}. ${dest.region}, ${dest.country}\n`
+    })
+
+    console.log(`[SERVER] Making single LLM call for ${destinations.length} destinations`)
 
     const { text } = await generateText({
       model: google('gemini-2.0-flash'),
@@ -209,9 +220,11 @@ export async function generateDestinationInfo(
 
     // Strip markdown fences if present, then parse the JSON response
     const cleanedText = stripMarkdownFences(text)
-    const detailedDestination: Destination = JSON.parse(cleanedText)
+    const detailedDestinations: Destination[] = JSON.parse(cleanedText)
     
-    return detailedDestination
+    console.log(`[SERVER] LLM returned ${detailedDestinations.length} destinations`)
+    
+    return detailedDestinations
   } catch (error) {
     console.error('Error generating destination info:', error)
     throw new Error(

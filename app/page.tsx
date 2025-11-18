@@ -4,7 +4,8 @@ import { AnimatedVibeInput } from '@/components/AnimatedVibeInput'
 import { MonthSelect } from '@/components/MonthSelect'
 import WorldMap from '@/components/WorldMap'
 import { useState, useEffect, useRef } from 'react'
-import { generateDestinationNames, generateDestinationInfo, type Destination } from '@/lib/generateDestinationInfo'
+import { fetchDestinationsWithDetails } from '@/lib/fetchDestinations'
+import type { Destination } from '@/lib/generateDestinationInfo'
 import mockDestinations from '@/data/mock-gemini-response.json'
 
 const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
@@ -34,83 +35,50 @@ export default function Home() {
   const callIdRef = useRef(0)
 
   const handleFindDestinations = async (v: string, m: string) => {
-    if (!v.trim() || !m) return
+    if (!v.trim() || !m) {
+      return
+    }
 
     const callId = ++callIdRef.current
     setLoading(true)
     setDestinations([])
 
     try {
-      // Step 1: Fetch destination names quickly
-      const destinationNames = await generateDestinationNames({
-        vibe: v,
-        timePeriod: m,
-      })
-
-      // Ignore if a newer call started after this one
-      if (callId !== callIdRef.current) return
-
-      // Set initial destinations with just names
-      setDestinations(destinationNames)
-      console.log(`Vibe: ${v}, Month: ${m}, Initial Destinations: ${JSON.stringify(destinationNames)}`)
-
-      // Stop showing loading indicator - destinations are now visible on the map
-      setLoading(false)
-
-      // Step 2: Fetch detailed info in batches (parallel within each batch)
-      const totalDestinations = destinationNames.length
-      
-      for (let batchStart = 0; batchStart < totalDestinations; batchStart += BATCH_SIZE) {
-        // Check if a newer call started
-        if (callId !== callIdRef.current) return
-
-        const batchEnd = Math.min(batchStart + BATCH_SIZE, totalDestinations)
-        const batch = destinationNames.slice(batchStart, batchEnd)
-
-        console.log(`Fetching batch ${Math.floor(batchStart / BATCH_SIZE) + 1}: destinations ${batchStart + 1}-${batchEnd}`)
-
-        // Fetch all destinations in this batch in parallel
-        const batchPromises = batch.map(async (dest, batchIndex) => {
-          const actualIndex = batchStart + batchIndex
-          
-          if (!dest.country || !dest.region) {
-            return { index: actualIndex, data: null }
-          }
-
-          try {
-            const detailedInfo = await generateDestinationInfo(
-              { country: dest.country, region: dest.region },
-              { vibe: v, timePeriod: m }
-            )
-            return { index: actualIndex, data: detailedInfo }
-          } catch (err) {
-            console.error(`Error fetching details for ${dest.region}:`, err)
-            return { index: actualIndex, data: null }
-          }
-        })
-
-        // Wait for all requests in this batch to complete
-        const batchResults = await Promise.all(batchPromises)
-
-        // Check again if a newer call started
-        if (callId !== callIdRef.current) return
-
-        // Update destinations with all results from this batch
-        setDestinations(prev => {
-          const updated = [...prev]
-          batchResults.forEach(result => {
-            if (result.data) {
-              updated[result.index] = result.data
+      await fetchDestinationsWithDetails({
+        batchSize: BATCH_SIZE,
+        params: {
+          vibe: v,
+          timePeriod: m,
+        },
+        callbacks: {
+          onInitialDestinations: (destinations) => {
+            // Ignore if a newer call started
+            if (callId !== callIdRef.current) {
+              return
             }
-          })
-          return updated
-        })
-
-        console.log(`Completed batch ${Math.floor(batchStart / BATCH_SIZE) + 1}`)
-      }
+            
+            setDestinations(destinations)
+            setLoading(false)
+          },
+          onBatchComplete: (updatedDestinations) => {
+            // Ignore if a newer call started
+            if (callId !== callIdRef.current) {
+              return
+            }
+            
+            setDestinations(updatedDestinations)
+          },
+          onComplete: () => {
+            console.log('[INFO] All destination details loaded')
+          },
+          onError: (error) => {
+            console.error('[ERROR] Callback onError:', error.message)
+            if (callId === callIdRef.current) setLoading(false)
+          },
+        },
+      })
     } catch (err) {
-      console.error(err instanceof Error ? err.message : 'An error occurred')
-      // Only reset loading if the initial fetch fails
+      console.error('[ERROR] handleFindDestinations catch:', err instanceof Error ? err.message : 'An error occurred')
       if (callId === callIdRef.current) setLoading(false)
     }
   }
@@ -124,6 +92,7 @@ export default function Home() {
     }
     
     handleFindDestinations(debouncedVibe, month)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedVibe, month])
 
   return (
