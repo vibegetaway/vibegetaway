@@ -2,6 +2,7 @@
 
 import { AnimatedVibeInput } from '@/components/AnimatedVibeInput'
 import { MonthSelect } from '@/components/MonthSelect'
+import { LeftSidebar } from '@/components/LeftSidebar'
 import WorldMap from '@/components/WorldMap'
 import { useState, useEffect, useRef } from 'react'
 import { fetchDestinationsWithDetails } from '@/lib/fetchDestinations'
@@ -97,7 +98,8 @@ export default function Home() {
 
   return (
     <main className="relative w-screen h-screen overflow-hidden">
-      <div className="absolute top-4 left-4 z-20 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3">
+      <LeftSidebar />
+      <div className="absolute top-4 left-24 z-20 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3">
         <h1 className="text-xl font-bold leading-tight">
           <span className="text-foreground">I want to </span>
           <span className="inline-block align-middle">

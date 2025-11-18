@@ -119,12 +119,15 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
 
   return (
     <>
-      {/* Panel - positioned on LEFT side, 1/4 width */}
+      {/* Panel - positioned next to LeftSidebar (left-20), 1/4 width */}
       <div
-        className={`fixed left-0 top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${
+        className={`fixed left-20 top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
+        {/* Spacer for text input */}
+        <div className="h-24"></div>
+        
         {/* Cover Image */}
         {!destination.imagesKeywords || loadingCover ? (
           <div className="w-full h-64 bg-gradient-to-br from-amber-100 to-orange-100 animate-pulse flex items-center justify-center">
