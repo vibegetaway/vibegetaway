@@ -4,6 +4,7 @@ import { AnimatedVibeInput } from '@/components/AnimatedVibeInput'
 import { MonthSelect } from '@/components/MonthSelect'
 import { LeftSidebar } from '@/components/LeftSidebar'
 import { RecentSearchPanel } from '@/components/RecentSearchPanel'
+import { SearchResultsPanel } from '@/components/SearchResultsPanel'
 import WorldMap from '@/components/WorldMap'
 import { useState, useEffect, useRef } from 'react'
 import { fetchDestinationsWithDetails } from '@/lib/fetchDestinations'
@@ -22,6 +23,8 @@ export default function Home() {
   const [vibe, setVibe] = useState(isDev ? 'climb' : '')
   const [month, setMonth] = useState(isDev ? 'November' : '')
   const [isRecentPanelOpen, setIsRecentPanelOpen] = useState(false)
+  const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false)
+  const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
 
   // Ensure only the latest async call updates state
   const callIdRef = useRef(0)
@@ -142,13 +145,31 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vibe, month])
 
+  // Auto-open search panel when destinations are loaded
+  useEffect(() => {
+    if (destinations.length > 0) {
+      setIsSearchPanelOpen(true)
+    }
+  }, [destinations])
+
   return (
     <main className="relative w-screen h-screen overflow-hidden">
-      <LeftSidebar onRecentClick={() => setIsRecentPanelOpen(true)} />
+      <LeftSidebar 
+        onRecentClick={() => setIsRecentPanelOpen(true)}
+        onSearchClick={() => setIsSearchPanelOpen(prev => !prev)}
+      />
       <RecentSearchPanel 
         isOpen={isRecentPanelOpen}
         onClose={() => setIsRecentPanelOpen(false)}
         onSearchSelect={handleSearchFromHistory}
+      />
+      <SearchResultsPanel
+        destinations={destinations}
+        loading={loading}
+        onDestinationClick={setSelectedDestination}
+        selectedDestination={selectedDestination}
+        isOpen={isSearchPanelOpen}
+        onClose={() => setIsSearchPanelOpen(false)}
       />
       <div className="absolute top-4 left-24 z-20 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3 flex items-center gap-4">
         <h1 className="text-xl font-bold leading-tight">
@@ -174,6 +195,8 @@ export default function Home() {
       <WorldMap
         loading={loading}
         destinations={destinations}
+        selectedDestination={selectedDestination}
+        onDestinationSelect={setSelectedDestination}
       />
     </main>
   )

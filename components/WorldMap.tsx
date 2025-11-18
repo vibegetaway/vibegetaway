@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react'
-import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps'
+import { ComposableMap, Geographies, Geography, ZoomableGroup, Marker, Annotation } from 'react-simple-maps'
 import { geoPath, geoMercator } from 'd3-geo'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { codeToCountry } from '@/lib/countryCodeMapping'
@@ -20,15 +20,25 @@ const CENTROID_OVERRIDES: Record<string, [number, number]> = {
 interface WorldMapProps {
   loading: boolean
   destinations?: Destination[]
+  selectedDestination?: Destination | null
+  onDestinationSelect?: (destination: Destination | null) => void
 }
 
-export default function WorldMap({ loading, destinations = [] }: WorldMapProps) {
+export default function WorldMap({ 
+  loading, 
+  destinations = [], 
+  selectedDestination: externalSelectedDestination = null,
+  onDestinationSelect
+}: WorldMapProps) {
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null)
   const [hoveredCountryName, setHoveredCountryName] = useState<string | null>(null)
   const [hoveredCentroid, setHoveredCentroid] = useState<[number, number] | null>(null)
   const [hoveredDestination, setHoveredDestination] = useState<Destination | null>(null)
-  const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
+  const [internalSelectedDestination, setInternalSelectedDestination] = useState<Destination | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
+  
+  // Use external selectedDestination if provided, otherwise use internal
+  const selectedDestination = externalSelectedDestination || internalSelectedDestination
   const [geographies, setGeographies] = useState<any[]>([])
   const geographiesRef = useRef<any[]>([])
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
@@ -40,11 +50,22 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
       const updated = destinations.find(
         d => d.country === selectedDestination.country && d.region === selectedDestination.region
       )
-      if (updated) {
-        setSelectedDestination(updated)
+      if (updated && (onDestinationSelect || setInternalSelectedDestination)) {
+        if (onDestinationSelect) {
+          onDestinationSelect(updated)
+        } else {
+          setInternalSelectedDestination(updated)
+        }
       }
     }
-  }, [destinations, selectedDestination])
+  }, [destinations, selectedDestination, onDestinationSelect])
+
+  // Open panel when external selectedDestination changes
+  useEffect(() => {
+    if (externalSelectedDestination) {
+      setIsPanelOpen(true)
+    }
+  }, [externalSelectedDestination])
 
   // Update hoveredDestination when destinations array changes
   useEffect(() => {
@@ -60,13 +81,22 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
 
   const handleCountryClick = (destination: Destination | undefined) => {
     if (destination) {
-      setSelectedDestination(destination)
+      if (onDestinationSelect) {
+        onDestinationSelect(destination)
+      } else {
+        setInternalSelectedDestination(destination)
+      }
       setIsPanelOpen(true)
     }
   }
+  
   const handleClosePanel = () => {
     setIsPanelOpen(false)
-    setSelectedDestination(null)
+    if (onDestinationSelect) {
+      onDestinationSelect(null)
+    } else {
+      setInternalSelectedDestination(null)
+    }
   }
 
   const handleZoomIn = () => {
@@ -99,6 +129,31 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
       return countryNames.includes(countryName)
     })
   }, [destinations])
+
+  // Calculate marker positions for destinations
+  const destinationMarkers = useMemo(() => {
+    if (!geographies || geographies.length === 0) return []
+    
+    return destinations
+      .filter(dest => dest.country)
+      .map(dest => {
+        const countryNames = codeToCountry.get(dest.country) || []
+        const geo = geographies.find((g: any) => countryNames.includes(g.properties.name))
+        
+        if (!geo) return null
+        
+        try {
+          const centroid = CENTROID_OVERRIDES[geo.properties.name] || pathGenerator.centroid(geo)
+          return {
+            destination: dest,
+            coordinates: projection.invert ? projection.invert(centroid) as [number, number] : [0, 0] as [number, number],
+          }
+        } catch (e) {
+          return null
+        }
+      })
+      .filter((marker): marker is { destination: Destination; coordinates: [number, number] } => marker !== null)
+  }, [destinations, geographies, pathGenerator, projection])
 
   return (
     <div 
@@ -214,6 +269,109 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
             }
           }
         </Geographies>
+        
+        {/* Destination markers with labels */}
+        {destinationMarkers.map((marker, index) => {
+          const isSelected = selectedDestination?.region === marker.destination.region && 
+                           selectedDestination?.country === marker.destination.country
+          const hasDetails = marker.destination.description && marker.destination.pricing
+          
+          return (
+            <g key={`marker-${marker.destination.country}-${marker.destination.region}-${index}`}>
+              {/* Pin marker */}
+              <Marker coordinates={marker.coordinates}>
+                <g
+                  onClick={() => handleCountryClick(marker.destination)}
+                  style={{ cursor: 'pointer' }}
+                  className="transition-all hover:scale-110"
+                >
+                  {/* Shadow */}
+                  <ellipse
+                    cx="0"
+                    cy="8"
+                    rx="3"
+                    ry="1.5"
+                    fill="rgba(0,0,0,0.2)"
+                    opacity="0.5"
+                  />
+                  {/* Main circle */}
+                  <circle
+                    cx="0"
+                    cy="0"
+                    r="6"
+                    fill={isSelected ? '#ea580c' : hasDetails ? '#f97316' : '#fb923c'}
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                  {/* Inner dot */}
+                  <circle
+                    cx="0"
+                    cy="0"
+                    r="2.5"
+                    fill="white"
+                  />
+                  {/* Bottom point */}
+                  <path
+                    d="M 0,6 L 2,9 L -2,9 Z"
+                    fill={isSelected ? '#ea580c' : hasDetails ? '#f97316' : '#fb923c'}
+                    stroke="white"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                  />
+                </g>
+              </Marker>
+              
+              {/* Label with background */}
+              <Annotation
+                subject={marker.coordinates}
+                dx={0}
+                dy={-18}
+                connectorProps={{
+                  stroke: 'transparent',
+                }}
+              >
+                <foreignObject
+                  x="-50"
+                  y="-12"
+                  width="100"
+                  height="24"
+                  style={{ overflow: 'visible' }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: '4px 8px',
+                        backgroundColor: 'white',
+                        borderRadius: '4px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                        border: '1px solid rgba(0,0,0,0.1)',
+                        fontFamily: 'system-ui, -apple-system, sans-serif',
+                        fontSize: position.zoom > 2 ? '11px' : '9px',
+                        fontWeight: '600',
+                        color: '#292524',
+                        whiteSpace: 'nowrap',
+                        maxWidth: '120px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {marker.destination.region}
+                    </div>
+                  </div>
+                </foreignObject>
+              </Annotation>
+            </g>
+          )
+        })}
+        
         {/* Show label only for hovered country (if not a destination) */}
         {hoveredCentroid && hoveredCountryName && !isDestinationCountry(hoveredCountryName) && (
           <CountryLabel
