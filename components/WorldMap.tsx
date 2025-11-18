@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo, useCallback } from 'react'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 import { geoPath, geoMercator } from 'd3-geo'
 import type { Destination } from '@/lib/generateDestinationInfo'
@@ -49,137 +49,14 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
     .translate([1000 / 2, 640 / 2])
   const pathGenerator = geoPath().projection(projection)
 
-  // Calculate bounding box for a label given its position and direction
-  const getLabelBounds = (
-    centroid: [number, number],
-    countryName: string,
-    direction: 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom'
-  ) => {
-    const isLeft = direction.startsWith('left')
-    const isTop = direction.endsWith('top')
-    
-    const textXOffset = isLeft ? -40 : 40
-    const textYOffset = isTop ? -38 : 38
-    
-    // Approximate text width (7 pixels per character)
-    const textWidth = countryName.length * 7
-    const textHeight = 14 // fontSize
-    
-    const textX = centroid[0] + textXOffset
-    const textY = centroid[1] + textYOffset
-    
-    // Calculate bounding box
-    const minX = isLeft ? textX - textWidth : textX
-    const maxX = isLeft ? textX : textX + textWidth
-    const minY = textY - textHeight / 2
-    const maxY = textY + textHeight / 2
-    
-    // Add some padding for overlap detection
-    const padding = 10
-    return {
-      minX: minX - padding,
-      maxX: maxX + padding,
-      minY: minY - padding,
-      maxY: maxY + padding,
-    }
-  }
-
-  // Check if two bounding boxes overlap
-  const boxesOverlap = (
-    box1: { minX: number; maxX: number; minY: number; maxY: number },
-    box2: { minX: number; maxX: number; minY: number; maxY: number }
-  ) => {
-    return !(
-      box1.maxX < box2.minX ||
-      box1.minX > box2.maxX ||
-      box1.maxY < box2.minY ||
-      box1.minY > box2.maxY
-    )
-  }
-
-  // Find a direction that doesn't overlap with existing labels
-  const findNonOverlappingDirection = (
-    centroid: [number, number],
-    displayName: string,
-    existingLabels: Array<{ centroid: [number, number]; countryName: string; displayName?: string; direction: 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom' }>
-  ): 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom' => {
-    const directions: Array<'left-top' | 'right-top' | 'left-bottom' | 'right-bottom'> = [
-      'right-top',
-      'left-top',
-      'left-bottom',
-      'right-bottom',
-    ]
-
-    for (const direction of directions) {
-      const bounds = getLabelBounds(centroid, displayName, direction)
-      
-      // Check if this direction overlaps with any existing label
-      const hasOverlap = existingLabels.some((existing) => {
-        // Use displayName if available, otherwise use countryName
-        const existingName = existing.displayName || existing.countryName
-        const existingBounds = getLabelBounds(existing.centroid, existingName, existing.direction)
-        return boxesOverlap(bounds, existingBounds)
-      })
-
-      if (!hasOverlap) {
-        return direction
-      }
-    }
-
-    // If all directions overlap, return the default (least likely to cause issues)
-    return 'right-top'
-  }
-
-  // Get centroids for all destination countries with non-overlapping directions
-  const getDestinationLabels = () => {
-    if (!geographies.length || loading) return []
-
-    const labels: Array<{ 
-      centroid: [number, number]; 
-      countryName: string;
-      displayName: string;
-      direction: 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom';
-    }> = []
-    const processedCountries = new Set<string>()
-
-    destinations.forEach((dest) => {
-      if (!dest.country) return
-
+  // Helper to check if a country is a destination
+  const isDestinationCountry = useCallback((countryName: string) => {
+    return destinations.some(dest => {
+      if (!dest.country) return false
       const countryNames = codeToCountry.get(dest.country) || []
-      if (countryNames.length === 0) return
-
-      // Use the first country name from the mapping
-      const countryName = countryNames[0]
-      
-      // Skip if we've already processed this country
-      if (processedCountries.has(countryName)) return
-      processedCountries.add(countryName)
-
-      // Find the matching geography
-      const matchingGeo = geographies.find(
-        (geo: any) => geo.properties.name === countryName
-      )
-
-      if (matchingGeo) {
-        try {
-          const centroid = CENTROID_OVERRIDES[countryName] || pathGenerator.centroid(matchingGeo)
-          
-          // Use destination region name for display, fallback to country name
-          const displayName = dest.region || countryName
-          
-          // Find a direction that doesn't overlap with existing labels
-          // Use displayName for overlap calculation since that's what will be rendered
-          const direction = findNonOverlappingDirection(centroid, displayName, labels)
-          
-          labels.push({ centroid, countryName, displayName, direction })
-        } catch (e) {
-          // Skip if centroid calculation fails
-        }
-      }
+      return countryNames.includes(countryName)
     })
-
-    return labels
-  }
+  }, [destinations])
 
   return (
     <div 
@@ -288,30 +165,14 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
             }
           }
         </Geographies>
-        {/* Show labels for all destinations */}
-        {getDestinationLabels()
-          .filter(label => !hoveredDestination || label.countryName !== hoveredCountryName)
-          .map((label, index) => (
-            <CountryLabel
-              key={`${label.countryName}-${index}`}
-              centroid={label.centroid}
-              countryName={label.displayName}
-              direction={label.direction}
-            />
-          ))}
-        {/* Show label for hovered country (if not already a destination) */}
-        {hoveredCentroid && hoveredCountryName && 
-         !getDestinationLabels().some(label => label.countryName === hoveredCountryName) && (() => {
-          const destinationLabels = getDestinationLabels()
-          const hoveredDirection = findNonOverlappingDirection(hoveredCentroid, hoveredCountryName, destinationLabels)
-          return (
-            <CountryLabel
-              centroid={hoveredCentroid}
-              countryName={hoveredCountryName}
-              direction={hoveredDirection}
-            />
-          )
-        })()}
+        {/* Show label only for hovered country (if not a destination) */}
+        {hoveredCentroid && hoveredCountryName && !isDestinationCountry(hoveredCountryName) && (
+          <CountryLabel
+            centroid={hoveredCentroid}
+            countryName={hoveredCountryName}
+            direction="right-top"
+          />
+        )}
       </ComposableMap>
       <SidePanel
         destination={selectedDestination}
