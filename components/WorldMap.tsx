@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useMemo, useCallback } from 'react'
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react'
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps'
 import { geoPath, geoMercator } from 'd3-geo'
 import type { Destination } from '@/lib/generateDestinationInfo'
@@ -33,6 +33,30 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
   const geographiesRef = useRef<any[]>([])
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [position, setPosition] = useState({ coordinates: [0, 44] as [number, number], zoom: 1 })
+
+  // Update selectedDestination when destinations array changes
+  useEffect(() => {
+    if (selectedDestination) {
+      const updated = destinations.find(
+        d => d.country === selectedDestination.country && d.region === selectedDestination.region
+      )
+      if (updated) {
+        setSelectedDestination(updated)
+      }
+    }
+  }, [destinations, selectedDestination])
+
+  // Update hoveredDestination when destinations array changes
+  useEffect(() => {
+    if (hoveredDestination) {
+      const updated = destinations.find(
+        d => d.country === hoveredDestination.country && d.region === hoveredDestination.region
+      )
+      if (updated) {
+        setHoveredDestination(updated)
+      }
+    }
+  }, [destinations, hoveredDestination])
 
   const handleCountryClick = (destination: Destination | undefined) => {
     if (destination) {
