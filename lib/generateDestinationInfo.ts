@@ -76,57 +76,54 @@ Format STRICTLY as JSON array:
 Output ONLY valid JSON—no preamble or additional text. Return exactly 10 destinations in descending order of relevance to the user's preferences.
 `
 
-const SYSTEM_PROMPT = `
-You are a travel destination expert. Analyze free-form text about travel preferences and generate up to 10 suitable destinations ranked by relevance.
+const DESTINATION_DETAIL_SYSTEM_PROMPT = `
+You are a travel destination expert. Provide detailed information about a specific destination based on the user's travel preferences.
 
 Parse for: activities/interests, timing/season, budget, travel style, climate/geography preferences.
 
-For each destination provide:
-1. Country (ISO 3166-1 alpha-3 code)
-2. Region/city name  
+Provide detailed information for the destination:
+1. Country (ISO 3166-1 alpha-3 code) - must match the provided country
+2. Region/city name - must match the provided region
 3. Description with 4-6 bullet points covering:
    - Why it matches their specific interests and activities. Focus on what they want to do, not generic tourist information.
-   - Seasonal suitability and timing
-   - Use markdown formatting for bullet points.
+   - Seasonal suitability and timing for their travel period
+   - Use markdown formatting for bullet points with emojis
 4. Image keywords object with:
-   - cover: 2-3 keywords for the country and region.
-   - gallery: 3-5 keywords that describe the destination, region and activities the user wants to do
+   - cover: 2-3 keywords for the country and region (e.g., "japan tokyo")
+   - gallery: 3-5 keywords that describe the destination, region and activities the user wants to do (e.g., "tokyo street food sushi ramen shibuya")
 5. Price estimates (in USD per day):
-   - Accommodation (budget/mid-range/luxury range)
-   - Food (typical daily cost)
-   - Activities (cost for their specific interests)
-6. Recommended duration (in days)
-7. Airport code for the main international airport in the destination country (IATA code)
+   - Accommodation (budget/mid-range/luxury range, e.g., "20-40")
+   - Food (typical daily cost, e.g., "15-30")
+   - Activities (cost for their specific interests, e.g., "30-50")
+6. Recommended duration (in days as string, e.g., "7")
+7. Airport code for the main international airport in the destination region or country (IATA code, e.g., "HND" for Tokyo)
 
+Format STRICTLY as a single JSON object:
 
-Format STRICTLY as JSON array:
+{
+  "country": "JPN",
+  "region": "Tokyo",
+  "description": [
+    "✨ **Perfect for Adventure**: Tokyo offers incredible hiking trails within 2 hours of the city",
+    "🏔️ **Mountain Access**: Easy access to Mount Takao and the Japanese Alps",
+    "🍜 **Food Scene**: Amazing post-hike ramen and local cuisine",
+    "🌸 **November Weather**: Crisp autumn weather perfect for outdoor activities",
+    "🚇 **Easy Navigation**: Excellent public transport to trailheads"
+  ],
+  "imagesKeywords": {
+    "cover": "japan tokyo mountains",
+    "gallery": "tokyo hiking mount takao autumn trails japanese alps"
+  },
+  "pricing": {
+    "accommodation": "30-60",
+    "food": "20-35",
+    "activities": "25-45"
+  },
+  "recommendedDuration": "7",
+  "destinationAirportCode": "NRT"
+}
 
-[
-  {
-    "country": "JPN",
-    "region": "Tokyo",
-    "description": [
-      "✨ **Highlight 1**: Description 1",
-      "🌊 **Highlight 2**: Description 2",
-      "🍔 **Highlight 3**: Description 3",
-      "🎉 **Highlight 4**: Description 4",
-      "🎆 **Highlight 5**: Description 5"
-    ],
-    "imagesKeywords": {
-      "cover": "japan tokyo",
-      "gallery": "tokyo street food sushi ramen shibuya"
-    },
-    "pricing": {
-      "accommodation": "20-40",
-      "food": "15-30",
-      "activities": "30-50"
-    },
-    "recommendedDuration": "7",
-    "destinationAirportCode": "HND"
-  }
-]
-
-Output ONLY valid JSON—no preamble or additional text. Give back 5 destinations as options.
+Output ONLY valid JSON—no preamble or additional text.
 `
 
 export async function generateDestinationNames(
@@ -174,9 +171,10 @@ export async function generateDestinationNames(
   }
 }
 
-export async function generateSuitableDestinationInfo(
+export async function generateDestinationInfo(
+  destination: { country: string; region: string },
   params: GenerateDestinationParams
-): Promise<Destination[]> {
+): Promise<Destination> {
   try {
     const { vibe, timePeriod, price, from } = params
 
@@ -185,6 +183,9 @@ export async function generateSuitableDestinationInfo(
     }
     if (!timePeriod || timePeriod.trim().length === 0) {
       throw new Error('Time period is required')
+    }
+    if (!destination.country || !destination.region) {
+      throw new Error('Destination country and region are required')
     }
 
     // Build a natural language prompt from structured parameters
@@ -198,17 +199,19 @@ export async function generateSuitableDestinationInfo(
       prompt += ` My budget is ${price}.`
     }
 
+    prompt += `\n\nProvide detailed information for: ${destination.region}, ${destination.country}`
+
     const { text } = await generateText({
       model: google('gemini-2.0-flash'),
-      system: SYSTEM_PROMPT,
+      system: DESTINATION_DETAIL_SYSTEM_PROMPT,
       prompt: prompt,
     })
 
     // Strip markdown fences if present, then parse the JSON response
     const cleanedText = stripMarkdownFences(text)
-    const destinations: Destination[] = JSON.parse(cleanedText)
+    const detailedDestination: Destination = JSON.parse(cleanedText)
     
-    return destinations
+    return detailedDestination
   } catch (error) {
     console.error('Error generating destination info:', error)
     throw new Error(

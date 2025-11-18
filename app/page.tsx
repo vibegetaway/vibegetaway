@@ -4,7 +4,7 @@ import { AnimatedVibeInput } from '@/components/AnimatedVibeInput'
 import { MonthSelect } from '@/components/MonthSelect'
 import WorldMap from '@/components/WorldMap'
 import { useState, useEffect, useRef } from 'react'
-import { generateDestinationNames, type Destination } from '@/lib/generateDestinationInfo'
+import { generateDestinationNames, generateDestinationInfo, type Destination } from '@/lib/generateDestinationInfo'
 import mockDestinations from '@/data/mock-gemini-response.json'
 
 const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
@@ -38,7 +38,8 @@ export default function Home() {
     setDestinations([])
 
     try {
-      const result = await generateDestinationNames({
+      // Step 1: Fetch destination names quickly
+      const destinationNames = await generateDestinationNames({
         vibe: v,
         timePeriod: m,
       })
@@ -46,11 +47,46 @@ export default function Home() {
       // Ignore if a newer call started after this one
       if (callId !== callIdRef.current) return
 
-      setDestinations(result)
-      console.log(`Vibe: ${v}, Month: ${m}, Destinations: ${JSON.stringify(result)}`)
+      // Set initial destinations with just names
+      setDestinations(destinationNames)
+      console.log(`Vibe: ${v}, Month: ${m}, Initial Destinations: ${JSON.stringify(destinationNames)}`)
+
+      // Stop showing loading indicator - destinations are now visible on the map
+      setLoading(false)
+
+      // Step 2: Sequentially fetch detailed info for each destination (in background)
+      for (let i = 0; i < destinationNames.length; i++) {
+        // Check if a newer call started
+        if (callId !== callIdRef.current) return
+
+        const dest = destinationNames[i]
+        if (!dest.country || !dest.region) continue
+
+        try {
+          const detailedInfo = await generateDestinationInfo(
+            { country: dest.country, region: dest.region },
+            { vibe: v, timePeriod: m }
+          )
+
+          // Check again if a newer call started
+          if (callId !== callIdRef.current) return
+
+          // Update the specific destination with detailed info
+          setDestinations(prev => {
+            const updated = [...prev]
+            updated[i] = detailedInfo
+            return updated
+          })
+
+          console.log(`Fetched details for ${dest.region}, ${dest.country}`)
+        } catch (err) {
+          console.error(`Error fetching details for ${dest.region}:`, err)
+          // Continue with next destination even if one fails
+        }
+      }
     } catch (err) {
       console.error(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
+      // Only reset loading if the initial fetch fails
       if (callId === callIdRef.current) setLoading(false)
     }
   }
