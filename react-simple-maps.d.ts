@@ -36,8 +36,23 @@ declare module 'react-simple-maps' {
     children?: (params: { geographies: any[] }) => ReactNode
   }
 
+  export interface Position {
+    coordinates: [number, number]
+    zoom: number
+  }
+
+  export interface ZoomableGroupProps {
+    center?: [number, number]
+    zoom?: number
+    minZoom?: number
+    maxZoom?: number
+    onMoveEnd?: (position: Position) => void
+    children?: ReactNode
+  }
+
   export const ComposableMap: React.FC<ComposableMapProps>
   export const Geographies: React.FC<GeographiesProps>
   export const Geography: React.FC<GeographyProps>
+  export const ZoomableGroup: React.FC<ZoomableGroupProps>
 }
 

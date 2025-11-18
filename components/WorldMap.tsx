@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useMemo, useCallback } from 'react'
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
+import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps'
 import { geoPath, geoMercator } from 'd3-geo'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { codeToCountry } from '@/lib/countryCodeMapping'
@@ -32,6 +32,7 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
   const [geographies, setGeographies] = useState<any[]>([])
   const geographiesRef = useRef<any[]>([])
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [position, setPosition] = useState({ coordinates: [0, 44] as [number, number], zoom: 1 })
 
   const handleCountryClick = (destination: Destination | undefined) => {
     if (destination) {
@@ -43,6 +44,23 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
     setIsPanelOpen(false)
     setSelectedDestination(null)
   }
+
+  const handleZoomIn = () => {
+    if (position.zoom < 8) {
+      setPosition({ ...position, zoom: position.zoom * 1.5 })
+    }
+  }
+
+  const handleZoomOut = () => {
+    if (position.zoom > 1) {
+      setPosition({ ...position, zoom: position.zoom / 1.5 })
+    }
+  }
+
+  const handleReset = () => {
+    setPosition({ coordinates: [0, 44], zoom: 1 })
+  }
+
   const projection = geoMercator()
     .center([0, 44])
     .scale(155)
@@ -60,7 +78,7 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
 
   return (
     <div 
-      className="min-h-[40dvh] grid place-items-center relative"
+      className="fixed inset-0 w-screen h-screen grid place-items-center overflow-hidden z-0"
       onMouseMove={(e) => setMousePosition({ x: e.clientX, y: e.clientY })}
     >
       <ComposableMap
@@ -71,8 +89,8 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
         }}
         width={1000}
         height={640}
-        className="block mx-auto h-auto w-full max-w-[calc((100dvh-220px)*(1000/640))]"
-        style={{ width: "100%", height: "auto" }}
+        className="w-screen h-screen"
+        style={{ width: "100vw", height: "100vh" }}
       >
         <defs>
           <pattern id="dot-pattern" x="0" y="0" width="3" height="3" patternUnits="userSpaceOnUse">
@@ -88,6 +106,13 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
             <circle className="loading-dot" cx="1" cy="1" r="1" />
           </pattern>
         </defs>
+        <ZoomableGroup
+          center={position.coordinates}
+          zoom={position.zoom}
+          minZoom={1}
+          maxZoom={8}
+          onMoveEnd={(newPosition) => setPosition(newPosition)}
+        >
         <Geographies geography={geoUrl}>
           {({ geographies: geoData }: { geographies: any[] }) => {
             // Store geographies for destination label calculation
@@ -173,6 +198,7 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
             direction="right-top"
           />
         )}
+        </ZoomableGroup>
       </ComposableMap>
       <SidePanel
         destination={selectedDestination}
@@ -186,6 +212,32 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
           mousePosition={mousePosition}
         />
       )}
+      {/* Zoom control buttons */}
+      <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-20">
+        <button
+          onClick={handleZoomIn}
+          disabled={position.zoom >= 8}
+          className="w-8 h-8 bg-white/90 hover:bg-white text-gray-800 rounded-lg shadow-lg flex items-center justify-center font-bold text-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          title="Zoom In"
+        >
+          +
+        </button>
+        <button
+          onClick={handleZoomOut}
+          disabled={position.zoom <= 1}
+          className="w-8 h-8 bg-white/90 hover:bg-white text-gray-800 rounded-lg shadow-lg flex items-center justify-center font-bold text-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          title="Zoom Out"
+        >
+          −
+        </button>
+        <button
+          onClick={handleReset}
+          className="w-8 h-8 bg-white/90 hover:bg-white text-gray-800 rounded-lg shadow-lg flex items-center justify-center font-bold text-base transition-all hover:scale-105"
+          title="Reset View"
+        >
+          ⟲
+        </button>
+      </div>
       <style jsx>{`
         @keyframes drawLine {
           from {

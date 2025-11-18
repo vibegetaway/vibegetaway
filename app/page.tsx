@@ -67,20 +67,18 @@ export default function Home() {
   }, [debouncedVibe, month])
 
   return (
-    <main>
-      <div className="flex items-center justify-center p-6 bg-background">
-        <div className="max-w-5xl w-full">
-          <h1 className="text-5xl font-bold leading-tight text-balance">
-            <span className="text-foreground">I want to </span>
-            <span className="inline-block align-middle">
-              <AnimatedVibeInput value={vibe} onChange={setVibe} />
-            </span>
-            <span className="text-foreground"> in </span>
-            <span className="inline-block align-middle">
-              <MonthSelect value={month} onChange={setMonth} />
-            </span>
-          </h1>
-        </div>
+    <main className="relative w-screen h-screen overflow-hidden">
+      <div className="absolute top-4 left-4 z-20 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3">
+        <h1 className="text-xl font-bold leading-tight">
+          <span className="text-foreground">I want to </span>
+          <span className="inline-block align-middle">
+            <AnimatedVibeInput value={vibe} onChange={setVibe} />
+          </span>
+          <span className="text-foreground"> in </span>
+          <span className="inline-block align-middle">
+            <MonthSelect value={month} onChange={setMonth} />
+          </span>
+        </h1>
       </div>
       <WorldMap
         loading={loading}
