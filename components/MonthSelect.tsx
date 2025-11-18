@@ -40,7 +40,7 @@ export function MonthSelect({ value, onChange }: { value: string; onChange: (val
           "focus:outline-none focus:border-accent",
           "transition-all duration-200",
           "hover:border-accent/50",
-          "w-80",
+          "w-50",
           "py-2",
         )}
       >
