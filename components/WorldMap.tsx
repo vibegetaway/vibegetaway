@@ -7,6 +7,7 @@ import type { Destination } from '@/lib/generateDestinationInfo'
 import { codeToCountry } from '@/lib/countryCodeMapping'
 import { SidePanel } from './SidePanel'
 import { CountryLabel } from './CountryLabel'
+import { DestinationOverlay } from './DestinationOverlay'
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
@@ -30,6 +31,7 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [geographies, setGeographies] = useState<any[]>([])
   const geographiesRef = useRef<any[]>([])
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
 
   const handleCountryClick = (destination: Destination | undefined) => {
     if (destination) {
@@ -98,8 +100,8 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
   // Find a direction that doesn't overlap with existing labels
   const findNonOverlappingDirection = (
     centroid: [number, number],
-    countryName: string,
-    existingLabels: Array<{ centroid: [number, number]; countryName: string; direction: 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom' }>
+    displayName: string,
+    existingLabels: Array<{ centroid: [number, number]; countryName: string; displayName?: string; direction: 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom' }>
   ): 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom' => {
     const directions: Array<'left-top' | 'right-top' | 'left-bottom' | 'right-bottom'> = [
       'right-top',
@@ -109,11 +111,13 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
     ]
 
     for (const direction of directions) {
-      const bounds = getLabelBounds(centroid, countryName, direction)
+      const bounds = getLabelBounds(centroid, displayName, direction)
       
       // Check if this direction overlaps with any existing label
       const hasOverlap = existingLabels.some((existing) => {
-        const existingBounds = getLabelBounds(existing.centroid, existing.countryName, existing.direction)
+        // Use displayName if available, otherwise use countryName
+        const existingName = existing.displayName || existing.countryName
+        const existingBounds = getLabelBounds(existing.centroid, existingName, existing.direction)
         return boxesOverlap(bounds, existingBounds)
       })
 
@@ -133,6 +137,7 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
     const labels: Array<{ 
       centroid: [number, number]; 
       countryName: string;
+      displayName: string;
       direction: 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom';
     }> = []
     const processedCountries = new Set<string>()
@@ -159,10 +164,14 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
         try {
           const centroid = CENTROID_OVERRIDES[countryName] || pathGenerator.centroid(matchingGeo)
           
-          // Find a direction that doesn't overlap with existing labels
-          const direction = findNonOverlappingDirection(centroid, countryName, labels)
+          // Use destination region name for display, fallback to country name
+          const displayName = dest.region || countryName
           
-          labels.push({ centroid, countryName, direction })
+          // Find a direction that doesn't overlap with existing labels
+          // Use displayName for overlap calculation since that's what will be rendered
+          const direction = findNonOverlappingDirection(centroid, displayName, labels)
+          
+          labels.push({ centroid, countryName, displayName, direction })
         } catch (e) {
           // Skip if centroid calculation fails
         }
@@ -173,7 +182,10 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
   }
 
   return (
-    <div className="min-h-[40dvh] grid place-items-center relative">
+    <div 
+      className="min-h-[40dvh] grid place-items-center relative"
+      onMouseMove={(e) => setMousePosition({ x: e.clientX, y: e.clientY })}
+    >
       <ComposableMap
         projection="geoMercator"
         projectionConfig={{
@@ -243,7 +255,7 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
                     key={geo.rsmKey}
                     geography={geo}
                     fill={fillPattern}
-                    onMouseEnter={() => {
+                    onMouseEnter={(event) => {
                       setHoveredCountry(geo.rsmKey)
                       setHoveredCountryName(geo.properties.name)
                       if (matchingDest) {
@@ -255,6 +267,8 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
                       } catch (e) {
                         setHoveredCentroid(null)
                       }
+                      // Track mouse position for overlay
+                      setMousePosition({ x: event.clientX, y: event.clientY })
                     }}
                     onMouseLeave={() => {
                       setHoveredCountry(null)
@@ -275,14 +289,16 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
           }
         </Geographies>
         {/* Show labels for all destinations */}
-        {getDestinationLabels().map((label, index) => (
-          <CountryLabel
-            key={`${label.countryName}-${index}`}
-            centroid={label.centroid}
-            countryName={label.countryName}
-            direction={label.direction}
-          />
-        ))}
+        {getDestinationLabels()
+          .filter(label => !hoveredDestination || label.countryName !== hoveredCountryName)
+          .map((label, index) => (
+            <CountryLabel
+              key={`${label.countryName}-${index}`}
+              centroid={label.centroid}
+              countryName={label.displayName}
+              direction={label.direction}
+            />
+          ))}
         {/* Show label for hovered country (if not already a destination) */}
         {hoveredCentroid && hoveredCountryName && 
          !getDestinationLabels().some(label => label.countryName === hoveredCountryName) && (() => {
@@ -302,6 +318,13 @@ export default function WorldMap({ loading, destinations = [] }: WorldMapProps) 
         isOpen={isPanelOpen}
         onClose={handleClosePanel}
       />
+      {/* Show destination overlay on hover */}
+      {hoveredDestination && (
+        <DestinationOverlay
+          destination={hoveredDestination}
+          mousePosition={mousePosition}
+        />
+      )}
       <style jsx>{`
         @keyframes drawLine {
           from {

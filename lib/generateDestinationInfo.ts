@@ -2,6 +2,8 @@
 
 import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
+import { groq } from '@ai-sdk/groq'
+
 
 export interface DestinationPricing {
   accommodation: string
@@ -110,7 +112,7 @@ Format STRICTLY as JSON array:
   }
 ]
 
-Output ONLY valid JSON—no preamble or additional text. Give back 10 destinations as options.
+Output ONLY valid JSON—no preamble or additional text. Give back 5 destinations as options.
 `
 
 export async function generateSuitableCountries(
