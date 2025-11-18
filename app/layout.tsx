@@ -5,6 +5,9 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'VibeGetaway',
   description: 'Find your next adventure',
+  icons: {
+    icon: '/assets/icon.png',
+  },
 }
 
 export default function RootLayout({
