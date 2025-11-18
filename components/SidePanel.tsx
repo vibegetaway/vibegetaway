@@ -126,9 +126,9 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
         }`}
       >
         {/* Cover Image */}
-        {loadingCover ? (
-          <div className="w-full h-64 bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
-            <div className="text-stone-600 text-sm">Loading cover...</div>
+        {!destination.imagesKeywords || loadingCover ? (
+          <div className="w-full h-64 bg-gradient-to-br from-amber-100 to-orange-100 animate-pulse flex items-center justify-center">
+            <div className="text-stone-600 text-sm">Loading...</div>
           </div>
         ) : coverImage ? (
           <div className="w-full h-64 relative overflow-hidden">
@@ -156,21 +156,35 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
           {/* Description */}
           <div className="mb-8">
             <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-widest mb-3">About</h3>
-            <div className="space-y-3">
-              {destination.description?.map((desc, idx) => (
-                <div key={idx} className="text-stone-700 leading-relaxed prose prose-sm max-w-none prose-p:my-0 prose-strong:text-stone-900 prose-strong:font-semibold">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{desc}</ReactMarkdown>
-                </div>
-              ))}
-            </div>
+            {destination.description && destination.description.length > 0 ? (
+              <div className="space-y-3">
+                {destination.description.map((desc, idx) => (
+                  <div key={idx} className="text-stone-700 leading-relaxed prose prose-sm max-w-none prose-p:my-0 prose-strong:text-stone-900 prose-strong:font-semibold">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{desc}</ReactMarkdown>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="h-4 bg-amber-100/50 rounded animate-pulse"></div>
+                <div className="h-4 bg-amber-100/50 rounded animate-pulse w-5/6"></div>
+                <div className="h-4 bg-amber-100/50 rounded animate-pulse w-4/6"></div>
+                <div className="h-4 bg-amber-100/50 rounded animate-pulse w-full"></div>
+                <div className="h-4 bg-amber-100/50 rounded animate-pulse w-3/4"></div>
+              </div>
+            )}
           </div>
 
           {/* Image Gallery */}
           <div className="mb-8">
             <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-widest mb-3">Gallery</h3>
-            {loadingImages ? (
-              <div className="flex items-center justify-center p-8">
-                <div className="text-stone-600 text-sm">Loading images...</div>
+            {!destination.imagesKeywords || loadingImages ? (
+              <div className="grid grid-cols-2 gap-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-amber-200/50 bg-amber-50/50 animate-pulse">
+                    <div className="w-full h-full bg-amber-100"></div>
+                  </div>
+                ))}
               </div>
             ) : images.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
@@ -194,55 +208,80 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
           {/* Pricing Details */}
           <div className="mb-8">
             <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-widest mb-4">Pricing Details</h3>
-            <div className="space-y-3">
-              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200/50">
-                <p className="text-xs text-stone-600 mb-1">Accommodation Range</p>
-                <p className="text-2xl font-bold text-amber-700">${destination.pricing?.accommodation || 0}/night</p>
+            {destination.pricing ? (
+              <div className="space-y-3">
+                <div className="p-4 rounded-lg bg-amber-50 border border-amber-200/50">
+                  <p className="text-xs text-stone-600 mb-1">Accommodation Range</p>
+                  <p className="text-2xl font-bold text-amber-700">${destination.pricing.accommodation}/night</p>
+                </div>
+                <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200/50">
+                  <p className="text-xs text-stone-600 mb-1">Food & Dining</p>
+                  <p className="text-2xl font-bold text-yellow-700">${destination.pricing.food}/day</p>
+                </div>
+                <div className="p-4 rounded-lg bg-orange-50 border border-orange-200/50">
+                  <p className="text-xs text-stone-600 mb-1">Activities & Entertainment</p>
+                  <p className="text-2xl font-bold text-orange-700">${destination.pricing.activities}/day</p>
+                </div>
               </div>
-              <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200/50">
-                <p className="text-xs text-stone-600 mb-1">Food & Dining</p>
-                <p className="text-2xl font-bold text-yellow-700">${destination.pricing?.food || 0}/day</p>
+            ) : (
+              <div className="space-y-3">
+                <div className="p-4 rounded-lg bg-amber-50/50 border border-amber-200/50 animate-pulse">
+                  <div className="h-3 bg-amber-100 rounded w-2/3 mb-2"></div>
+                  <div className="h-8 bg-amber-100 rounded w-1/2"></div>
+                </div>
+                <div className="p-4 rounded-lg bg-yellow-50/50 border border-yellow-200/50 animate-pulse">
+                  <div className="h-3 bg-yellow-100 rounded w-2/3 mb-2"></div>
+                  <div className="h-8 bg-yellow-100 rounded w-1/2"></div>
+                </div>
+                <div className="p-4 rounded-lg bg-orange-50/50 border border-orange-200/50 animate-pulse">
+                  <div className="h-3 bg-orange-100 rounded w-2/3 mb-2"></div>
+                  <div className="h-8 bg-orange-100 rounded w-1/2"></div>
+                </div>
               </div>
-              <div className="p-4 rounded-lg bg-orange-50 border border-orange-200/50">
-                <p className="text-xs text-stone-600 mb-1">Activities & Entertainment</p>
-                <p className="text-2xl font-bold text-orange-700">${destination.pricing?.activities || 0}/day</p>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Trip Summary */}
-          <div className="mb-8 p-4 rounded-lg bg-gradient-to-r from-amber-100/60 to-orange-100/60 border border-amber-300/50">
-            <p className="text-sm font-semibold text-stone-800 mb-3">7-Day Trip Estimate</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-stone-700">
-                <span>Accommodation</span>
-                <span>
-                  ${accommodationPrice * 7}/week
-                </span>
-              </div>
-              <div className="flex justify-between text-stone-700">
-                <span>Food</span>
-                <span>${foodPrice * 7}/week</span>
-              </div>
-              <div className="flex justify-between text-stone-700">
-                <span>Activities</span>
-                <span>${activitiesPrice * 7}/week</span>
-              </div>
-              <div className="border-t border-amber-300/50 pt-2 flex justify-between font-semibold text-amber-800">
-                <span>Total</span>
-                <span>
-                  ${accommodationPrice * 7 + foodPrice * 7 + activitiesPrice * 7}/week
-                </span>
+          {destination.pricing ? (
+            <div className="mb-8 p-4 rounded-lg bg-gradient-to-r from-amber-100/60 to-orange-100/60 border border-amber-300/50">
+              <p className="text-sm font-semibold text-stone-800 mb-3">7-Day Trip Estimate</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between text-stone-700">
+                  <span>Accommodation</span>
+                  <span>
+                    ${accommodationPrice * 7}/week
+                  </span>
+                </div>
+                <div className="flex justify-between text-stone-700">
+                  <span>Food</span>
+                  <span>${foodPrice * 7}/week</span>
+                </div>
+                <div className="flex justify-between text-stone-700">
+                  <span>Activities</span>
+                  <span>${activitiesPrice * 7}/week</span>
+                </div>
+                <div className="border-t border-amber-300/50 pt-2 flex justify-between font-semibold text-amber-800">
+                  <span>Total</span>
+                  <span>
+                    ${accommodationPrice * 7 + foodPrice * 7 + activitiesPrice * 7}/week
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : null}
 
           {/* Flight Details */}
           <div className="mb-8">
             <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-widest mb-4">Available Flights</h3>
-            {loadingFlights ? (
-              <div className="flex items-center justify-center p-8">
-                <div className="text-stone-600 text-sm">Loading flights...</div>
+            {!destination.destinationAirportCode || loadingFlights ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-5 rounded-lg bg-gradient-to-br from-amber-100/60 to-orange-100/60 border border-amber-300/50 animate-pulse">
+                    <div className="h-6 bg-amber-100 rounded mb-3"></div>
+                    <div className="h-4 bg-amber-100 rounded mb-2"></div>
+                    <div className="h-4 bg-amber-100 rounded w-3/4"></div>
+                  </div>
+                ))}
               </div>
             ) : flights.length > 0 ? (
               <div className="space-y-4">

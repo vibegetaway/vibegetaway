@@ -91,59 +91,81 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
               </div>
             </div>
 
-            {destination.description?.[0] && (
+            {/* Description Section */}
+            {destination.description?.[0] ? (
               <div className="text-sm leading-relaxed text-stone-700 prose prose-sm max-w-none prose-p:my-0">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{destination.description[0]}</ReactMarkdown>
               </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="h-4 bg-amber-100/50 rounded animate-pulse"></div>
+                <div className="h-4 bg-amber-100/50 rounded animate-pulse w-5/6"></div>
+                <div className="h-4 bg-amber-100/50 rounded animate-pulse w-4/6"></div>
+              </div>
             )}
 
+            {/* Pricing Section */}
             <div className="pt-2 border-t border-amber-200/50">
               <p className="text-xs font-semibold text-amber-700 uppercase tracking-widest mb-4">Daily Breakdown</p>
 
-              <div className="space-y-3">
-                {/* Accommodation */}
-                <div className="flex justify-between items-center p-3 rounded-lg bg-amber-50/50 border border-amber-200/50 hover:border-amber-400/50 transition-all">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-amber-600 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
-                    </svg>
-                    <span className="text-xs font-medium text-stone-700">Accommodation</span>
+              {destination.pricing ? (
+                <div className="space-y-3">
+                  {/* Accommodation */}
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-amber-50/50 border border-amber-200/50 hover:border-amber-400/50 transition-all">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-amber-600 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
+                      </svg>
+                      <span className="text-xs font-medium text-stone-700">Accommodation</span>
+                    </div>
+                    <span className="text-sm font-semibold text-amber-700">
+                      ${destination.pricing.accommodation}/night
+                    </span>
                   </div>
-                  <span className="text-sm font-semibold text-amber-700">
-                    ${destination.pricing?.accommodation || 0}/night
-                  </span>
-                </div>
 
-                {/* Food */}
-                <div className="flex justify-between items-center p-3 rounded-lg bg-orange-50/50 border border-orange-200/50 hover:border-orange-400/50 transition-all">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-orange-600 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
-                    </svg>
-                    <span className="text-xs font-medium text-stone-700">Food & Dining</span>
+                  {/* Food */}
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-orange-50/50 border border-orange-200/50 hover:border-orange-400/50 transition-all">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-orange-600 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
+                      </svg>
+                      <span className="text-xs font-medium text-stone-700">Food & Dining</span>
+                    </div>
+                    <span className="text-sm font-semibold text-orange-700">${destination.pricing.food}/day</span>
                   </div>
-                  <span className="text-sm font-semibold text-orange-700">${destination.pricing?.food || 0}/day</span>
-                </div>
 
-                {/* Activities */}
-                <div className="flex justify-between items-center p-3 rounded-lg bg-yellow-50/50 border border-yellow-200/50 hover:border-yellow-400/50 transition-all">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-yellow-600 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
-                    </svg>
-                    <span className="text-xs font-medium text-stone-700">Activities</span>
+                  {/* Activities */}
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-yellow-50/50 border border-yellow-200/50 hover:border-yellow-400/50 transition-all">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-yellow-600 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
+                      </svg>
+                      <span className="text-xs font-medium text-stone-700">Activities</span>
+                    </div>
+                    <span className="text-sm font-semibold text-yellow-700">${destination.pricing.activities}/day</span>
                   </div>
-                  <span className="text-sm font-semibold text-yellow-700">${destination.pricing?.activities || 0}/day</span>
-                </div>
 
-                {/* Total */}
-                <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-amber-100/60 to-orange-100/60 border border-amber-300/50">
-                  <span className="text-xs font-semibold text-stone-800">Total Daily</span>
-                  <span className="text-sm font-bold text-amber-800">
-                    ${accommodationPrice + foodPrice + activitiesPrice}
-                  </span>
+                  {/* Total */}
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-amber-100/60 to-orange-100/60 border border-amber-300/50">
+                    <span className="text-xs font-semibold text-stone-800">Total Daily</span>
+                    <span className="text-sm font-bold text-amber-800">
+                      ${accommodationPrice + foodPrice + activitiesPrice}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="p-3 rounded-lg bg-amber-50/50 border border-amber-200/50 animate-pulse">
+                    <div className="h-6 bg-amber-100 rounded"></div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-orange-50/50 border border-orange-200/50 animate-pulse">
+                    <div className="h-6 bg-orange-100 rounded"></div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-yellow-50/50 border border-yellow-200/50 animate-pulse">
+                    <div className="h-6 bg-yellow-100 rounded"></div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

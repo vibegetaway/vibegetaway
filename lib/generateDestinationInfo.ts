@@ -51,15 +51,29 @@ function stripMarkdownFences(text: string): string {
   return cleaned.trim()
 }
 
-const COUNTRIES_SYSTEM_PROMPT = `
-You are a travel destination expert. Analyze free-form text about travel preferences and generate all suitable destinations YOU WOULD PERSONALLY RECOMMEND.
+const DESTINATION_NAMES_SYSTEM_PROMPT = `
+You are a travel destination expert. Analyze free-form text about travel preferences and generate the 10 most suitable destinations ranked by relevance.
 
 Parse for: activities/interests, timing/season, budget, travel style, climate/geography preferences.
 
-Format STRICTLY as JSON array of ISO 3166-1 alpha-3 country codes:
-e.g. ["JPN", "THA", "ITA"]
+For each destination provide ONLY:
+1. Country (ISO 3166-1 alpha-3 code)
+2. Region/city name (the specific destination within that country)
 
-Output ONLY valid JSON—no preamble or additional text. Give back all suitable destinations as options.
+Format STRICTLY as JSON array:
+
+[
+  {
+    "country": "JPN",
+    "region": "Tokyo"
+  },
+  {
+    "country": "THA", 
+    "region": "Chiang Mai"
+  }
+]
+
+Output ONLY valid JSON—no preamble or additional text. Return exactly 10 destinations in descending order of relevance to the user's preferences.
 `
 
 const SYSTEM_PROMPT = `
@@ -115,7 +129,7 @@ Format STRICTLY as JSON array:
 Output ONLY valid JSON—no preamble or additional text. Give back 5 destinations as options.
 `
 
-export async function generateSuitableCountries(
+export async function generateDestinationNames(
   params: GenerateDestinationParams
 ): Promise<Destination[]> {
   try {
@@ -141,24 +155,21 @@ export async function generateSuitableCountries(
 
     const { text } = await generateText({
       model: google('gemini-2.0-flash'),
-      system: COUNTRIES_SYSTEM_PROMPT,
+      system: DESTINATION_NAMES_SYSTEM_PROMPT,
       prompt: prompt,
     })
 
     // Strip markdown fences if present, then parse the JSON response
     const cleanedText = stripMarkdownFences(text)
-    const countries: string[] = JSON.parse(cleanedText)
-    const destinations: Destination[] = countries.map(country => ({
-      country: country,
-    }))
+    const destinations: Destination[] = JSON.parse(cleanedText)
     
     return destinations
   } catch (error) {
-    console.error('Error generating destination info:', error)
+    console.error('Error generating destination names:', error)
     throw new Error(
       error instanceof Error 
-        ? `Failed to generate destination info: ${error.message}`
-        : 'Failed to generate destination info'
+        ? `Failed to generate destination names: ${error.message}`
+        : 'Failed to generate destination names'
     )
   }
 }

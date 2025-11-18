@@ -4,7 +4,7 @@ import { AnimatedVibeInput } from '@/components/AnimatedVibeInput'
 import { MonthSelect } from '@/components/MonthSelect'
 import WorldMap from '@/components/WorldMap'
 import { useState, useEffect, useRef } from 'react'
-import { generateSuitableDestinationInfo, type Destination } from '@/lib/generateDestinationInfo'
+import { generateDestinationNames, type Destination } from '@/lib/generateDestinationInfo'
 import mockDestinations from '@/data/mock-gemini-response.json'
 
 const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
@@ -38,7 +38,7 @@ export default function Home() {
     setDestinations([])
 
     try {
-      const result = await generateSuitableDestinationInfo({
+      const result = await generateDestinationNames({
         vibe: v,
         timePeriod: m,
       })
