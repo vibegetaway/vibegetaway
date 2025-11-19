@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
-import { MapPin, X, Trash2 } from 'lucide-react'
+import { MapPin, X, Trash2, Heart } from 'lucide-react'
 import { getFavorites, removeFromFavorites, clearFavorites, formatAddedDate, type FavoriteItem } from '@/lib/favorites'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface FavoritesPanelProps {
   isOpen: boolean
@@ -58,28 +60,28 @@ export function FavoritesPanel({
 
   return (
     <div
-      className={`fixed left-20 top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
+      className={`fixed left-20 top-0 h-screen w-full max-w-md bg-white/95 backdrop-blur-md border-r border-stone-200 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
     >
       {/* Spacer for text input */}
       <div className="h-24"></div>
 
-      <div className="p-8">
+      <div className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h2 className="text-4xl font-bold text-stone-900 mb-2">My Favorites</h2>
-            <p className="text-stone-600">
+            <h2 className="text-3xl font-bold text-stone-900 mb-2 tracking-tight">My Favorites</h2>
+            <p className="text-stone-500 text-sm font-medium">
               {favoriteItems.length === 0
                 ? 'No favorites saved yet'
-                : `${favoriteItems.length} ${favoriteItems.length === 1 ? 'destination' : 'destinations'}`}
+                : `${favoriteItems.length} ${favoriteItems.length === 1 ? 'destination' : 'destinations'} saved`}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-amber-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-stone-100 rounded-full transition-colors"
           >
-            <X className="w-6 h-6 text-stone-600" />
+            <X className="w-5 h-5 text-stone-500" />
           </button>
         </div>
 
@@ -98,18 +100,18 @@ export function FavoritesPanel({
 
         {/* Empty state */}
         {favoriteItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <MapPin className="w-12 h-12 text-red-600" />
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4">
+              <Heart className="w-10 h-10 text-red-400" />
             </div>
-            <h3 className="text-xl font-semibold text-stone-900 mb-2">No favorites yet</h3>
-            <p className="text-stone-600 max-w-xs">
+            <h3 className="text-xl font-bold text-stone-900 mb-2">No favorites yet</h3>
+            <p className="text-stone-500 max-w-xs">
               Start adding destinations to your favorites by clicking the heart icon on destination cards
             </p>
           </div>
         ) : (
           /* Favorites list */
-          <div className="space-y-3">
+          <div className="space-y-4">
             {favoriteItems.map((item) => {
               const destination = item.destination
               const isSelected =
@@ -125,61 +127,66 @@ export function FavoritesPanel({
                 dailyCost = accommodationPrice + foodPrice + activitiesPrice
               }
 
+              // Prepare description for markdown
+              const descriptionText = Array.isArray(destination.description)
+                ? destination.description.join('\n\n')
+                : destination.description || ''
+
               return (
                 <div
                   key={item.id}
-                  className={`relative group bg-white border border-amber-200/50 hover:border-amber-300 rounded-lg transition-all ${isSelected ? 'bg-amber-50 border-amber-400' : ''
+                  className={`relative group bg-white rounded-2xl transition-all duration-300 ${isSelected
+                      ? 'ring-2 ring-amber-500 shadow-lg shadow-amber-100'
+                      : 'hover:shadow-xl hover:shadow-stone-200/50 border border-stone-100'
                     }`}
                 >
-                  <button
+                  <div
                     onClick={() => onDestinationClick(destination)}
-                    className="w-full p-4 text-left"
+                    className="cursor-pointer p-5"
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Pin icon */}
-                      <div className="flex-shrink-0 mt-1">
-                        <MapPin
-                          className={`w-5 h-5 ${isSelected ? 'text-amber-700' : 'text-red-500'
-                            }`}
-                        />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-stone-900 mb-1">{destination.region}</h3>
-                        <p className="text-sm text-stone-600 mb-2">
-                          {getCountryName(destination.country)}
-                        </p>
-
-                        {/* Description snippet */}
-                        {destination.description?.[0] && (
-                          <p className="text-sm text-stone-700 mt-1 line-clamp-2">
-                            {destination.description[0]}
-                          </p>
-                        )}
-
-                        {/* Pricing and added date */}
-                        <div className="flex items-center justify-between mt-2">
-                          {dailyCost > 0 && (
-                            <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">
-                              ${dailyCost}/day
-                            </span>
-                          )}
-                          <span className="text-xs text-stone-500">
-                            Added {formatAddedDate(item.addedAt)}
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h3 className="text-xl font-bold text-stone-900 leading-tight">{destination.region}</h3>
+                        <div className="flex items-center gap-1.5 text-stone-500 mt-1">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span className="text-sm font-medium tracking-wide uppercase">
+                            {getCountryName(destination.country)}
                           </span>
                         </div>
                       </div>
+
+                      {/* Added Date Badge */}
+                      <span className="text-xs text-stone-400 font-medium bg-stone-50 px-2 py-1 rounded-md">
+                        Added {formatAddedDate(item.addedAt)}
+                      </span>
                     </div>
-                  </button>
+
+                    {/* Description with Markdown */}
+                    {descriptionText && (
+                      <div className="prose prose-sm prose-stone max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-amber-700 prose-li:marker:text-amber-500 mb-4 line-clamp-3">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {descriptionText}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+
+                    {/* Pricing Info */}
+                    {dailyCost > 0 && (
+                      <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+                        <span className="px-2.5 py-1 bg-stone-50 text-stone-600 rounded-md text-xs font-medium border border-stone-100">
+                          Est. ${dailyCost}/day
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Remove button */}
                   <button
                     onClick={(e) => handleRemove(item.id, e)}
-                    className="absolute top-4 right-4 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-all"
+                    className="absolute top-4 right-4 p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-50 text-stone-400 hover:text-red-500 transition-all"
                     aria-label="Remove from favorites"
                   >
-                    <X className="w-4 h-4 text-red-600" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               )
@@ -190,4 +197,3 @@ export function FavoritesPanel({
     </div>
   )
 }
-
