@@ -139,14 +139,13 @@ export function TripPlannerModal({ isOpen, onClose, itineraryItems }: TripPlanne
                                 <span>${dailyCost}/day</span>
                               </div>
                             )}
+                            {destination.recommendedDuration && (
+                              <div className="flex items-center gap-1.5 text-stone-600">
+                                <Clock className="w-4 h-4" />
+                                <span>{destination.recommendedDuration}</span>
+                              </div>
+                            )}
                           </div>
-
-                          {/* Best time to visit */}
-                          {destination.bestTimeToVisit && (
-                            <div className="mt-2 text-xs text-stone-500">
-                              <span className="font-medium">Best time:</span> {destination.bestTimeToVisit}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
