@@ -41,8 +41,10 @@ export default function WorldMap({
   const selectedDestination = externalSelectedDestination || internalSelectedDestination
   const [geographies, setGeographies] = useState<any[]>([])
   const geographiesRef = useRef<any[]>([])
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [position, setPosition] = useState({ coordinates: [0, 44] as [number, number], zoom: 1 })
+  const [isHoveringOverlay, setIsHoveringOverlay] = useState(false)
+  const overlayTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [overlayPosition, setOverlayPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
 
   // Update selectedDestination when destinations array changes
   useEffect(() => {
@@ -158,7 +160,6 @@ export default function WorldMap({
   return (
     <div 
       className="fixed inset-0 w-screen h-screen grid place-items-center overflow-hidden z-0"
-      onMouseMove={(e) => setMousePosition({ x: e.clientX, y: e.clientY })}
     >
       <ComposableMap
         projection="geoMercator"
@@ -239,22 +240,16 @@ export default function WorldMap({
                     onMouseEnter={(event) => {
                       setHoveredCountry(geo.rsmKey)
                       setHoveredCountryName(geo.properties.name)
-                      if (matchingDest) {
-                        setHoveredDestination(matchingDest)
-                      }
                       try {
                         const centroid = CENTROID_OVERRIDES[geo.properties.name] || pathGenerator.centroid(geo)
                         setHoveredCentroid(centroid)
                       } catch (e) {
                         setHoveredCentroid(null)
                       }
-                      // Track mouse position for overlay
-                      setMousePosition({ x: event.clientX, y: event.clientY })
                     }}
                     onMouseLeave={() => {
                       setHoveredCountry(null)
                       setHoveredCountryName(null)
-                      setHoveredDestination(null)
                       setHoveredCentroid(null)
                     }}
                     onClick={() => handleCountryClick(matchingDest)}
@@ -278,96 +273,44 @@ export default function WorldMap({
           
           return (
             <g key={`marker-${marker.destination.country}-${marker.destination.region}-${index}`}>
-              {/* Pin marker */}
+              {/* Simple dot marker */}
               <Marker coordinates={marker.coordinates}>
                 <g
                   onClick={() => handleCountryClick(marker.destination)}
+                  onMouseEnter={(e) => {
+                    if (overlayTimeoutRef.current) {
+                      clearTimeout(overlayTimeoutRef.current)
+                    }
+                    const mouseEvent = e as any
+                    setOverlayPosition({ 
+                      x: mouseEvent.clientX, 
+                      y: mouseEvent.clientY 
+                    })
+                    setHoveredDestination(marker.destination)
+                  }}
+                  onMouseLeave={() => {
+                    // Delay hiding to allow mouse to move to overlay
+                    overlayTimeoutRef.current = setTimeout(() => {
+                      if (!isHoveringOverlay) {
+                        setHoveredDestination(null)
+                      }
+                    }, 100)
+                  }}
                   style={{ cursor: 'pointer' }}
-                  className="transition-all hover:scale-110"
+                  className="transition-all hover:scale-125"
                 >
-                  {/* Shadow */}
-                  <ellipse
-                    cx="0"
-                    cy="8"
-                    rx="3"
-                    ry="1.5"
-                    fill="rgba(0,0,0,0.2)"
-                    opacity="0.5"
-                  />
-                  {/* Main circle */}
+                  {/* Simple circle dot */}
                   <circle
                     cx="0"
                     cy="0"
-                    r="6"
-                    fill={isSelected ? '#ea580c' : hasDetails ? '#f97316' : '#fb923c'}
+                    r="5"
+                    fill={isSelected ? '#6366f1' : hasDetails ? '#8b5cf6' : '#a78bfa'}
                     stroke="white"
                     strokeWidth="2"
-                  />
-                  {/* Inner dot */}
-                  <circle
-                    cx="0"
-                    cy="0"
-                    r="2.5"
-                    fill="white"
-                  />
-                  {/* Bottom point */}
-                  <path
-                    d="M 0,6 L 2,9 L -2,9 Z"
-                    fill={isSelected ? '#ea580c' : hasDetails ? '#f97316' : '#fb923c'}
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
+                    style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))' }}
                   />
                 </g>
               </Marker>
-              
-              {/* Label with background */}
-              <Annotation
-                subject={marker.coordinates}
-                dx={0}
-                dy={-18}
-                connectorProps={{
-                  stroke: 'transparent',
-                }}
-              >
-                <foreignObject
-                  x="-50"
-                  y="-12"
-                  width="100"
-                  height="24"
-                  style={{ overflow: 'visible' }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      pointerEvents: 'none',
-                      userSelect: 'none',
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: '4px 8px',
-                        backgroundColor: 'white',
-                        borderRadius: '4px',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                        border: '1px solid rgba(0,0,0,0.1)',
-                        fontFamily: 'system-ui, -apple-system, sans-serif',
-                        fontSize: position.zoom > 2 ? '11px' : '9px',
-                        fontWeight: '600',
-                        color: '#292524',
-                        whiteSpace: 'nowrap',
-                        maxWidth: '120px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {marker.destination.region}
-                    </div>
-                  </div>
-                </foreignObject>
-              </Annotation>
             </g>
           )
         })}
@@ -387,11 +330,21 @@ export default function WorldMap({
         isOpen={isPanelOpen}
         onClose={handleClosePanel}
       />
-      {/* Show destination overlay on hover */}
-      {hoveredDestination && (
+      {/* Show destination overlay on hover (only from pins) */}
+      {(hoveredDestination || isHoveringOverlay) && hoveredDestination && (
         <DestinationOverlay
           destination={hoveredDestination}
-          mousePosition={mousePosition}
+          mousePosition={overlayPosition}
+          onMouseEnter={() => {
+            if (overlayTimeoutRef.current) {
+              clearTimeout(overlayTimeoutRef.current)
+            }
+            setIsHoveringOverlay(true)
+          }}
+          onMouseLeave={() => {
+            setIsHoveringOverlay(false)
+            setHoveredDestination(null)
+          }}
         />
       )}
       {/* Zoom control buttons */}
