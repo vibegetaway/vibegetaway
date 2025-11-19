@@ -22,7 +22,6 @@ export function LeftSidebar({ onMenuClick, onRecentClick, onSearchClick, onItine
     setItineraryCount(getItineraryCount())
     setFavoritesCount(getFavoritesCount())
     
-    // Listen for updates
     const handleItineraryUpdate = (event: CustomEvent) => {
       setItineraryCount(event.detail.length)
     }
