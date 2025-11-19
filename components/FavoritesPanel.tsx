@@ -24,14 +24,14 @@ export function FavoritesPanel({
   // Load favorites from local storage
   useEffect(() => {
     setFavoriteItems(getFavorites())
-    
+
     // Listen for favorites updates from other components
     const handleFavoritesUpdate = (event: CustomEvent) => {
       setFavoriteItems(event.detail)
     }
-    
+
     window.addEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
-    
+
     return () => {
       window.removeEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
     }
@@ -58,10 +58,12 @@ export function FavoritesPanel({
 
   return (
     <div
-      className={`fixed left-20 top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}
+      className={`fixed left-20 top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
     >
+      {/* Spacer for text input */}
+      <div className="h-24"></div>
+
       <div className="p-8">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
@@ -126,9 +128,8 @@ export function FavoritesPanel({
               return (
                 <div
                   key={item.id}
-                  className={`relative group bg-white border border-amber-200/50 hover:border-amber-300 rounded-lg transition-all ${
-                    isSelected ? 'bg-amber-50 border-amber-400' : ''
-                  }`}
+                  className={`relative group bg-white border border-amber-200/50 hover:border-amber-300 rounded-lg transition-all ${isSelected ? 'bg-amber-50 border-amber-400' : ''
+                    }`}
                 >
                   <button
                     onClick={() => onDestinationClick(destination)}
@@ -138,9 +139,8 @@ export function FavoritesPanel({
                       {/* Pin icon */}
                       <div className="flex-shrink-0 mt-1">
                         <MapPin
-                          className={`w-5 h-5 ${
-                            isSelected ? 'text-amber-700' : 'text-red-500'
-                          }`}
+                          className={`w-5 h-5 ${isSelected ? 'text-amber-700' : 'text-red-500'
+                            }`}
                         />
                       </div>
 

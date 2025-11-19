@@ -186,7 +186,7 @@ export default function Home() {
         onDestinationClick={setSelectedDestination}
         selectedDestination={selectedDestination}
       />
-      <div className="absolute top-4 left-24 z-20 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3 flex items-center gap-4">
+      <div className="absolute top-4 left-24 z-[70] bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3 flex items-center gap-4">
         <h1 className="text-xl font-bold leading-tight">
           <span className="text-foreground">I want to </span>
           <span className="inline-block align-middle">

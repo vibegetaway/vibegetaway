@@ -26,14 +26,14 @@ export function ItineraryPanel({
   // Load itinerary from local storage
   useEffect(() => {
     setItineraryItems(getItinerary())
-    
+
     // Listen for itinerary updates from other components
     const handleItineraryUpdate = (event: CustomEvent) => {
       setItineraryItems(event.detail)
     }
-    
+
     window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
-    
+
     return () => {
       window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
     }
@@ -62,20 +62,22 @@ export function ItineraryPanel({
   const totalEstimatedCost = itineraryItems.reduce((sum, item) => {
     const dest = item.destination
     if (!dest.pricing) return sum
-    
+
     const accommodationPrice = parsePricing(dest.pricing.accommodation || 0)
     const foodPrice = parsePricing(dest.pricing.food || 0)
     const activitiesPrice = parsePricing(dest.pricing.activities || 0)
-    
+
     return sum + accommodationPrice + foodPrice + activitiesPrice
   }, 0)
 
   return (
     <div
-      className={`fixed left-20 top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}
+      className={`fixed left-20 top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
     >
+      {/* Spacer for text input */}
+      <div className="h-24"></div>
+
       <div className="p-8">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
@@ -145,9 +147,8 @@ export function ItineraryPanel({
               return (
                 <div
                   key={item.id}
-                  className={`relative group bg-white border border-amber-200/50 hover:border-amber-300 rounded-lg transition-all ${
-                    isSelected ? 'bg-amber-50 border-amber-400' : ''
-                  }`}
+                  className={`relative group bg-white border border-amber-200/50 hover:border-amber-300 rounded-lg transition-all ${isSelected ? 'bg-amber-50 border-amber-400' : ''
+                    }`}
                 >
                   <button
                     onClick={() => onDestinationClick(destination)}
@@ -157,9 +158,8 @@ export function ItineraryPanel({
                       {/* Pin icon */}
                       <div className="flex-shrink-0 mt-1">
                         <MapPin
-                          className={`w-5 h-5 ${
-                            isSelected ? 'text-amber-700' : 'text-orange-500'
-                          }`}
+                          className={`w-5 h-5 ${isSelected ? 'text-amber-700' : 'text-orange-500'
+                            }`}
                         />
                       </div>
 
