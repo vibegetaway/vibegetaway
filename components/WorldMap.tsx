@@ -22,13 +22,15 @@ interface WorldMapProps {
   destinations?: Destination[]
   selectedDestination?: Destination | null
   onDestinationSelect?: (destination: Destination | null) => void
+  isSidebarOpen?: boolean
 }
 
-export default function WorldMap({ 
-  loading, 
-  destinations = [], 
+export default function WorldMap({
+  loading,
+  destinations = [],
   selectedDestination: externalSelectedDestination = null,
-  onDestinationSelect
+  onDestinationSelect,
+  isSidebarOpen = false
 }: WorldMapProps) {
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null)
   const [hoveredCountryName, setHoveredCountryName] = useState<string | null>(null)
@@ -36,7 +38,7 @@ export default function WorldMap({
   const [hoveredDestination, setHoveredDestination] = useState<Destination | null>(null)
   const [internalSelectedDestination, setInternalSelectedDestination] = useState<Destination | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
-  
+
   // Use external selectedDestination if provided, otherwise use internal
   const selectedDestination = externalSelectedDestination || internalSelectedDestination
   const [geographies, setGeographies] = useState<any[]>([])
@@ -91,7 +93,7 @@ export default function WorldMap({
       setIsPanelOpen(true)
     }
   }
-  
+
   const handleClosePanel = () => {
     setIsPanelOpen(false)
     if (onDestinationSelect) {
@@ -135,15 +137,15 @@ export default function WorldMap({
   // Calculate marker positions for destinations
   const destinationMarkers = useMemo(() => {
     if (!geographies || geographies.length === 0) return []
-    
+
     return destinations
       .filter(dest => dest.country)
       .map(dest => {
         const countryNames = codeToCountry.get(dest.country) || []
         const geo = geographies.find((g: any) => countryNames.includes(g.properties.name))
-        
+
         if (!geo) return null
-        
+
         try {
           const centroid = CENTROID_OVERRIDES[geo.properties.name] || pathGenerator.centroid(geo)
           return {
@@ -158,7 +160,7 @@ export default function WorldMap({
   }, [destinations, geographies, pathGenerator, projection])
 
   return (
-    <div 
+    <div
       className="fixed inset-0 w-screen h-screen grid place-items-center overflow-hidden z-0"
     >
       <ComposableMap
@@ -193,142 +195,143 @@ export default function WorldMap({
           maxZoom={8}
           onMoveEnd={(newPosition) => setPosition(newPosition)}
         >
-        <Geographies geography={geoUrl}>
-          {({ geographies: geoData }: { geographies: any[] }) => {
-            // Store geographies for destination label calculation
-            const filteredGeos = geoData.filter((geo: any) => geo.properties.name !== 'Antarctica')
-            if (filteredGeos.length > 0 && geographiesRef.current.length === 0) {
-              geographiesRef.current = filteredGeos
-              setGeographies(filteredGeos)
-            }
+          <Geographies geography={geoUrl}>
+            {({ geographies: geoData }: { geographies: any[] }) => {
+              // Store geographies for destination label calculation
+              const filteredGeos = geoData.filter((geo: any) => geo.properties.name !== 'Antarctica')
+              if (filteredGeos.length > 0 && geographiesRef.current.length === 0) {
+                geographiesRef.current = filteredGeos
+                setGeographies(filteredGeos)
+              }
 
-            return filteredGeos
-              .map((geo: any) => {
-                const isHovered = hoveredCountry === geo.rsmKey
+              return filteredGeos
+                .map((geo: any) => {
+                  const isHovered = hoveredCountry === geo.rsmKey
 
-                // Check if country is highlighted using both ISO codes and country names
-                const isHighlightedByCode = destinations
-                  .filter(d => d.country) // Only check destinations with country codes
-                  .map((d) => codeToCountry.get(d.country) || [])
-                  .flat()
-                  .includes(geo.properties.name)
+                  // Check if country is highlighted using both ISO codes and country names
+                  const isHighlightedByCode = destinations
+                    .filter(d => d.country) // Only check destinations with country codes
+                    .map((d) => codeToCountry.get(d.country) || [])
+                    .flat()
+                    .includes(geo.properties.name)
 
-                const matchingDest = destinations.find(d => {
-                  // Match by country code to ensure consistency with highlighting
-                  if (d.country) {
-                    const codeNames = codeToCountry.get(d.country) || []
-                    return codeNames.includes(geo.properties.name)
+                  const matchingDest = destinations.find(d => {
+                    // Match by country code to ensure consistency with highlighting
+                    if (d.country) {
+                      const codeNames = codeToCountry.get(d.country) || []
+                      return codeNames.includes(geo.properties.name)
+                    }
+                    return false
+                  })
+
+                  const isHighlighted = isHighlightedByCode
+                  let fillPattern = "url(#dot-pattern)"
+                  if (loading) {
+                    fillPattern = "url(#dot-pattern-loading)"
+                  } else if (isHighlighted) {
+                    fillPattern = "url(#dot-pattern-blue)"
+                  } else if (isHovered) {
+                    fillPattern = "url(#dot-pattern-green)"
                   }
-                  return false
-                })
 
-                const isHighlighted = isHighlightedByCode
-                let fillPattern = "url(#dot-pattern)"
-                if (loading) {
-                  fillPattern = "url(#dot-pattern-loading)"
-                } else if (isHighlighted) {
-                  fillPattern = "url(#dot-pattern-blue)"
-                } else if (isHovered) {
-                  fillPattern = "url(#dot-pattern-green)"
-                }
-
-                return (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    fill={fillPattern}
-                    onMouseEnter={(event) => {
-                      setHoveredCountry(geo.rsmKey)
-                      setHoveredCountryName(geo.properties.name)
-                      try {
-                        const centroid = CENTROID_OVERRIDES[geo.properties.name] || pathGenerator.centroid(geo)
-                        setHoveredCentroid(centroid)
-                      } catch (e) {
+                  return (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      fill={fillPattern}
+                      onMouseEnter={(event) => {
+                        setHoveredCountry(geo.rsmKey)
+                        setHoveredCountryName(geo.properties.name)
+                        try {
+                          const centroid = CENTROID_OVERRIDES[geo.properties.name] || pathGenerator.centroid(geo)
+                          setHoveredCentroid(centroid)
+                        } catch (e) {
+                          setHoveredCentroid(null)
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        setHoveredCountry(null)
+                        setHoveredCountryName(null)
                         setHoveredCentroid(null)
+                      }}
+                      onClick={() => handleCountryClick(matchingDest)}
+                      style={{
+                        default: { outline: "none" },
+                        hover: { outline: "none", cursor: matchingDest ? "pointer" : "default" },
+                        pressed: { outline: "none" },
+                      }}
+                    />
+                  )
+                })
+            }
+            }
+          </Geographies>
+
+          {/* Destination markers with labels */}
+          {destinationMarkers.map((marker, index) => {
+            const isSelected = selectedDestination?.region === marker.destination.region &&
+              selectedDestination?.country === marker.destination.country
+            const hasDetails = marker.destination.description && marker.destination.pricing
+
+            return (
+              <g key={`marker-${marker.destination.country}-${marker.destination.region}-${index}`}>
+                {/* Simple dot marker */}
+                <Marker coordinates={marker.coordinates}>
+                  <g
+                    onClick={() => handleCountryClick(marker.destination)}
+                    onMouseEnter={(e) => {
+                      if (overlayTimeoutRef.current) {
+                        clearTimeout(overlayTimeoutRef.current)
                       }
+                      const mouseEvent = e as any
+                      setOverlayPosition({
+                        x: mouseEvent.clientX,
+                        y: mouseEvent.clientY
+                      })
+                      setHoveredDestination(marker.destination)
                     }}
                     onMouseLeave={() => {
-                      setHoveredCountry(null)
-                      setHoveredCountryName(null)
-                      setHoveredCentroid(null)
+                      // Delay hiding to allow mouse to move to overlay
+                      overlayTimeoutRef.current = setTimeout(() => {
+                        if (!isHoveringOverlay) {
+                          setHoveredDestination(null)
+                        }
+                      }, 100)
                     }}
-                    onClick={() => handleCountryClick(matchingDest)}
-                    style={{
-                      default: { outline: "none" },
-                      hover: { outline: "none", cursor: matchingDest ? "pointer" : "default" },
-                      pressed: { outline: "none" },
-                    }}
-                  />
-                )
-              })
-            }
-          }
-        </Geographies>
-        
-        {/* Destination markers with labels */}
-        {destinationMarkers.map((marker, index) => {
-          const isSelected = selectedDestination?.region === marker.destination.region && 
-                           selectedDestination?.country === marker.destination.country
-          const hasDetails = marker.destination.description && marker.destination.pricing
-          
-          return (
-            <g key={`marker-${marker.destination.country}-${marker.destination.region}-${index}`}>
-              {/* Simple dot marker */}
-              <Marker coordinates={marker.coordinates}>
-                <g
-                  onClick={() => handleCountryClick(marker.destination)}
-                  onMouseEnter={(e) => {
-                    if (overlayTimeoutRef.current) {
-                      clearTimeout(overlayTimeoutRef.current)
-                    }
-                    const mouseEvent = e as any
-                    setOverlayPosition({ 
-                      x: mouseEvent.clientX, 
-                      y: mouseEvent.clientY 
-                    })
-                    setHoveredDestination(marker.destination)
-                  }}
-                  onMouseLeave={() => {
-                    // Delay hiding to allow mouse to move to overlay
-                    overlayTimeoutRef.current = setTimeout(() => {
-                      if (!isHoveringOverlay) {
-                        setHoveredDestination(null)
-                      }
-                    }, 100)
-                  }}
-                  style={{ cursor: 'pointer' }}
-                  className="transition-all hover:scale-125"
-                >
-                  {/* Simple circle dot */}
-                  <circle
-                    cx="0"
-                    cy="0"
-                    r="5"
-                    fill={isSelected ? '#6366f1' : hasDetails ? '#8b5cf6' : '#a78bfa'}
-                    stroke="white"
-                    strokeWidth="2"
-                    style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))' }}
-                  />
-                </g>
-              </Marker>
-            </g>
-          )
-        })}
-        
-        {/* Show label only for hovered country (if not a destination) */}
-        {hoveredCentroid && hoveredCountryName && !isDestinationCountry(hoveredCountryName) && (
-          <CountryLabel
-            centroid={hoveredCentroid}
-            countryName={hoveredCountryName}
-            direction="right-top"
-          />
-        )}
+                    style={{ cursor: 'pointer' }}
+                    className="transition-all hover:scale-125"
+                  >
+                    {/* Simple circle dot */}
+                    <circle
+                      cx="0"
+                      cy="0"
+                      r="5"
+                      fill={isSelected ? '#6366f1' : hasDetails ? '#8b5cf6' : '#a78bfa'}
+                      stroke="white"
+                      strokeWidth="2"
+                      style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))' }}
+                    />
+                  </g>
+                </Marker>
+              </g>
+            )
+          })}
+
+          {/* Show label only for hovered country (if not a destination) */}
+          {hoveredCentroid && hoveredCountryName && !isDestinationCountry(hoveredCountryName) && (
+            <CountryLabel
+              centroid={hoveredCentroid}
+              countryName={hoveredCountryName}
+              direction="right-top"
+            />
+          )}
         </ZoomableGroup>
       </ComposableMap>
       <SidePanel
         destination={selectedDestination}
         isOpen={isPanelOpen}
         onClose={handleClosePanel}
+        isSidebarOpen={isSidebarOpen}
       />
       {/* Show destination overlay on hover (only from pins) */}
       {(hoveredDestination || isHoveringOverlay) && hoveredDestination && (

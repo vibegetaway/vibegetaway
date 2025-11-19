@@ -16,6 +16,7 @@ interface SidePanelProps {
   destination: Destination | null
   isOpen: boolean
   onClose: () => void
+  isSidebarOpen?: boolean
 }
 
 // Helper to parse pricing values (e.g., "20-40", "25", or numbers)
@@ -48,7 +49,7 @@ function formatDate(isoString: string): string {
   return date.toLocaleDateString('en-US', options)
 }
 
-export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
+export function SidePanel({ destination, isOpen, onClose, isSidebarOpen = false }: SidePanelProps) {
   const [images, setImages] = useState<UnsplashImage[]>([])
   const [loadingImages, setLoadingImages] = useState(false)
   const [coverImage, setCoverImage] = useState<UnsplashImage | null>(null)
@@ -112,28 +113,28 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
       loadCoverImage()
       loadImages()
       loadFlights()
-      
+
       // Check if destination is in itinerary/favorites
       setInItinerary(isInItinerary(destination))
       setInFavorites(isInFavorites(destination))
     }
-    
+
     // Listen for updates
     const handleItineraryUpdate = () => {
       if (destination) {
         setInItinerary(isInItinerary(destination))
       }
     }
-    
+
     const handleFavoritesUpdate = () => {
       if (destination) {
         setInFavorites(isInFavorites(destination))
       }
     }
-    
+
     window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
     window.addEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
-    
+
     return () => {
       window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
       window.removeEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
@@ -150,13 +151,13 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
     <>
       {/* Panel - positioned after SearchResultsPanel */}
       <div
-        className={`fixed left-[33rem] top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-[60] transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-[60] transition-all duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isSidebarOpen ? 'left-[33rem]' : 'left-20'
+          } ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* Spacer for text input */}
         <div className="h-24"></div>
-        
+
         {/* Cover Image */}
         {!destination.imagesKeywords || loadingCover ? (
           <div className="w-full h-64 bg-gradient-to-br from-amber-100 to-orange-100 animate-pulse flex items-center justify-center">
@@ -180,7 +181,7 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
               <h2 className="text-4xl font-bold text-stone-900 mb-2">{getCountryName(destination.country)}</h2>
               <p className="text-stone-600">{destination.region}</p>
             </div>
-            
+
             {/* Action buttons */}
             <div className="flex items-center gap-2">
               <button
@@ -189,38 +190,34 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
                     addToFavorites(destination)
                   }
                 }}
-                className={`p-2 rounded-lg transition-colors ${
-                  inFavorites 
-                    ? 'bg-red-50' 
-                    : 'hover:bg-amber-100'
-                }`}
+                className={`p-2 rounded-lg transition-colors ${inFavorites
+                  ? 'bg-red-50'
+                  : 'hover:bg-amber-100'
+                  }`}
                 disabled={inFavorites}
                 aria-label={inFavorites ? 'In favorites' : 'Add to favorites'}
               >
-                <Heart className={`w-5 h-5 transition-colors ${
-                  inFavorites ? 'text-red-500 fill-red-500' : 'text-stone-600'
-                }`} />
+                <Heart className={`w-5 h-5 transition-colors ${inFavorites ? 'text-red-500 fill-red-500' : 'text-stone-600'
+                  }`} />
               </button>
-              
+
               <button
                 onClick={() => {
                   if (!inItinerary) {
                     addToItinerary(destination)
                   }
                 }}
-                className={`p-2 rounded-lg transition-colors ${
-                  inItinerary 
-                    ? 'bg-green-50' 
-                    : 'hover:bg-amber-100'
-                }`}
+                className={`p-2 rounded-lg transition-colors ${inItinerary
+                  ? 'bg-green-50'
+                  : 'hover:bg-amber-100'
+                  }`}
                 disabled={inItinerary}
                 aria-label={inItinerary ? 'In itinerary' : 'Add to itinerary'}
               >
-                <Calendar className={`w-5 h-5 transition-colors ${
-                  inItinerary ? 'text-green-600' : 'text-stone-600'
-                }`} />
+                <Calendar className={`w-5 h-5 transition-colors ${inItinerary ? 'text-green-600' : 'text-stone-600'
+                  }`} />
               </button>
-              
+
               <button onClick={onClose} className="p-2 hover:bg-amber-100 rounded-lg transition-colors">
                 <X className="w-6 h-6 text-stone-600" />
               </button>
@@ -366,24 +363,24 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
                   const returnDate = formatDate(flight.return_at)
                   const stayDuration = flight.stayDuration
                   const isDirectFlight = flight.transfers === 0
-                  
+
                   // Badge labels and colors for each flight
                   const badges = [
                     { label: 'Recommended', color: 'bg-amber-600', emoji: '⭐' },
                     { label: 'Popular', color: 'bg-yellow-600', emoji: '🔥' },
                     { label: 'May be of interest', color: 'bg-orange-600', emoji: '✨' }
                   ]
-                  
+
                   // Card gradient colors
                   const cardColors = [
                     'from-amber-100/60 to-orange-100/60 border-amber-300/50',
                     'from-yellow-100/60 to-amber-100/60 border-yellow-300/50',
                     'from-orange-100/60 to-red-100/60 border-orange-300/50'
                   ]
-                  
+
                   const badge = badges[index]
                   const cardColor = cardColors[index]
-                  
+
                   return (
                     <div key={flight.id} className={`p-5 rounded-lg bg-gradient-to-br ${cardColor} border transition-all hover:shadow-lg`}>
                       {/* Badge */}
@@ -393,7 +390,7 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
                         </span>
                         <p className="text-2xl font-bold text-amber-800">€{Math.round(flight.price)}</p>
                       </div>
-                      
+
                       {/* Flight Route - Compact */}
                       <div className="mb-3">
                         <p className="text-base font-semibold text-stone-900">
@@ -403,7 +400,7 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
                           {flight.originName} ↔ {flight.destinationName}
                         </p>
                       </div>
-                      
+
                       {/* Flight Details - Compact Single Row */}
                       <div className="mb-3 space-y-1.5 text-xs">
                         <div className="flex items-center justify-between text-stone-700">
@@ -419,7 +416,7 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
                           <span className="font-semibold">{stayDuration} {stayDuration === 1 ? 'day' : 'days'}</span>
                         </div>
                       </div>
-                      
+
                       {/* Book Button */}
                       <a
                         href={flight.bookingUrl}

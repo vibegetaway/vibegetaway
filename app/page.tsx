@@ -24,15 +24,12 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [vibe, setVibe] = useState(isDev ? 'climb' : '')
   const [month, setMonth] = useState(isDev ? 'November' : '')
-  const [isRecentPanelOpen, setIsRecentPanelOpen] = useState(false)
-  const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false)
-  const [isItineraryPanelOpen, setIsItineraryPanelOpen] = useState(false)
-  const [isFavoritesPanelOpen, setIsFavoritesPanelOpen] = useState(false)
+  const [activePanel, setActivePanel] = useState<'none' | 'search' | 'recent' | 'itinerary' | 'favorites'>('none')
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
 
   // Ensure only the latest async call updates state
   const callIdRef = useRef(0)
-  
+
   // Track if we should save to history (don't save when loading from history)
   const shouldSaveToHistory = useRef(true)
 
@@ -58,7 +55,7 @@ export default function Home() {
             if (callId !== callIdRef.current) {
               return
             }
-            
+
             setDestinations(destinations)
             setLoading(false)
           },
@@ -67,12 +64,12 @@ export default function Home() {
             if (callId !== callIdRef.current) {
               return
             }
-            
+
             setDestinations(updatedDestinations)
           },
           onComplete: () => {
             console.log('[INFO] All destination details loaded')
-            
+
             // Save to history only if this was a new search (not loaded from history)
             if (shouldSaveToHistory.current && callId === callIdRef.current) {
               // Get the final destinations state
@@ -97,14 +94,14 @@ export default function Home() {
   // Handler for loading a search from history
   const handleSearchFromHistory = (item: SearchHistoryItem) => {
     console.log('[INFO] Loading search from history:', item)
-    
+
     // Don't save this back to history
     shouldSaveToHistory.current = false
-    
+
     // Set the search params
     setVibe(item.vibe)
     setMonth(item.timePeriod)
-    
+
     // If we have cached destinations, use them immediately
     if (item.destinations && item.destinations.length > 0) {
       console.log('[INFO] Using cached destinations from history:', item.destinations.length)
@@ -115,7 +112,7 @@ export default function Home() {
       console.log('[INFO] No cached destinations, fetching fresh data')
       handleFindDestinations(item.vibe, item.timePeriod)
     }
-    
+
     // Re-enable saving for future searches
     setTimeout(() => {
       shouldSaveToHistory.current = true
@@ -152,21 +149,21 @@ export default function Home() {
   // Auto-open search panel when destinations are loaded
   useEffect(() => {
     if (destinations.length > 0) {
-      setIsSearchPanelOpen(true)
+      setActivePanel('search')
     }
   }, [destinations])
 
   return (
     <main className="relative w-screen h-screen overflow-hidden">
-      <LeftSidebar 
-        onRecentClick={() => setIsRecentPanelOpen(true)}
-        onSearchClick={() => setIsSearchPanelOpen(prev => !prev)}
-        onItineraryClick={() => setIsItineraryPanelOpen(prev => !prev)}
-        onFavoritesClick={() => setIsFavoritesPanelOpen(prev => !prev)}
+      <LeftSidebar
+        onRecentClick={() => setActivePanel(prev => prev === 'recent' ? 'none' : 'recent')}
+        onSearchClick={() => setActivePanel(prev => prev === 'search' ? 'none' : 'search')}
+        onItineraryClick={() => setActivePanel(prev => prev === 'itinerary' ? 'none' : 'itinerary')}
+        onFavoritesClick={() => setActivePanel(prev => prev === 'favorites' ? 'none' : 'favorites')}
       />
-      <RecentSearchPanel 
-        isOpen={isRecentPanelOpen}
-        onClose={() => setIsRecentPanelOpen(false)}
+      <RecentSearchPanel
+        isOpen={activePanel === 'recent'}
+        onClose={() => setActivePanel('none')}
         onSearchSelect={handleSearchFromHistory}
       />
       <SearchResultsPanel
@@ -174,18 +171,18 @@ export default function Home() {
         loading={loading}
         onDestinationClick={setSelectedDestination}
         selectedDestination={selectedDestination}
-        isOpen={isSearchPanelOpen}
-        onClose={() => setIsSearchPanelOpen(false)}
+        isOpen={activePanel === 'search'}
+        onClose={() => setActivePanel('none')}
       />
       <ItineraryPanel
-        isOpen={isItineraryPanelOpen}
-        onClose={() => setIsItineraryPanelOpen(false)}
+        isOpen={activePanel === 'itinerary'}
+        onClose={() => setActivePanel('none')}
         onDestinationClick={setSelectedDestination}
         selectedDestination={selectedDestination}
       />
       <FavoritesPanel
-        isOpen={isFavoritesPanelOpen}
-        onClose={() => setIsFavoritesPanelOpen(false)}
+        isOpen={activePanel === 'favorites'}
+        onClose={() => setActivePanel('none')}
         onDestinationClick={setSelectedDestination}
         selectedDestination={selectedDestination}
       />
@@ -215,6 +212,7 @@ export default function Home() {
         destinations={destinations}
         selectedDestination={selectedDestination}
         onDestinationSelect={setSelectedDestination}
+        isSidebarOpen={activePanel !== 'none'}
       />
     </main>
   )
