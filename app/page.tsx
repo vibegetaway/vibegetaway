@@ -5,6 +5,8 @@ import { MonthSelect } from '@/components/MonthSelect'
 import { LeftSidebar } from '@/components/LeftSidebar'
 import { RecentSearchPanel } from '@/components/RecentSearchPanel'
 import { SearchResultsPanel } from '@/components/SearchResultsPanel'
+import { ItineraryPanel } from '@/components/ItineraryPanel'
+import { FavoritesPanel } from '@/components/FavoritesPanel'
 import WorldMap from '@/components/WorldMap'
 import { useState, useEffect, useRef } from 'react'
 import { fetchDestinationsWithDetails } from '@/lib/fetchDestinations'
@@ -24,6 +26,8 @@ export default function Home() {
   const [month, setMonth] = useState(isDev ? 'November' : '')
   const [isRecentPanelOpen, setIsRecentPanelOpen] = useState(false)
   const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false)
+  const [isItineraryPanelOpen, setIsItineraryPanelOpen] = useState(false)
+  const [isFavoritesPanelOpen, setIsFavoritesPanelOpen] = useState(false)
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
 
   // Ensure only the latest async call updates state
@@ -157,6 +161,8 @@ export default function Home() {
       <LeftSidebar 
         onRecentClick={() => setIsRecentPanelOpen(true)}
         onSearchClick={() => setIsSearchPanelOpen(prev => !prev)}
+        onItineraryClick={() => setIsItineraryPanelOpen(prev => !prev)}
+        onFavoritesClick={() => setIsFavoritesPanelOpen(prev => !prev)}
       />
       <RecentSearchPanel 
         isOpen={isRecentPanelOpen}
@@ -170,6 +176,18 @@ export default function Home() {
         selectedDestination={selectedDestination}
         isOpen={isSearchPanelOpen}
         onClose={() => setIsSearchPanelOpen(false)}
+      />
+      <ItineraryPanel
+        isOpen={isItineraryPanelOpen}
+        onClose={() => setIsItineraryPanelOpen(false)}
+        onDestinationClick={setSelectedDestination}
+        selectedDestination={selectedDestination}
+      />
+      <FavoritesPanel
+        isOpen={isFavoritesPanelOpen}
+        onClose={() => setIsFavoritesPanelOpen(false)}
+        onDestinationClick={setSelectedDestination}
+        selectedDestination={selectedDestination}
       />
       <div className="absolute top-4 left-24 z-20 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3 flex items-center gap-4">
         <h1 className="text-xl font-bold leading-tight">

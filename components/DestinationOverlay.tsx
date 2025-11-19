@@ -1,11 +1,12 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { HiOutlineHeart, HiOutlineCalendarDays } from 'react-icons/hi2'
+import { HiOutlineHeart, HiOutlineCalendarDays, HiCheckCircle } from 'react-icons/hi2'
+import { addToItinerary, isInItinerary } from '@/lib/itinerary'
 
 interface DestinationOverlayProps {
   destination: Destination
@@ -24,6 +25,24 @@ function parsePricing(value: string | number): number {
 
 export function DestinationOverlay({ destination, mousePosition, onMouseEnter, onMouseLeave }: DestinationOverlayProps) {
   const cardRef = useRef<HTMLDivElement>(null)
+  const [isInItineraryState, setIsInItineraryState] = useState(false)
+  const [justAdded, setJustAdded] = useState(false)
+
+  // Check if destination is in itinerary
+  useEffect(() => {
+    setIsInItineraryState(isInItinerary(destination))
+    
+    // Listen for itinerary updates
+    const handleItineraryUpdate = () => {
+      setIsInItineraryState(isInItinerary(destination))
+    }
+    
+    window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+    
+    return () => {
+      window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+    }
+  }, [destination])
 
   // Parse accommodation range (e.g., "30-70" or "30")
   const accommodationPrice = parsePricing(destination.pricing?.accommodation || 0)
@@ -34,6 +53,15 @@ export function DestinationOverlay({ destination, mousePosition, onMouseEnter, o
   // Position near cursor with offset
   const offsetX = 16
   const offsetY = 16
+
+  const handleAddToItinerary = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!isInItineraryState) {
+      addToItinerary(destination)
+      setJustAdded(true)
+      setTimeout(() => setJustAdded(false), 2000)
+    }
+  }
 
   return (
     <div
@@ -74,17 +102,24 @@ export function DestinationOverlay({ destination, mousePosition, onMouseEnter, o
                 </button>
                 
                 <button
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors group relative"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    // TODO: Add to itinerary logic
-                    console.log('Add to itinerary:', destination.region)
-                  }}
-                  aria-label="Add to itinerary"
+                  className={`p-1.5 rounded-lg transition-colors group relative ${
+                    isInItineraryState 
+                      ? 'bg-green-50' 
+                      : 'hover:bg-gray-100'
+                  }`}
+                  onClick={handleAddToItinerary}
+                  aria-label={isInItineraryState ? 'In itinerary' : 'Add to itinerary'}
+                  disabled={isInItineraryState}
                 >
-                  <HiOutlineCalendarDays className="w-4 h-4 text-gray-600 group-hover:text-blue-500 transition-colors" />
+                  {isInItineraryState ? (
+                    <HiCheckCircle className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <HiOutlineCalendarDays className={`w-4 h-4 transition-colors ${
+                      justAdded ? 'text-green-500' : 'text-gray-600 group-hover:text-blue-500'
+                    }`} />
+                  )}
                   <span className="absolute -bottom-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    Add to itinerary
+                    {isInItineraryState ? 'In itinerary' : 'Add to itinerary'}
                   </span>
                 </button>
               </div>

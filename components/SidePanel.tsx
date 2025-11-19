@@ -1,6 +1,6 @@
 'use client'
 
-import { X, ArrowRight } from 'lucide-react'
+import { X, ArrowRight, Heart, Calendar } from 'lucide-react'
 import type { Destination, UnsplashImage } from '@/lib/generateDestinationInfo'
 import { fetchUnsplashImages } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
@@ -9,6 +9,8 @@ import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useEffect, useState } from 'react'
+import { addToItinerary, isInItinerary } from '@/lib/itinerary'
+import { addToFavorites, isInFavorites } from '@/lib/favorites'
 
 interface SidePanelProps {
   destination: Destination | null
@@ -53,6 +55,8 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
   const [loadingCover, setLoadingCover] = useState(false)
   const [flights, setFlights] = useState<SimplifiedFlight[]>([])
   const [loadingFlights, setLoadingFlights] = useState(false)
+  const [inItinerary, setInItinerary] = useState(false)
+  const [inFavorites, setInFavorites] = useState(false)
 
   useEffect(() => {
     async function loadImages() {
@@ -108,6 +112,31 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
       loadCoverImage()
       loadImages()
       loadFlights()
+      
+      // Check if destination is in itinerary/favorites
+      setInItinerary(isInItinerary(destination))
+      setInFavorites(isInFavorites(destination))
+    }
+    
+    // Listen for updates
+    const handleItineraryUpdate = () => {
+      if (destination) {
+        setInItinerary(isInItinerary(destination))
+      }
+    }
+    
+    const handleFavoritesUpdate = () => {
+      if (destination) {
+        setInFavorites(isInFavorites(destination))
+      }
+    }
+    
+    window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+    window.addEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
+    
+    return () => {
+      window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+      window.removeEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
     }
   }, [destination, isOpen])
 
@@ -147,13 +176,55 @@ export function SidePanel({ destination, isOpen, onClose }: SidePanelProps) {
         <div className="p-8">
           {/* Header */}
           <div className="flex items-start justify-between mb-8">
-            <div>
+            <div className="flex-1">
               <h2 className="text-4xl font-bold text-stone-900 mb-2">{getCountryName(destination.country)}</h2>
               <p className="text-stone-600">{destination.region}</p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-amber-100 rounded-lg transition-colors">
-              <X className="w-6 h-6 text-stone-600" />
-            </button>
+            
+            {/* Action buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (!inFavorites) {
+                    addToFavorites(destination)
+                  }
+                }}
+                className={`p-2 rounded-lg transition-colors ${
+                  inFavorites 
+                    ? 'bg-red-50' 
+                    : 'hover:bg-amber-100'
+                }`}
+                disabled={inFavorites}
+                aria-label={inFavorites ? 'In favorites' : 'Add to favorites'}
+              >
+                <Heart className={`w-5 h-5 transition-colors ${
+                  inFavorites ? 'text-red-500 fill-red-500' : 'text-stone-600'
+                }`} />
+              </button>
+              
+              <button
+                onClick={() => {
+                  if (!inItinerary) {
+                    addToItinerary(destination)
+                  }
+                }}
+                className={`p-2 rounded-lg transition-colors ${
+                  inItinerary 
+                    ? 'bg-green-50' 
+                    : 'hover:bg-amber-100'
+                }`}
+                disabled={inItinerary}
+                aria-label={inItinerary ? 'In itinerary' : 'Add to itinerary'}
+              >
+                <Calendar className={`w-5 h-5 transition-colors ${
+                  inItinerary ? 'text-green-600' : 'text-stone-600'
+                }`} />
+              </button>
+              
+              <button onClick={onClose} className="p-2 hover:bg-amber-100 rounded-lg transition-colors">
+                <X className="w-6 h-6 text-stone-600" />
+              </button>
+            </div>
           </div>
 
           {/* Description */}
