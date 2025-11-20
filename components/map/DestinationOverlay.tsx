@@ -27,32 +27,65 @@ export function DestinationOverlay({ destination, mousePosition, onMouseEnter, o
   const cardRef = useRef<HTMLDivElement>(null)
   const [isInItineraryState, setIsInItineraryState] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
+  const [position, setPosition] = useState({ left: 0, top: 0 })
 
   // Check if destination is in itinerary
   useEffect(() => {
     setIsInItineraryState(isInItinerary(destination))
-    
+
     // Listen for itinerary updates
     const handleItineraryUpdate = () => {
       setIsInItineraryState(isInItinerary(destination))
     }
-    
+
     window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
-    
+
     return () => {
       window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
     }
   }, [destination])
+
+  // Calculate position with edge detection
+  useEffect(() => {
+    if (!cardRef.current) return
+
+    const cardWidth = 320 // w-80 = 320px
+    const cardHeight = cardRef.current.offsetHeight || 250 // estimated height
+    const offsetX = 8 // Closer to cursor
+    const offsetY = 8 // Closer to cursor
+    const margin = 10 // Margin from screen edges
+
+    let left = mousePosition.x + offsetX
+    let top = mousePosition.y + offsetY
+
+    // Check right edge
+    if (left + cardWidth > window.innerWidth - margin) {
+      left = mousePosition.x - cardWidth - offsetX
+    }
+
+    // Check bottom edge
+    if (top + cardHeight > window.innerHeight - margin) {
+      top = mousePosition.y - cardHeight - offsetY
+    }
+
+    // Check left edge
+    if (left < margin) {
+      left = margin
+    }
+
+    // Check top edge
+    if (top < margin) {
+      top = margin
+    }
+
+    setPosition({ left, top })
+  }, [mousePosition])
 
   // Parse accommodation range (e.g., "30-70" or "30")
   const accommodationPrice = parsePricing(destination.pricing?.accommodation || 0)
   const foodPrice = parsePricing(destination.pricing?.food || 0)
   const activitiesPrice = parsePricing(destination.pricing?.activities || 0)
   const totalDaily = accommodationPrice + foodPrice + activitiesPrice
-
-  // Position near cursor with offset
-  const offsetX = 16
-  const offsetY = 16
 
   const handleAddToItinerary = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -65,10 +98,10 @@ export function DestinationOverlay({ destination, mousePosition, onMouseEnter, o
 
   return (
     <div
-      className="fixed z-50 pointer-events-auto"
+      className="fixed z-[1001] pointer-events-auto"
       style={{
-        left: `${mousePosition.x + offsetX}px`,
-        top: `${mousePosition.y + offsetY}px`,
+        left: `${position.left}px`,
+        top: `${position.top}px`,
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -83,7 +116,7 @@ export function DestinationOverlay({ destination, mousePosition, onMouseEnter, o
                 <h3 className="text-base font-semibold text-gray-900">{destination.region}</h3>
                 <p className="text-xs text-gray-500 mt-0.5">{getCountryName(destination.country)}</p>
               </div>
-              
+
               {/* Action buttons */}
               <div className="flex items-center gap-1">
                 <button
@@ -100,13 +133,12 @@ export function DestinationOverlay({ destination, mousePosition, onMouseEnter, o
                     Add to favorites
                   </span>
                 </button>
-                
+
                 <button
-                  className={`p-1.5 rounded-lg transition-colors group relative ${
-                    isInItineraryState 
-                      ? 'bg-green-50' 
+                  className={`p-1.5 rounded-lg transition-colors group relative ${isInItineraryState
+                      ? 'bg-green-50'
                       : 'hover:bg-gray-100'
-                  }`}
+                    }`}
                   onClick={handleAddToItinerary}
                   aria-label={isInItineraryState ? 'In itinerary' : 'Add to itinerary'}
                   disabled={isInItineraryState}
@@ -114,9 +146,8 @@ export function DestinationOverlay({ destination, mousePosition, onMouseEnter, o
                   {isInItineraryState ? (
                     <HiCheckCircle className="w-4 h-4 text-green-600" />
                   ) : (
-                    <HiOutlineCalendarDays className={`w-4 h-4 transition-colors ${
-                      justAdded ? 'text-green-500' : 'text-gray-600 group-hover:text-blue-500'
-                    }`} />
+                    <HiOutlineCalendarDays className={`w-4 h-4 transition-colors ${justAdded ? 'text-green-500' : 'text-gray-600 group-hover:text-blue-500'
+                      }`} />
                   )}
                   <span className="absolute -bottom-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                     {isInItineraryState ? 'In itinerary' : 'Add to itinerary'}
