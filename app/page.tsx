@@ -8,13 +8,16 @@ import { ItineraryPanel } from '@/components/ItineraryPanel'
 import { FavoritesPanel } from '@/components/FavoritesPanel'
 import { FilterBar } from '@/components/FilterBar'
 import { FilterSidePanel } from '@/components/FilterSidePanel'
-import WorldMap from '@/components/WorldMap'
+import dynamic from 'next/dynamic'
 import { useState, useEffect, useRef } from 'react'
 import { fetchDestinationsWithDetails } from '@/lib/fetchDestinations'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { saveSearchToHistory, type SearchHistoryItem } from '@/lib/searchHistory'
 import { cn } from '@/lib/utils'
 import mockDestinations from '@/data/mock-gemini-response.json'
+
+// Dynamic import to avoid SSR issues with Leaflet
+const WorldMap = dynamic(() => import('@/components/WorldMap'), { ssr: false })
 
 const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
 

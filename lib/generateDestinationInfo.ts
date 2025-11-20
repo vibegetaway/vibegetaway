@@ -34,6 +34,10 @@ export interface Destination {
   pricing?: DestinationPricing
   recommendedDuration?: string
   destinationAirportCode?: string
+  coordinates?: {
+    lat: number
+    lng: number
+  }
 }
 
 export interface GenerateDestinationParams {
@@ -276,7 +280,30 @@ export async function generateDestinationInfo(
 
     console.log(`[SERVER] LLM returned ${detailedDestinations.length} destinations`)
 
-    return detailedDestinations
+    console.log(`[SERVER] LLM returned ${detailedDestinations.length} destinations`)
+
+    // Enrich with coordinates
+    const destinationsWithCoordinates = await Promise.all(
+      detailedDestinations.map(async (dest) => {
+        const locationQuery = `${dest.region}, ${dest.country}`
+        console.log(`[Geocoding] Querying: "${locationQuery}"`)
+        const coordinates = await getCoordinates(locationQuery)
+        console.log(`[Geocoding] Result for "${locationQuery}":`, coordinates)
+        return {
+          ...dest,
+          coordinates: coordinates || undefined
+        }
+      })
+    )
+
+    console.log('[Geocoding] Final destinations with coordinates:',
+      destinationsWithCoordinates.map(d => ({
+        region: d.region,
+        coords: d.coordinates
+      }))
+    )
+
+    return destinationsWithCoordinates
   } catch (error) {
     console.error('Error generating destination info:', error)
     throw new Error(
@@ -286,6 +313,46 @@ export async function generateDestinationInfo(
     )
   }
 }
+
+async function getCoordinates(location: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const apiKey = process.env.POSITIONSTACK_API_KEY
+    console.log(`[getCoordinates] API Key present: ${!!apiKey}, Length: ${apiKey?.length || 0}`)
+
+    if (!apiKey) {
+      console.warn('[getCoordinates] POSITIONSTACK_API_KEY is not set')
+      return null
+    }
+
+    const url = `http://api.positionstack.com/v1/forward?access_key=${apiKey}&query=${encodeURIComponent(location)}&limit=1`
+    console.log(`[getCoordinates] Fetching: ${url.replace(apiKey, 'REDACTED')}`)
+
+    const response = await fetch(url)
+    console.log(`[getCoordinates] Response status: ${response.status} ${response.statusText}`)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`[getCoordinates] PositionStack API error: ${response.status} ${response.statusText}`, errorText)
+      return null
+    }
+
+    const data = await response.json()
+    console.log(`[getCoordinates] Response data:`, data)
+
+    if (!data.data || data.data.length === 0) {
+      console.warn(`[getCoordinates] Geocoding failed for "${location}": No results`, data)
+      return null
+    }
+
+    const { latitude, longitude } = data.data[0]
+    console.log(`[getCoordinates] Success! Coords for "${location}": [${longitude}, ${latitude}]`)
+    return { lat: latitude, lng: longitude }
+  } catch (error) {
+    console.error(`[getCoordinates] Error geocoding "${location}":`, error)
+    return null
+  }
+}
+
 
 export async function fetchUnsplashImages(
   keywords: string,
