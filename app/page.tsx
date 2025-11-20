@@ -1,13 +1,13 @@
 'use client'
 
-import { SearchBar } from '@/components/SearchBar'
+import { SearchBar } from '@/components/user-input/SearchBar'
 import { LeftSidebar } from '@/components/LeftSidebar'
-import { RecentSearchPanel } from '@/components/RecentSearchPanel'
-import { SearchResultsPanel } from '@/components/SearchResultsPanel'
-import { ItineraryPanel } from '@/components/ItineraryPanel'
-import { FavoritesPanel } from '@/components/FavoritesPanel'
-import { FilterBar } from '@/components/FilterBar'
-import { FilterSidePanel } from '@/components/FilterSidePanel'
+import { RecentSearchPanel } from '@/components/panels/RecentSearchPanel'
+import { SearchResultsPanel } from '@/components/panels/SearchResultsPanel'
+import { ItineraryPanel } from '@/components/panels/ItineraryPanel'
+import { FavoritesPanel } from '@/components/panels/FavoritesPanel'
+import { FilterBar } from '@/components/user-input/FilterBar'
+import { FilterSidePanel } from '@/components/panels/FilterSidePanel'
 import dynamic from 'next/dynamic'
 import { useState, useEffect, useRef } from 'react'
 import { fetchDestinationsWithDetails } from '@/lib/fetchDestinations'
@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 import mockDestinations from '@/data/mock-gemini-response.json'
 
 // Dynamic import to avoid SSR issues with Leaflet
-const WorldMap = dynamic(() => import('@/components/WorldMap'), { ssr: false })
+const WorldMap = dynamic(() => import('@/components/map/WorldMap'), { ssr: false })
 
 const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
 

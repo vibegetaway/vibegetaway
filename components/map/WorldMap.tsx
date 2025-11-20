@@ -5,9 +5,9 @@ import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { COUNTRY_CENTROIDS } from '@/lib/countryCentroids'
-import { SidePanel } from './SidePanel'
-import { DestinationOverlay } from './DestinationOverlay'
-import { MapZoomControls } from './MapZoomControls'
+import { SidePanel } from '@/components/panels/SidePanel'
+import { DestinationOverlay } from '@/components/map/DestinationOverlay'
+import { MapZoomControls } from '@/components/map/MapZoomControls'
 
 // Fix for default marker icons in Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl

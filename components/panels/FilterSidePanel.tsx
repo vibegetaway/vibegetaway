@@ -1,7 +1,7 @@
 import { X, MapPin, Globe, Plane, Clock, Wallet, Ban, PartyPopper, CloudSun, Check } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { SmartTagInput } from "./SmartTagInput"
+import { SmartTagInput } from "../user-input/SmartTagInput"
 
 interface FilterSidePanelProps {
     isOpen: boolean
