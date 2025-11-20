@@ -219,15 +219,6 @@ export function SearchResultsPanel({
                             {descriptionText}
                           </ReactMarkdown>
                         </div>
-
-                        {/* Total Price Only */}
-                        {totalDailyCost > 0 && (
-                          <div className="flex items-center pt-2 border-t border-stone-100">
-                            <span className="text-xs font-semibold text-stone-700">
-                              Est. <span className="text-amber-600">${totalDailyCost}</span> / day
-                            </span>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
