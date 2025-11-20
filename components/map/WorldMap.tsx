@@ -199,6 +199,8 @@ export default function WorldMap({
         <MapContainer
           center={[20, 0]}
           zoom={2}
+          minZoom={2}
+          maxBounds={[[-60, -180], [85, 180]]}
           scrollWheelZoom={true}
           zoomControl={false}
           className="w-full h-full"
