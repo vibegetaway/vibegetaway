@@ -23,7 +23,7 @@ export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBa
     const shortcutKey = isMac ? '⌘' : 'Ctrl'
 
     return (
-        <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2.5 px-3">
+        <div className="relative z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2.5 px-3">
             {/* Single row: Vibe input, date selector, and search button */}
             <div className="flex items-center gap-3">
                 <h1 className="text-lg font-bold leading-tight flex items-center gap-2">

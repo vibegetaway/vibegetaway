@@ -78,7 +78,7 @@ export function ItineraryPanel({
         }`}
     >
       {/* Spacer for text input */}
-      <div className="h-24"></div>
+
 
       <div className="p-6">
         {/* Header */}
@@ -155,8 +155,8 @@ export function ItineraryPanel({
                 <div
                   key={item.id}
                   className={`relative group bg-white rounded-2xl transition-all duration-300 ${isSelected
-                      ? 'ring-2 ring-amber-500 shadow-lg shadow-amber-100'
-                      : 'hover:shadow-xl hover:shadow-stone-200/50 border border-stone-100'
+                    ? 'ring-2 ring-amber-500 shadow-lg shadow-amber-100'
+                    : 'hover:shadow-xl hover:shadow-stone-200/50 border border-stone-100'
                     }`}
                 >
                   <div

@@ -2,13 +2,13 @@
 
 import { X, Trash2, Clock } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { 
-  getSearchHistory, 
-  deleteSearchFromHistory, 
+import {
+  getSearchHistory,
+  deleteSearchFromHistory,
   clearSearchHistory,
   formatSearchText,
   formatTimestamp,
-  type SearchHistoryItem 
+  type SearchHistoryItem
 } from '@/lib/searchHistory'
 
 interface RecentSearchPanelProps {
@@ -49,13 +49,12 @@ export function RecentSearchPanel({ isOpen, onClose, onSearchSelect }: RecentSea
     <>
       {/* Panel - positioned next to LeftSidebar (left-20), same width as SidePanel */}
       <div
-        className={`fixed left-20 top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed left-20 top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* Spacer for text input */}
-        <div className="h-24"></div>
-        
+
+
         <div className="p-8">
           {/* Header */}
           <div className="flex items-start justify-between mb-8">
@@ -100,7 +99,7 @@ export function RecentSearchPanel({ isOpen, onClose, onSearchSelect }: RecentSea
                       <p className="text-stone-900 font-medium mb-1">
                         {formatSearchText(item.vibe, item.timePeriod)}
                       </p>
-                      
+
                       {/* Timestamp and Destination Count */}
                       <div className="flex items-center gap-3 text-xs text-stone-500">
                         <span className="flex items-center gap-1">
@@ -114,7 +113,7 @@ export function RecentSearchPanel({ isOpen, onClose, onSearchSelect }: RecentSea
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Delete Button */}
                     <button
                       onClick={(e) => handleDelete(item.id, e)}

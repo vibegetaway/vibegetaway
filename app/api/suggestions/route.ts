@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     });
 
     const model = process.env.GROQ_API_KEY
-        ? groq('groq/compound-mini')
+        ? groq('llama-3.3-70b-versatile')
         : google('gemini-2.0-flash-exp');
 
     let systemPrompt = '';

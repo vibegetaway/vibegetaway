@@ -92,7 +92,7 @@ export function SearchResultsPanel({
         }`}
     >
       {/* Spacer for text input */}
-      <div className="h-24"></div>
+
 
       <div className="p-6">
         {/* Header */}
