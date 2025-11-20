@@ -11,8 +11,6 @@ import { addToItinerary, isInItinerary } from '@/lib/itinerary'
 interface DestinationOverlayProps {
   destination: Destination
   mousePosition: { x: number; y: number }
-  onMouseEnter?: () => void
-  onMouseLeave?: () => void
 }
 
 // Helper to parse pricing values (e.g., "20-40", "25", or numbers)
@@ -23,7 +21,7 @@ function parsePricing(value: string | number): number {
   return match ? parseInt(match[1], 10) : 0
 }
 
-export function DestinationOverlay({ destination, mousePosition, onMouseEnter, onMouseLeave }: DestinationOverlayProps) {
+export function DestinationOverlay({ destination, mousePosition }: DestinationOverlayProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [isInItineraryState, setIsInItineraryState] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
@@ -103,8 +101,12 @@ export function DestinationOverlay({ destination, mousePosition, onMouseEnter, o
         left: `${position.left}px`,
         top: `${position.top}px`,
       }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseLeave={() => {
+        // Hide overlay when mouse leaves the overlay area
+        // This is called from WorldMap to hide the overlay
+        const event = new CustomEvent('hideDestinationOverlay')
+        window.dispatchEvent(event)
+      }}
     >
       <div className="relative w-80" ref={cardRef}>
         {/* Simple card like Google Maps */}
@@ -136,8 +138,8 @@ export function DestinationOverlay({ destination, mousePosition, onMouseEnter, o
 
                 <button
                   className={`p-1.5 rounded-lg transition-colors group relative ${isInItineraryState
-                      ? 'bg-green-50'
-                      : 'hover:bg-gray-100'
+                    ? 'bg-green-50'
+                    : 'hover:bg-gray-100'
                     }`}
                   onClick={handleAddToItinerary}
                   aria-label={isInItineraryState ? 'In itinerary' : 'Add to itinerary'}

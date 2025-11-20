@@ -140,8 +140,6 @@ export default function WorldMap({
   const [hoveredDestination, setHoveredDestination] = useState<Destination | null>(null)
   const [internalSelectedDestination, setInternalSelectedDestination] = useState<Destination | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
-  const [isHoveringOverlay, setIsHoveringOverlay] = useState(false)
-  const overlayTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [overlayPosition, setOverlayPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
 
   // Use external selectedDestination if provided, otherwise use internal
@@ -201,31 +199,28 @@ export default function WorldMap({
   }
 
   const handleMarkerHover = (destination: Destination, e: L.LeafletMouseEvent) => {
-    if (overlayTimeoutRef.current) {
-      clearTimeout(overlayTimeoutRef.current)
-    }
     setOverlayPosition({
       x: e.originalEvent.clientX,
       y: e.originalEvent.clientY
     })
     setHoveredDestination(destination)
-    setIsHoveringOverlay(false) // Reset when hovering a new marker
   }
 
   const handleMarkerLeave = () => {
-    overlayTimeoutRef.current = setTimeout(() => {
-      if (!isHoveringOverlay) {
-        setHoveredDestination(null)
-      }
-    }, 50) // Reduced from 100ms for more responsive hiding
+    // Hide immediately - no delay, no complexity
+    setHoveredDestination(null)
   }
 
-  // Cleanup timeout on unmount
+  // Listen for overlay hide events
   useEffect(() => {
+    const handleHideOverlay = () => {
+      setHoveredDestination(null)
+    }
+
+    window.addEventListener('hideDestinationOverlay' as any, handleHideOverlay)
+
     return () => {
-      if (overlayTimeoutRef.current) {
-        clearTimeout(overlayTimeoutRef.current)
-      }
+      window.removeEventListener('hideDestinationOverlay' as any, handleHideOverlay)
     }
   }, [])
 
@@ -259,10 +254,6 @@ export default function WorldMap({
           <MapEventHandler
             onMapInteraction={() => {
               setHoveredDestination(null)
-              setIsHoveringOverlay(false)
-              if (overlayTimeoutRef.current) {
-                clearTimeout(overlayTimeoutRef.current)
-              }
             }}
           />
           <MapZoomControls />
@@ -278,25 +269,11 @@ export default function WorldMap({
         />
       </div>
 
-      {(hoveredDestination || isHoveringOverlay) && hoveredDestination && (
+      {hoveredDestination && (
         <div className="relative z-50">
           <DestinationOverlay
             destination={hoveredDestination}
             mousePosition={overlayPosition}
-            onMouseEnter={() => {
-              if (overlayTimeoutRef.current) {
-                clearTimeout(overlayTimeoutRef.current)
-              }
-              setIsHoveringOverlay(true)
-            }}
-            onMouseLeave={() => {
-              // Immediately clear both states when leaving overlay
-              if (overlayTimeoutRef.current) {
-                clearTimeout(overlayTimeoutRef.current)
-              }
-              setIsHoveringOverlay(false)
-              setHoveredDestination(null)
-            }}
           />
         </div>
       )}
