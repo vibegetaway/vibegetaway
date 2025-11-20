@@ -39,14 +39,13 @@ export interface Destination {
 export interface GenerateDestinationParams {
   vibe: string
   timePeriod: string
-  price?: string // Keep for backward compatibility or simple string input
-  from?: string // Origin
-  // New filters
-  destinations?: string[] // Specific regions/countries to filter by
-  duration?: [number, number] // Min/max days
-  budget?: number // Numeric budget cap
-  exclusions?: string[] // Things to avoid
-  styles?: string[] // Travel styles
+  price?: string
+  from?: string
+  destinations?: string[]
+  duration?: [number, number]
+  budget?: number
+  exclusions?: string[]
+  styles?: string[]
 }
 
 // Helper function to strip markdown code fences from JSON responses (```json, ```JSON, or just ```)
@@ -165,36 +164,30 @@ export async function generateDestinationNames(
       throw new Error('Time period is required')
     }
 
-    // Build a natural language prompt from structured parameters
     let prompt = `I want to ${vibe} in ${timePeriod}.`
 
     if (from) {
       prompt += ` I'm traveling from ${from}.`
     }
 
-    // Handle Budget (support both legacy string and new number)
     if (budget && budget < 2000) {
       prompt += ` My daily budget is under $${budget}.`
     } else if (price) {
       prompt += ` My budget is ${price}.`
     }
 
-    // Handle Duration
     if (duration) {
       prompt += ` I plan to stay for ${duration[0]} to ${duration[1]} days.`
     }
 
-    // Handle Specific Destinations (Filter)
     if (filterDestinations && filterDestinations.length > 0) {
       prompt += ` I am specifically interested in going to: ${filterDestinations.join(', ')}. Please suggest specific places within these areas.`
     }
 
-    // Handle Exclusions
     if (exclusions && exclusions.length > 0) {
       prompt += ` I want to AVOID: ${exclusions.join(', ')}.`
     }
 
-    // Handle Travel Styles
     if (styles && styles.length > 0) {
       prompt += ` My travel style is: ${styles.join(', ')}.`
     }
@@ -240,36 +233,30 @@ export async function generateDestinationInfo(
       throw new Error('At least one destination is required')
     }
 
-    // Build a natural language prompt from structured parameters
     let prompt = `I want to ${vibe} in ${timePeriod}.`
 
     if (from) {
       prompt += ` I'm traveling from ${from}.`
     }
 
-    // Handle Budget
     if (params.budget && params.budget < 2000) {
       prompt += ` My daily budget is under $${params.budget}.`
     } else if (price) {
       prompt += ` My budget is ${price}.`
     }
 
-    // Handle Duration
     if (params.duration) {
       prompt += ` I plan to stay for ${params.duration[0]} to ${params.duration[1]} days.`
     }
 
-    // Handle Exclusions
     if (params.exclusions && params.exclusions.length > 0) {
       prompt += ` I want to AVOID: ${params.exclusions.join(', ')}.`
     }
 
-    // Handle Travel Styles
     if (params.styles && params.styles.length > 0) {
       prompt += ` My travel style is: ${params.styles.join(', ')}.`
     }
 
-    // List all destinations in the prompt
     prompt += `\n\nProvide detailed information for the following ${destinations.length} destinations:\n`
     destinations.forEach((dest, index) => {
       prompt += `${index + 1}. ${dest.region}, ${dest.country}\n`

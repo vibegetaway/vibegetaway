@@ -180,12 +180,6 @@ export function FilterSidePanel({
                             />
                         </div>
                     </div>
-
-                    {/* Preferences */}
-                    <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-stone-800 border-b border-stone-200 pb-2">Preferences</h3>
-                    </div>
-
                 </div>
 
                 {/* Footer */}

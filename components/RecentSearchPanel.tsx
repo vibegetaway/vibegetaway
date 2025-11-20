@@ -104,14 +104,47 @@ export function RecentSearchPanel({ isOpen, onClose, onSearchSelect }: RecentSea
                         </p>
 
                         {/* Timestamp and Destination Count */}
-                        <div className="flex items-center gap-3 text-xs text-stone-500 mt-1">
-                          <span className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500 mt-1">
+                          <span className="flex items-center gap-1 mr-1">
                             <Clock className="w-3 h-3" />
                             {formatTimestamp(item.timestamp)}
                           </span>
+
                           {item.destinations && item.destinations.length > 0 && (
                             <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded border border-amber-100 font-medium">
-                              {item.destinations.length} destinations
+                              {item.destinations.length} results
+                            </span>
+                          )}
+
+                          {/* Filter Tags */}
+                          {item.filters?.origin && (
+                            <span className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded border border-stone-200">
+                              from: {item.filters.origin}
+                            </span>
+                          )}
+                          {item.filters?.destinations && item.filters.destinations.length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded border border-stone-200">
+                              in: {item.filters.destinations.join(', ')}
+                            </span>
+                          )}
+                          {item.filters?.duration && (
+                            <span className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded border border-stone-200">
+                              {item.filters.duration[0]}-{item.filters.duration[1]} days
+                            </span>
+                          )}
+                          {item.filters?.budget && item.filters.budget < 2000 && (
+                            <span className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded border border-stone-200">
+                              &lt;${item.filters.budget}
+                            </span>
+                          )}
+                          {item.filters?.exclusions && item.filters.exclusions.length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded border border-stone-200">
+                              no {item.filters.exclusions.join(', ')}
+                            </span>
+                          )}
+                          {item.filters?.styles && item.filters.styles.length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded border border-stone-200">
+                              {item.filters.styles.join(', ')}
                             </span>
                           )}
                         </div>

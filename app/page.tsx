@@ -78,11 +78,18 @@ export default function Home() {
           onComplete: () => {
             console.log('[INFO] All destination details loaded')
 
-            // Save to history only if this was a new search (not loaded from history)
-            if (shouldSaveToHistory.current && callId === callIdRef.current) {
+            // Save to history if enabled
+            if (shouldSaveToHistory.current) {
               // Get the final destinations state
               setDestinations(prev => {
-                saveSearchToHistory(v, m, prev)
+                saveSearchToHistory(v, m, prev, {
+                  origin: filterOrigin,
+                  destinations: filterLocations,
+                  duration: filterDuration,
+                  budget: filterBudget,
+                  exclusions: filterExclusions,
+                  styles: filterStyles
+                })
                 return prev
               })
             }
@@ -109,6 +116,24 @@ export default function Home() {
     // Set the search params
     setVibe(item.vibe)
     setMonth(item.timePeriod)
+
+    // Restore filters if present
+    if (item.filters) {
+      setFilterOrigin(item.filters.origin || "")
+      setFilterLocations(item.filters.destinations || [])
+      setFilterDuration(item.filters.duration || [3, 14])
+      setFilterBudget(item.filters.budget || 2000)
+      setFilterExclusions(item.filters.exclusions || [])
+      setFilterStyles(item.filters.styles || [])
+    } else {
+      // Reset filters if not present in history
+      setFilterOrigin("")
+      setFilterLocations([])
+      setFilterDuration([3, 14])
+      setFilterBudget(2000)
+      setFilterExclusions([])
+      setFilterStyles([])
+    }
 
     // If we have cached destinations, use them immediately
     if (item.destinations && item.destinations.length > 0) {

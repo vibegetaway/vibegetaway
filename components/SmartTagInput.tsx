@@ -10,6 +10,7 @@ interface SmartTagInputProps {
     placeholder?: string
     suggestionType?: 'vibe' | 'event' | 'exclusion' | 'location'
     className?: string
+    autoFocus?: boolean
 }
 
 // Example placeholders for cycling animation
@@ -30,7 +31,8 @@ export function SmartTagInput({
     onChange,
     placeholder,
     suggestionType = 'vibe',
-    className
+    className,
+    autoFocus
 }: SmartTagInputProps) {
     const [inputValue, setInputValue] = useState("")
     const [suggestion, setSuggestion] = useState("")
@@ -194,6 +196,7 @@ export function SmartTagInput({
                     onKeyDown={handleKeyDown}
                     className="w-full bg-transparent outline-none text-stone-800"
                     placeholder=""
+                    autoFocus={autoFocus}
                 />
                 {/* Animated typing placeholder */}
                 {value.length === 0 && !inputValue && displayedPlaceholder && (
