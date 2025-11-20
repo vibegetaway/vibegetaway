@@ -103,7 +103,7 @@ export function SearchResultsPanel({
             </h2>
             <p className="text-stone-500 text-xs font-medium">
               {loading && destinations.length === 0
-                ? 'Curating the perfect trip for you'
+                ? ''
                 : `${destinations.length} ${destinations.length === 1 ? 'gem' : 'gems'} found`}
             </p>
           </div>
@@ -131,7 +131,7 @@ export function SearchResultsPanel({
               <div className="absolute inset-0 bg-amber-200/20 rounded-full blur-xl animate-pulse" />
             </div>
             <p className="text-stone-500 text-sm font-medium mt-8">Exploring the world for you...</p>
-            <p className="text-stone-400 text-xs mt-1">AI is analyzing thousands of destinations ✨</p>
+            <p className="text-stone-400 text-xs mt-1">Sifting through thousands of destinations ✨</p>
           </div>
         ) : (
           /* Results list */
