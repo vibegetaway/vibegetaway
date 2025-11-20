@@ -115,8 +115,23 @@ export function SearchResultsPanel({
         {/* Loading state */}
         {loading && destinations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-10 h-10 text-amber-500 animate-spin mb-4" />
-            <p className="text-stone-500 text-sm font-medium">Finding destinations...</p>
+            <div className="relative">
+              {/* Main loader */}
+              <Loader2 className="w-10 h-10 text-amber-500 animate-spin mb-4" />
+
+              {/* Sparkle effect - floating animated dots */}
+              <div className="absolute inset-0 -m-4">
+                <div className="absolute top-0 left-1/2 w-1.5 h-1.5 bg-amber-400 rounded-full animate-ping" style={{ animationDelay: '0ms', animationDuration: '1500ms' }} />
+                <div className="absolute top-1/4 right-0 w-1 h-1 bg-yellow-300 rounded-full animate-ping" style={{ animationDelay: '300ms', animationDuration: '1800ms' }} />
+                <div className="absolute bottom-1/4 left-0 w-1 h-1 bg-amber-300 rounded-full animate-ping" style={{ animationDelay: '600ms', animationDuration: '1600ms' }} />
+                <div className="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping" style={{ animationDelay: '900ms', animationDuration: '1700ms' }} />
+              </div>
+
+              {/* Gentle glow effect */}
+              <div className="absolute inset-0 bg-amber-200/20 rounded-full blur-xl animate-pulse" />
+            </div>
+            <p className="text-stone-500 text-sm font-medium mt-8">Exploring the world for you...</p>
+            <p className="text-stone-400 text-xs mt-1">AI is analyzing thousands of destinations ✨</p>
           </div>
         ) : (
           /* Results list */

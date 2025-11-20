@@ -225,8 +225,8 @@ export default function WorldMap({
   }, [])
 
   return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden">
-      <div className="absolute inset-0 w-full h-full z-0">
+    <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen">
+      <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full z-0">
         <MapContainer
           center={[20, 0]}
           zoom={2}

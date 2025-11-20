@@ -39,13 +39,14 @@ export default function Home() {
   const shouldSaveToHistory = useRef(true)
 
   const handleFindDestinations = async (v: string, m: string) => {
-    if (!v.trim() || !m) {
+    if (!v.trim()) {
       return
     }
 
     const callId = ++callIdRef.current
     setLoading(true)
     setDestinations([])
+    setActivePanel('search') // Open panel immediately to show loading state
 
     try {
       await fetchDestinationsWithDetails({
@@ -170,7 +171,7 @@ export default function Home() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault()
-        if (vibe.trim() && month) {
+        if (vibe.trim()) {
           console.log('[INFO] Keyboard shortcut triggered search')
           handleFindDestinations(vibe, month)
         }

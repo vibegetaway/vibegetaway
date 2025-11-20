@@ -43,7 +43,7 @@ export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBa
                 <button
                     type="button"
                     onClick={onSearch}
-                    disabled={!vibe.trim() || !month}
+                    disabled={!vibe.trim()}
                     className="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-amber-500 disabled:hover:to-amber-600 shadow-sm hover:shadow-md shrink-0 group"
                     title={`Search (${shortcutKey}+Enter)`}
                 >
