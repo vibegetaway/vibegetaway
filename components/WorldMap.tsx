@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { COUNTRY_CENTROIDS } from '@/lib/countryCentroids'
 import { SidePanel } from './SidePanel'
 import { DestinationOverlay } from './DestinationOverlay'
+import { MapZoomControls } from './MapZoomControls'
 
 // Fix for default marker icons in Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -44,54 +45,6 @@ const createPurpleIcon = (isSelected: boolean, hasDetails: boolean) => {
     iconSize: [20, 20],
     iconAnchor: [10, 10],
   })
-}
-
-// Component to add custom zoom controls
-function ZoomControls() {
-  const map = useMap()
-
-  const handleZoomIn = () => {
-    map.zoomIn()
-  }
-
-  const handleZoomOut = () => {
-    map.zoomOut()
-  }
-
-  const handleRecenter = () => {
-    map.setView([20, 0], 2)
-  }
-
-  return (
-    <div className="leaflet-bottom leaflet-right">
-      <div className="leaflet-control leaflet-bar flex flex-col gap-2 mb-5 mr-5">
-        <button
-          onClick={handleZoomIn}
-          className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-lg shadow-lg flex items-center justify-center font-bold text-xl transition-all hover:scale-105 border-2 border-gray-200"
-          title="Zoom In"
-          type="button"
-        >
-          +
-        </button>
-        <button
-          onClick={handleZoomOut}
-          className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-lg shadow-lg flex items-center justify-center font-bold text-xl transition-all hover:scale-105 border-2 border-gray-200"
-          title="Zoom Out"
-          type="button"
-        >
-          −
-        </button>
-        <button
-          onClick={handleRecenter}
-          className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-lg shadow-lg flex items-center justify-center font-bold text-base transition-all hover:scale-105 border-2 border-gray-200"
-          title="Recenter Map"
-          type="button"
-        >
-          ⟲
-        </button>
-      </div>
-    </div>
-  )
 }
 
 // Component to update map when destinations change
@@ -265,7 +218,7 @@ export default function WorldMap({
             onMarkerHover={handleMarkerHover}
             onMarkerLeave={handleMarkerLeave}
           />
-          <ZoomControls />
+          <MapZoomControls />
         </MapContainer>
       </div>
 
