@@ -1,17 +1,19 @@
 'use client'
 
-import { AnimatedVibeInput } from '@/components/AnimatedVibeInput'
-import { MonthSelect } from '@/components/MonthSelect'
+import { SearchBar } from '@/components/SearchBar'
 import { LeftSidebar } from '@/components/LeftSidebar'
 import { RecentSearchPanel } from '@/components/RecentSearchPanel'
 import { SearchResultsPanel } from '@/components/SearchResultsPanel'
 import { ItineraryPanel } from '@/components/ItineraryPanel'
 import { FavoritesPanel } from '@/components/FavoritesPanel'
+import { FilterBar } from '@/components/FilterBar'
+import { FilterSidePanel } from '@/components/FilterSidePanel'
 import WorldMap from '@/components/WorldMap'
 import { useState, useEffect, useRef } from 'react'
 import { fetchDestinationsWithDetails } from '@/lib/fetchDestinations'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { saveSearchToHistory, type SearchHistoryItem } from '@/lib/searchHistory'
+import { cn } from '@/lib/utils'
 import mockDestinations from '@/data/mock-gemini-response.json'
 
 const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
@@ -153,6 +155,23 @@ export default function Home() {
     }
   }, [destinations])
 
+  // Filter state
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false)
+  const [activeFilterType, setActiveFilterType] = useState<string | undefined>(undefined)
+
+  // Filter values state (lifted from FilterSidePanel)
+  const [filterOrigin, setFilterOrigin] = useState("")
+  const [filterLocations, setFilterLocations] = useState<string[]>([])
+  const [filterDuration, setFilterDuration] = useState<[number, number]>([3, 14])
+  const [filterBudget, setFilterBudget] = useState<number>(2000)
+  const [filterExclusions, setFilterExclusions] = useState<string[]>([])
+  const [filterStyles, setFilterStyles] = useState<string[]>([])
+
+  const handleFilterClick = (filterType: string) => {
+    setActiveFilterType(filterType)
+    setIsFilterPanelOpen(true)
+  }
+
   return (
     <main className="relative w-screen h-screen overflow-hidden">
       <LeftSidebar
@@ -186,27 +205,63 @@ export default function Home() {
         onDestinationClick={setSelectedDestination}
         selectedDestination={selectedDestination}
       />
-      <div className="absolute top-4 left-24 z-[70] bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3 flex items-center gap-4">
-        <h1 className="text-xl font-bold leading-tight">
-          <span className="text-foreground">I want to </span>
-          <span className="inline-block align-middle">
-            <AnimatedVibeInput value={vibe} onChange={setVibe} />
-          </span>
-          <span className="text-foreground"> in </span>
-          <span className="inline-block align-middle">
-            <MonthSelect value={month} onChange={setMonth} />
-          </span>
-        </h1>
-        <button
-          type="button"
-          onClick={() => vibe.trim() && month && handleFindDestinations(vibe, month)}
-          disabled={!vibe.trim() || !month}
-          className="flex flex-col items-center gap-0.5 px-3 py-1.5 bg-amber-100/50 hover:bg-amber-200/60 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <span className="text-sm font-bold text-amber-800">search</span>
-          <span className="text-[10px] font-mono text-amber-700/60">⌘ ↵</span>
-        </button>
+
+      <FilterSidePanel
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        activeFilter={activeFilterType}
+        origin={filterOrigin}
+        setOrigin={setFilterOrigin}
+        locations={filterLocations}
+        setLocations={setFilterLocations}
+        duration={filterDuration}
+        setDuration={setFilterDuration}
+        budget={filterBudget}
+        setBudget={setFilterBudget}
+        exclusions={filterExclusions}
+        setExclusions={setFilterExclusions}
+        styles={filterStyles}
+        setStyles={setFilterStyles}
+      />
+
+      <div className={cn(
+        "absolute top-4 flex flex-col gap-2 transition-all duration-300 ease-in-out",
+        // Shift right when side panels are open, otherwise stay at left-24
+        activePanel !== 'none' ? "left-[540px]" : "left-24",
+        // Lower z-index when FilterSidePanel is open so it appears above search bar
+        isFilterPanelOpen ? "z-50" : "z-[70]"
+      )}>
+        <SearchBar
+          vibe={vibe}
+          setVibe={setVibe}
+          month={month}
+          setMonth={setMonth}
+          onSearch={() => handleFindDestinations(vibe, month)}
+        />
+
+        {/* Filter Tags - floating individual pills */}
+        <div className={cn(
+          "transition-all duration-300 ease-in-out",
+          isFilterPanelOpen
+            ? "opacity-0 -translate-y-2 pointer-events-none"
+            : "opacity-100 translate-y-0"
+        )}>
+          <FilterBar
+            onFilterClick={handleFilterClick}
+            filterCounts={{
+              origin: filterOrigin ? 1 : 0,
+              destination: filterLocations.length,
+              exclusions: filterExclusions.length,
+              budget: filterBudget !== 2000 ? 1 : 0,
+              all: (filterOrigin ? 1 : 0) +
+                filterLocations.length +
+                filterExclusions.length +
+                (filterBudget !== 2000 ? 1 : 0)
+            }}
+          />
+        </div>
       </div>
+
       <WorldMap
         loading={loading}
         destinations={destinations}

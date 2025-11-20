@@ -6,7 +6,7 @@ import { generateText } from 'ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-    const { input, context } = await req.json();
+    const { input, context, type = 'vibe' } = await req.json();
 
     if (!input || typeof input !== 'string') {
         return new Response('Input is required', { status: 400 });
@@ -22,13 +22,58 @@ export async function POST(req: Request) {
     });
 
     const model = process.env.GROQ_API_KEY
-        ? groq('llama-3.1-8b-instant')
-        : google('gemini-1.5-flash');
+        ? groq('groq/compound-mini')
+        : google('gemini-2.0-flash-exp');
 
-    try {
-        const { text } = await generateText({
-            model,
-            system: `You are a fast autocomplete engine for travel vibes. 
+    let systemPrompt = '';
+
+    switch (type) {
+        case 'event':
+            systemPrompt = `You are a fast autocomplete engine for travel events and experiences.
+      User is typing an event or activity for their trip.
+      Complete their input with a single word or short phrase.
+      Do NOT repeat the input. Only provide the suffix to complete the word/phrase.
+      Examples:
+      Input: "Full" -> Output: " Moon Party" (Full Moon Party)
+      Input: "Jazz" -> Output: " Festival" (Jazz Festival)
+      Input: "Food" -> Output: " market" (Food market)
+      
+      Context (already selected events): ${context || 'none'}
+      Current Input: "${input}"
+      Output only the completion suffix.`;
+            break;
+        case 'exclusion':
+            systemPrompt = `You are a fast autocomplete engine for travel exclusions (things to avoid).
+      User is typing something they want to avoid on their trip.
+      Complete their input with a single word or short phrase.
+      Do NOT repeat the input. Only provide the suffix to complete the word/phrase.
+      Examples:
+      Input: "Rain" -> Output: "y season" (Rainy season)
+      Input: "Crow" -> Output: "ds" (Crowds)
+      Input: "Mosq" -> Output: "uitoes" (Mosquitoes)
+      
+      Context (already selected exclusions): ${context || 'none'}
+      Current Input: "${input}"
+      Output only the completion suffix.`;
+            break;
+        case 'location':
+            systemPrompt = `You are a fast autocomplete engine for travel locations.
+      User is typing a location which could be a city, country, region, island, or airport code.
+      Complete their input with a single word or short phrase.
+      Do NOT repeat the input. Only provide the suffix to complete the word/phrase.
+      Examples:
+      Input: "Ba" -> Output: "li" (Bali)
+      Input: "New Y" -> Output: "ork" (New York)
+      Input: "JF" -> Output: "K" (JFK)
+      Input: "South East A" -> Output: "sia" (South East Asia)
+      
+      Context (already selected locations): ${context || 'none'}
+      Current Input: "${input}"
+      Output only the completion suffix.`;
+            break;
+        case 'vibe':
+        default:
+            systemPrompt = `You are a fast autocomplete engine for travel vibes. 
       User is typing a "vibe" for their trip.
       Complete their input with a single word or short phrase.
       Do NOT repeat the input. Only provide the suffix to complete the word/phrase.
@@ -41,7 +86,14 @@ export async function POST(req: Request) {
       
       Context (already selected vibes): ${context || 'none'}
       Current Input: "${input}"
-      Output only the completion suffix.`,
+      Output only the completion suffix.`;
+            break;
+    }
+
+    try {
+        const { text } = await generateText({
+            model,
+            system: systemPrompt,
             prompt: input,
             temperature: 0.1,
         });

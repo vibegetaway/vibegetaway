@@ -120,7 +120,7 @@ export function SearchResultsPanel({
           </div>
         ) : (
           /* Results list */
-          <div className="space-y-4">
+          <div className="space-y-6">
             {destinations.map((destination, index) => {
               const isSelected = selectedDestination?.region === destination.region &&
                 selectedDestination?.country === destination.country
@@ -146,9 +146,9 @@ export function SearchResultsPanel({
               return (
                 <div
                   key={`${destination.country}-${destination.region}-${index}`}
-                  className={`relative group w-full bg-white rounded-xl transition-all duration-300 ${isSelected
-                      ? 'ring-2 ring-amber-500 shadow-md shadow-amber-100'
-                      : 'hover:shadow-lg hover:shadow-stone-200/50 border border-stone-100'
+                  className={`relative group w-full bg-white rounded-xl transition-all duration-300 shadow-sm border-2 ${isSelected
+                    ? 'ring-2 ring-amber-500 shadow-md shadow-amber-100 border-amber-200'
+                    : 'hover:shadow-lg hover:shadow-stone-200/50 border-stone-200/60 hover:border-stone-300'
                     }`}
                 >
                   <div
@@ -166,19 +166,40 @@ export function SearchResultsPanel({
                         </div>
                       </div>
 
-                      {/* Status Indicators */}
-                      <div className="flex gap-1.5">
-                        {inFavorites && (
-                          <div className="bg-red-50 p-1 rounded-full">
-                            <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-                          </div>
-                        )}
-                        {inItinerary && (
-                          <div className="bg-green-50 p-1 rounded-full">
-                            <Calendar className="w-3 h-3 text-green-600" />
-                          </div>
-                        )}
-                      </div>
+                      {/* Action Icons - Always Visible */}
+                      {hasDetails && (
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (!inFavorites) addToFavorites(destination)
+                            }}
+                            disabled={inFavorites}
+                            className={`p-1.5 rounded-full transition-colors ${inFavorites
+                              ? 'bg-red-50 cursor-default'
+                              : 'bg-stone-50 hover:bg-red-50 hover:scale-110'
+                              }`}
+                            title={inFavorites ? 'Already in favorites' : 'Add to favorites'}
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${inFavorites ? 'text-red-500 fill-red-500' : 'text-stone-400 hover:text-red-500'}`} />
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (!inItinerary) addToItinerary(destination)
+                            }}
+                            disabled={inItinerary}
+                            className={`p-1.5 rounded-full transition-colors ${inItinerary
+                              ? 'bg-green-50 cursor-default'
+                              : 'bg-stone-50 hover:bg-green-50 hover:scale-110'
+                              }`}
+                            title={inItinerary ? 'Already in itinerary' : 'Add to itinerary'}
+                          >
+                            <Calendar className={`w-3.5 h-3.5 ${inItinerary ? 'text-green-600 fill-green-600' : 'text-stone-400 hover:text-green-600'}`} />
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Loading indicator for details */}
@@ -192,8 +213,8 @@ export function SearchResultsPanel({
                     {/* Content */}
                     {hasDetails && (
                       <div className="space-y-3">
-                        {/* Description with Markdown - Compact */}
-                        <div className="prose prose-xs prose-stone max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-amber-700 prose-li:marker:text-amber-500 line-clamp-3">
+                        {/* Description with Markdown - Full Text */}
+                        <div className="prose prose-xs prose-stone max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-amber-700 prose-li:marker:text-amber-500">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {descriptionText}
                           </ReactMarkdown>
@@ -209,40 +230,6 @@ export function SearchResultsPanel({
                         )}
                       </div>
                     )}
-                  </div>
-
-                  {/* Action Bar - Visible on Hover or Selected */}
-                  <div className={`px-4 pb-4 pt-0 flex items-center justify-between gap-2 transition-all duration-300 ${hasDetails ? 'opacity-0 group-hover:opacity-100 h-0 group-hover:h-auto overflow-hidden' : 'opacity-0 pointer-events-none h-0'
-                    }`}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        if (!inFavorites) addToFavorites(destination)
-                      }}
-                      disabled={inFavorites}
-                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all ${inFavorites
-                          ? 'bg-stone-100 text-stone-400 cursor-default'
-                          : 'bg-white border border-stone-200 text-stone-700 hover:border-red-200 hover:bg-red-50 hover:text-red-600'
-                        }`}
-                    >
-                      <Heart className={`w-3.5 h-3.5 ${inFavorites ? 'fill-stone-400' : ''}`} />
-                      {inFavorites ? 'Saved' : 'Save'}
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        if (!inItinerary) addToItinerary(destination)
-                      }}
-                      disabled={inItinerary}
-                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all ${inItinerary
-                          ? 'bg-stone-100 text-stone-400 cursor-default'
-                          : 'bg-stone-900 text-white hover:bg-stone-800 shadow-md hover:shadow-lg'
-                        }`}
-                    >
-                      <Calendar className="w-3.5 h-3.5" />
-                      {inItinerary ? 'Added' : 'Add'}
-                    </button>
                   </div>
                 </div>
               )
