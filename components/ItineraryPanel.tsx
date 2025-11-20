@@ -90,11 +90,6 @@ export function ItineraryPanel({
                 ? 'No destinations added yet'
                 : `${itineraryItems.length} ${itineraryItems.length === 1 ? 'destination' : 'destinations'} in your plan`}
             </p>
-            {itineraryItems.length > 0 && totalEstimatedCost > 0 && (
-              <p className="text-xs text-amber-600 font-semibold mt-1">
-                Est. daily cost: ${totalEstimatedCost}
-              </p>
-            )}
           </div>
           <button
             onClick={onClose}
