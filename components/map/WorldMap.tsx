@@ -86,16 +86,18 @@ function DestinationMarkers({
   onMarkerLeave: () => void
 }) {
   const map = useMap()
+  const hasFitBoundsRef = useRef(false)
 
   useEffect(() => {
-    if (destinations.length > 0) {
-      // Fit bounds to show all markers
+    if (destinations.length > 0 && !hasFitBoundsRef.current) {
+      // Fit bounds to show all markers - only do this once on initial load with coordinates
       const bounds = destinations
         .filter(d => d.coordinates)
         .map(d => [d.coordinates!.lat, d.coordinates!.lng] as [number, number])
 
       if (bounds.length > 0) {
         map.fitBounds(bounds, { padding: [50, 50], maxZoom: 4 })
+        hasFitBoundsRef.current = true
       }
     }
   }, [destinations, map])

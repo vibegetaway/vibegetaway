@@ -280,30 +280,9 @@ export async function generateDestinationInfo(
 
     console.log(`[SERVER] LLM returned ${detailedDestinations.length} destinations`)
 
-    console.log(`[SERVER] LLM returned ${detailedDestinations.length} destinations`)
-
-    // Enrich with coordinates
-    const destinationsWithCoordinates = await Promise.all(
-      detailedDestinations.map(async (dest) => {
-        const locationQuery = `${dest.region}, ${dest.country}`
-        console.log(`[Geocoding] Querying: "${locationQuery}"`)
-        const coordinates = await getCoordinates(locationQuery)
-        console.log(`[Geocoding] Result for "${locationQuery}":`, coordinates)
-        return {
-          ...dest,
-          coordinates: coordinates || undefined
-        }
-      })
-    )
-
-    console.log('[Geocoding] Final destinations with coordinates:',
-      destinationsWithCoordinates.map(d => ({
-        region: d.region,
-        coords: d.coordinates
-      }))
-    )
-
-    return destinationsWithCoordinates
+    // Note: Coordinates are now fetched upfront in fetchDestinations.ts
+    // No need to enrich with coordinates here anymore
+    return detailedDestinations
   } catch (error) {
     console.error('Error generating destination info:', error)
     throw new Error(
@@ -314,7 +293,7 @@ export async function generateDestinationInfo(
   }
 }
 
-async function getCoordinates(location: string): Promise<{ lat: number; lng: number } | null> {
+export async function getCoordinates(location: string): Promise<{ lat: number; lng: number } | null> {
   try {
     const apiKey = process.env.POSITIONSTACK_API_KEY
     console.log(`[getCoordinates] API Key present: ${!!apiKey}, Length: ${apiKey?.length || 0}`)
@@ -352,6 +331,7 @@ async function getCoordinates(location: string): Promise<{ lat: number; lng: num
     return null
   }
 }
+
 
 
 export async function fetchUnsplashImages(
