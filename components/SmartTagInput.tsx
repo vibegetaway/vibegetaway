@@ -14,6 +14,7 @@ interface SmartTagInputProps {
 
 // Example placeholders for cycling animation
 const PLACEHOLDER_EXAMPLES = [
+    "find inner peace...",
     "explore hidden beaches...",
     "discover ancient ruins...",
     "enjoy street food tours...",
@@ -196,13 +197,13 @@ export function SmartTagInput({
                 />
                 {/* Animated typing placeholder */}
                 {value.length === 0 && !inputValue && displayedPlaceholder && (
-                    <div className="absolute top-0 left-0 pointer-events-none flex items-center h-full text-stone-400">
+                    <div className="absolute top-0 left-0 pointer-events-none flex items-center h-full text-stone-400 whitespace-pre">
                         {displayedPlaceholder}
                     </div>
                 )}
                 {/* Ghost suggestion */}
                 {inputValue && suggestion && (
-                    <div className="absolute top-0 left-0 pointer-events-none flex items-center h-full">
+                    <div className="absolute top-0 left-0 pointer-events-none flex items-center h-full whitespace-pre font-inherit">
                         <span className="text-stone-800 opacity-0">{inputValue}</span>
                         <span className="text-stone-400/60">{suggestion}</span>
                     </div>

@@ -33,9 +33,8 @@ export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBa
                         <SmartTagInput
                             value={vibe ? vibe.split(',').map(v => v.trim()).filter(Boolean) : []}
                             onChange={(tags) => setVibe(tags.join(', '))}
-                            placeholder="explore hidden beaches..."
                             suggestionType="vibe"
-                            className="border-none bg-transparent p-0 focus-within:ring-0 focus-within:border-none max-h-[36px]"
+                            className="border-none bg-transparent p-0 focus-within:ring-0 focus-within:border-none max-h-[36px] rounded-none"
                         />
                     </span>
                     <span className="text-sm text-stone-500 whitespace-nowrap">in</span>
