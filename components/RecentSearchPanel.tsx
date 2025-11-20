@@ -55,15 +55,15 @@ export function RecentSearchPanel({ isOpen, onClose, onSearchSelect }: RecentSea
         {/* Spacer for text input */}
 
 
-        <div className="p-8">
+        <div className="p-6">
           {/* Header */}
-          <div className="flex items-start justify-between mb-8">
+          <div className="flex items-start justify-between mb-6">
             <div>
-              <h2 className="text-4xl font-bold text-stone-900 mb-2">Recent Searches</h2>
-              <p className="text-stone-600">Your search history</p>
+              <h2 className="text-2xl font-bold text-stone-900 mb-1 tracking-tight">Recent Searches</h2>
+              <p className="text-stone-500 text-xs font-medium">Your search history</p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-amber-100 rounded-lg transition-colors">
-              <X className="w-6 h-6 text-stone-600" />
+            <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
+              <X className="w-5 h-5 text-stone-500" />
             </button>
           </div>
 
@@ -71,7 +71,7 @@ export function RecentSearchPanel({ isOpen, onClose, onSearchSelect }: RecentSea
           {searchHistory.length > 0 && (
             <button
               onClick={handleClearAll}
-              className="mb-6 w-full py-2 px-4 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="mb-6 w-full py-2 px-4 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm font-medium"
             >
               <Trash2 className="w-4 h-4" />
               Clear All History
@@ -80,50 +80,54 @@ export function RecentSearchPanel({ isOpen, onClose, onSearchSelect }: RecentSea
 
           {/* Search History List */}
           {searchHistory.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="flex flex-col items-center justify-center py-20 text-center">
               <Clock className="w-16 h-16 text-amber-300 mb-4" />
-              <p className="text-stone-600 text-lg mb-2">No recent searches</p>
-              <p className="text-stone-400 text-sm">Your search history will appear here</p>
+              <p className="text-stone-900 font-bold text-lg mb-1">No recent searches</p>
+              <p className="text-stone-500 text-sm">Your search history will appear here</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {searchHistory.map((item) => (
-                <button
+                <div
                   key={item.id}
-                  onClick={() => handleSearchClick(item)}
-                  className="w-full p-4 bg-white hover:bg-amber-50/50 border border-amber-200/50 hover:border-amber-300 rounded-lg transition-all text-left group"
+                  className="relative group w-full bg-white rounded-xl transition-all duration-300 shadow-sm border-2 hover:shadow-lg hover:shadow-stone-200/50 border-stone-200/60 hover:border-stone-300"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      {/* Search Text */}
-                      <p className="text-stone-900 font-medium mb-1">
-                        {formatSearchText(item.vibe, item.timePeriod)}
-                      </p>
+                  <button
+                    onClick={() => handleSearchClick(item)}
+                    className="w-full p-4 text-left"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        {/* Search Text */}
+                        <p className="text-stone-900 font-bold text-lg leading-tight mb-1">
+                          {formatSearchText(item.vibe, item.timePeriod)}
+                        </p>
 
-                      {/* Timestamp and Destination Count */}
-                      <div className="flex items-center gap-3 text-xs text-stone-500">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {formatTimestamp(item.timestamp)}
-                        </span>
-                        {item.destinations && item.destinations.length > 0 && (
-                          <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">
-                            {item.destinations.length} destinations
+                        {/* Timestamp and Destination Count */}
+                        <div className="flex items-center gap-3 text-xs text-stone-500 mt-1">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatTimestamp(item.timestamp)}
                           </span>
-                        )}
+                          {item.destinations && item.destinations.length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded border border-amber-100 font-medium">
+                              {item.destinations.length} destinations
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
+                  </button>
 
-                    {/* Delete Button */}
-                    <button
-                      onClick={(e) => handleDelete(item.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 rounded-lg transition-all"
-                      aria-label="Delete search"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-600" />
-                    </button>
-                  </div>
-                </button>
+                  {/* Delete Button */}
+                  <button
+                    onClick={(e) => handleDelete(item.id, e)}
+                    className="absolute top-3 right-3 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-50 text-stone-400 hover:text-red-500 transition-all"
+                    aria-label="Delete search"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               ))}
             </div>
           )}

@@ -68,10 +68,10 @@ export function FavoritesPanel({
 
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-3xl font-bold text-stone-900 mb-2 tracking-tight">My Favorites</h2>
-            <p className="text-stone-500 text-sm font-medium">
+            <h2 className="text-2xl font-bold text-stone-900 mb-1 tracking-tight">My Favorites</h2>
+            <p className="text-stone-500 text-xs font-medium">
               {favoriteItems.length === 0
                 ? 'No favorites saved yet'
                 : `${favoriteItems.length} ${favoriteItems.length === 1 ? 'destination' : 'destinations'} saved`}
@@ -104,14 +104,14 @@ export function FavoritesPanel({
             <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4">
               <Heart className="w-10 h-10 text-red-400" />
             </div>
-            <h3 className="text-xl font-bold text-stone-900 mb-2">No favorites yet</h3>
-            <p className="text-stone-500 max-w-xs">
+            <h3 className="text-lg font-bold text-stone-900 mb-2">No favorites yet</h3>
+            <p className="text-stone-500 text-sm max-w-xs">
               Start adding destinations to your favorites by clicking the heart icon on destination cards
             </p>
           </div>
         ) : (
           /* Favorites list */
-          <div className="space-y-4">
+          <div className="space-y-6">
             {favoriteItems.map((item) => {
               const destination = item.destination
               const isSelected =
@@ -129,41 +129,41 @@ export function FavoritesPanel({
 
               // Prepare description for markdown
               const descriptionText = Array.isArray(destination.description)
-                ? destination.description.join('\n\n')
+                ? destination.description[0] || ''
                 : destination.description || ''
 
               return (
                 <div
                   key={item.id}
-                  className={`relative group bg-white rounded-2xl transition-all duration-300 ${isSelected
-                    ? 'ring-2 ring-amber-500 shadow-lg shadow-amber-100'
-                    : 'hover:shadow-xl hover:shadow-stone-200/50 border border-stone-100'
+                  className={`relative group w-full bg-white rounded-xl transition-all duration-300 shadow-sm border-2 ${isSelected
+                    ? 'ring-2 ring-amber-500 shadow-md shadow-amber-100 border-amber-200'
+                    : 'hover:shadow-lg hover:shadow-stone-200/50 border-stone-200/60 hover:border-stone-300'
                     }`}
                 >
                   <div
                     onClick={() => onDestinationClick(destination)}
-                    className="cursor-pointer p-5"
+                    className="cursor-pointer p-4"
                   >
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="text-xl font-bold text-stone-900 leading-tight">{destination.region}</h3>
-                        <div className="flex items-center gap-1.5 text-stone-500 mt-1">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span className="text-sm font-medium tracking-wide uppercase">
+                        <h3 className="text-lg font-bold text-stone-900 leading-tight">{destination.region}</h3>
+                        <div className="flex items-center gap-1 text-stone-500 mt-0.5">
+                          <MapPin className="w-3 h-3" />
+                          <span className="text-xs font-medium tracking-wide uppercase">
                             {getCountryName(destination.country)}
                           </span>
                         </div>
                       </div>
 
                       {/* Added Date Badge */}
-                      <span className="text-xs text-stone-400 font-medium bg-stone-50 px-2 py-1 rounded-md">
+                      <span className="text-[10px] text-stone-400 font-medium bg-stone-50 px-1.5 py-0.5 rounded-md border border-stone-100">
                         Added {formatAddedDate(item.addedAt)}
                       </span>
                     </div>
 
                     {/* Description with Markdown */}
                     {descriptionText && (
-                      <div className="prose prose-sm prose-stone max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-amber-700 prose-li:marker:text-amber-500 mb-4 line-clamp-3">
+                      <div className="prose prose-xs prose-stone max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-amber-700 prose-li:marker:text-amber-500 mb-3">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {descriptionText}
                         </ReactMarkdown>
@@ -172,9 +172,9 @@ export function FavoritesPanel({
 
                     {/* Pricing Info */}
                     {dailyCost > 0 && (
-                      <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
-                        <span className="px-2.5 py-1 bg-stone-50 text-stone-600 rounded-md text-xs font-medium border border-stone-100">
-                          Est. ${dailyCost}/day
+                      <div className="flex items-center pt-2 border-t border-stone-100">
+                        <span className="text-xs font-semibold text-stone-700">
+                          Est. <span className="text-amber-600">${dailyCost}</span> / day
                         </span>
                       </div>
                     )}
@@ -183,10 +183,10 @@ export function FavoritesPanel({
                   {/* Remove button */}
                   <button
                     onClick={(e) => handleRemove(item.id, e)}
-                    className="absolute top-4 right-4 p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-50 text-stone-400 hover:text-red-500 transition-all"
+                    className="absolute top-3 right-3 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-50 text-stone-400 hover:text-red-500 transition-all"
                     aria-label="Remove from favorites"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )

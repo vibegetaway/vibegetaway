@@ -50,6 +50,12 @@ export default function Home() {
         params: {
           vibe: v,
           timePeriod: m,
+          from: filterOrigin,
+          destinations: filterLocations,
+          duration: filterDuration,
+          budget: filterBudget,
+          exclusions: filterExclusions,
+          styles: filterStyles,
         },
         callbacks: {
           onInitialDestinations: (destinations) => {

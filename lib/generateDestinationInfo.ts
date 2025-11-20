@@ -39,8 +39,14 @@ export interface Destination {
 export interface GenerateDestinationParams {
   vibe: string
   timePeriod: string
-  price?: string
-  from?: string
+  price?: string // Keep for backward compatibility or simple string input
+  from?: string // Origin
+  // New filters
+  destinations?: string[] // Specific regions/countries to filter by
+  duration?: [number, number] // Min/max days
+  budget?: number // Numeric budget cap
+  exclusions?: string[] // Things to avoid
+  styles?: string[] // Travel styles
 }
 
 // Helper function to strip markdown code fences from JSON responses (```json, ```JSON, or just ```)
@@ -55,6 +61,14 @@ const DESTINATION_NAMES_SYSTEM_PROMPT = `
 You are a travel destination expert. Analyze free-form text about travel preferences and generate the 10 most suitable destinations ranked by relevance.
 
 Parse for: activities/interests, timing/season, budget, travel style, climate/geography preferences.
+
+CRITICAL INSTRUCTION FOR DESTINATION GRANULARITY:
+1. IF the user specifies a broad destination area (e.g. "Bali", "Thailand", "California"):
+   - You MUST recommend specific, granular locations within that area (e.g. "Uluwatu", "Canggu", "Ubud" for Bali).
+   - Do NOT just return the broad area again.
+2. IF the user DOES NOT specify a destination area:
+   - Recommend a mix of broad regions (e.g. "Algarve, Portugal") and specific famous spots.
+   - Ensure diversity across countries unless constrained by other factors.
 
 For each destination provide ONLY:
 1. Country (ISO 3166-1 alpha-3 code)
@@ -132,7 +146,17 @@ export async function generateDestinationNames(
   params: GenerateDestinationParams
 ): Promise<Destination[]> {
   try {
-    const { vibe, timePeriod, price, from } = params
+    const {
+      vibe,
+      timePeriod,
+      price,
+      from,
+      destinations: filterDestinations,
+      duration,
+      budget,
+      exclusions,
+      styles
+    } = params
 
     if (!vibe || vibe.trim().length === 0) {
       throw new Error('Vibe is required')
@@ -143,13 +167,36 @@ export async function generateDestinationNames(
 
     // Build a natural language prompt from structured parameters
     let prompt = `I want to ${vibe} in ${timePeriod}.`
-    
+
     if (from) {
       prompt += ` I'm traveling from ${from}.`
     }
-    
-    if (price) {
+
+    // Handle Budget (support both legacy string and new number)
+    if (budget && budget < 2000) {
+      prompt += ` My daily budget is under $${budget}.`
+    } else if (price) {
       prompt += ` My budget is ${price}.`
+    }
+
+    // Handle Duration
+    if (duration) {
+      prompt += ` I plan to stay for ${duration[0]} to ${duration[1]} days.`
+    }
+
+    // Handle Specific Destinations (Filter)
+    if (filterDestinations && filterDestinations.length > 0) {
+      prompt += ` I am specifically interested in going to: ${filterDestinations.join(', ')}. Please suggest specific places within these areas.`
+    }
+
+    // Handle Exclusions
+    if (exclusions && exclusions.length > 0) {
+      prompt += ` I want to AVOID: ${exclusions.join(', ')}.`
+    }
+
+    // Handle Travel Styles
+    if (styles && styles.length > 0) {
+      prompt += ` My travel style is: ${styles.join(', ')}.`
     }
 
     const { text } = await generateText({
@@ -161,12 +208,12 @@ export async function generateDestinationNames(
     // Strip markdown fences if present, then parse the JSON response
     const cleanedText = stripMarkdownFences(text)
     const destinations: Destination[] = JSON.parse(cleanedText)
-    
+
     return destinations
   } catch (error) {
     console.error('Error generating destination names:', error)
     throw new Error(
-      error instanceof Error 
+      error instanceof Error
         ? `Failed to generate destination names: ${error.message}`
         : 'Failed to generate destination names'
     )
@@ -195,13 +242,31 @@ export async function generateDestinationInfo(
 
     // Build a natural language prompt from structured parameters
     let prompt = `I want to ${vibe} in ${timePeriod}.`
-    
+
     if (from) {
       prompt += ` I'm traveling from ${from}.`
     }
-    
-    if (price) {
+
+    // Handle Budget
+    if (params.budget && params.budget < 2000) {
+      prompt += ` My daily budget is under $${params.budget}.`
+    } else if (price) {
       prompt += ` My budget is ${price}.`
+    }
+
+    // Handle Duration
+    if (params.duration) {
+      prompt += ` I plan to stay for ${params.duration[0]} to ${params.duration[1]} days.`
+    }
+
+    // Handle Exclusions
+    if (params.exclusions && params.exclusions.length > 0) {
+      prompt += ` I want to AVOID: ${params.exclusions.join(', ')}.`
+    }
+
+    // Handle Travel Styles
+    if (params.styles && params.styles.length > 0) {
+      prompt += ` My travel style is: ${params.styles.join(', ')}.`
     }
 
     // List all destinations in the prompt
@@ -221,14 +286,14 @@ export async function generateDestinationInfo(
     // Strip markdown fences if present, then parse the JSON response
     const cleanedText = stripMarkdownFences(text)
     const detailedDestinations: Destination[] = JSON.parse(cleanedText)
-    
+
     console.log(`[SERVER] LLM returned ${detailedDestinations.length} destinations`)
-    
+
     return detailedDestinations
   } catch (error) {
     console.error('Error generating destination info:', error)
     throw new Error(
-      error instanceof Error 
+      error instanceof Error
         ? `Failed to generate destination info: ${error.message}`
         : 'Failed to generate destination info'
     )
@@ -241,19 +306,19 @@ export async function fetchUnsplashImages(
 ): Promise<UnsplashImage[]> {
   try {
     const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY
-    
+
     if (!UNSPLASH_ACCESS_KEY) {
       console.error('UNSPLASH_ACCESS_KEY environment variable is not set')
       return []
     }
-    
+
     if (!keywords || keywords.trim().length === 0) {
       console.warn('No keywords provided for Unsplash search')
       return []
     }
 
     const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(keywords)}&per_page=${limit}`
-    
+
     const response = await fetch(url, {
       headers: {
         'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
@@ -265,7 +330,7 @@ export async function fetchUnsplashImages(
     }
 
     const data = await response.json()
-    
+
     return data.results.map((photo: any) => ({
       id: photo.id,
       urls: {
