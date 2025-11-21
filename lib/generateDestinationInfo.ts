@@ -42,7 +42,7 @@ export interface Destination {
 
 export interface GenerateDestinationParams {
   vibe: string
-  timePeriod: string
+  timePeriod?: string
   price?: string
   from?: string
   destinations?: string[]
@@ -164,11 +164,9 @@ export async function generateDestinationNames(
     if (!vibe || vibe.trim().length === 0) {
       throw new Error('Vibe is required')
     }
-    if (!timePeriod || timePeriod.trim().length === 0) {
-      throw new Error('Time period is required')
-    }
 
-    let prompt = `I want to ${vibe} in ${timePeriod}.`
+    const period = timePeriod && timePeriod.trim().length > 0 ? timePeriod : 'Anytime'
+    let prompt = `I want to ${vibe} in ${period}.`
 
     if (from) {
       prompt += ` I'm traveling from ${from}.`
@@ -230,14 +228,12 @@ export async function generateDestinationInfo(
     if (!vibe || vibe.trim().length === 0) {
       throw new Error('Vibe is required')
     }
-    if (!timePeriod || timePeriod.trim().length === 0) {
-      throw new Error('Time period is required')
-    }
     if (!destinations || destinations.length === 0) {
       throw new Error('At least one destination is required')
     }
 
-    let prompt = `I want to ${vibe} in ${timePeriod}.`
+    const period = timePeriod && timePeriod.trim().length > 0 ? timePeriod : 'Anytime'
+    let prompt = `I want to ${vibe} in ${period}.`
 
     if (from) {
       prompt += ` I'm traveling from ${from}.`

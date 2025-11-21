@@ -28,7 +28,7 @@ export default function Home() {
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [loading, setLoading] = useState(false)
   const [vibe, setVibe] = useState(isDev ? 'climb' : '')
-  const [month, setMonth] = useState(isDev ? 'November' : '')
+  const [month, setMonth] = useState(isDev ? 'November' : 'Anytime')
   const [activePanel, setActivePanel] = useState<'none' | 'search' | 'recent' | 'itinerary' | 'favorites'>('none')
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
 
