@@ -293,17 +293,35 @@ export async function generateDestinationInfo(
   }
 }
 
+// Rate limiting state for LocationIQ API (2 requests/second on free tier)
+let lastRequestTime = 0
+const MIN_REQUEST_INTERVAL = 600 // 600ms between requests = ~1.67 req/sec (safely under 2 req/sec limit)
+
+async function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 export async function getCoordinates(location: string): Promise<{ lat: number; lng: number } | null> {
   try {
-    const apiKey = process.env.POSITIONSTACK_API_KEY
+    const apiKey = process.env.LOCATIONIQ_API_KEY
     console.log(`[getCoordinates] API Key present: ${!!apiKey}, Length: ${apiKey?.length || 0}`)
 
     if (!apiKey) {
-      console.warn('[getCoordinates] POSITIONSTACK_API_KEY is not set')
+      console.warn('[getCoordinates] LOCATIONIQ_API_KEY is not set')
       return null
     }
 
-    const url = `http://api.positionstack.com/v1/forward?access_key=${apiKey}&query=${encodeURIComponent(location)}&limit=1`
+    // Rate limiting: ensure we don't exceed 2 requests per second
+    const now = Date.now()
+    const timeSinceLastRequest = now - lastRequestTime
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest
+      console.log(`[getCoordinates] Rate limiting: waiting ${waitTime}ms before request`)
+      await delay(waitTime)
+    }
+    lastRequestTime = Date.now()
+
+    const url = `https://us1.locationiq.com/v1/search.php?key=${apiKey}&q=${encodeURIComponent(location)}&format=json&limit=1`
     console.log(`[getCoordinates] Fetching: ${url.replace(apiKey, 'REDACTED')}`)
 
     const response = await fetch(url)
@@ -311,21 +329,21 @@ export async function getCoordinates(location: string): Promise<{ lat: number; l
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error(`[getCoordinates] PositionStack API error: ${response.status} ${response.statusText}`, errorText)
+      console.error(`[getCoordinates] LocationIQ API error: ${response.status} ${response.statusText}`, errorText)
       return null
     }
 
     const data = await response.json()
     console.log(`[getCoordinates] Response data:`, data)
 
-    if (!data.data || data.data.length === 0) {
+    if (!data || data.length === 0) {
       console.warn(`[getCoordinates] Geocoding failed for "${location}": No results`, data)
       return null
     }
 
-    const { latitude, longitude } = data.data[0]
-    console.log(`[getCoordinates] Success! Coords for "${location}": [${longitude}, ${latitude}]`)
-    return { lat: latitude, lng: longitude }
+    const { lat, lon } = data[0]
+    console.log(`[getCoordinates] Success! Coords for "${location}": [${lon}, ${lat}]`)
+    return { lat: parseFloat(lat), lng: parseFloat(lon) }
   } catch (error) {
     console.error(`[getCoordinates] Error geocoding "${location}":`, error)
     return null
