@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from 'react'
 import { SmartTagInput } from './SmartTagInput'
 import { FlexibleDateSelect } from './FlexibleDateSelect'
 import { Search } from 'lucide-react'
@@ -13,6 +14,7 @@ interface SearchBarProps {
 }
 
 export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBarProps) {
+    const [currentInput, setCurrentInput] = useState("")
 
     return (
         <div className="relative z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2.5 px-3">
@@ -27,6 +29,8 @@ export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBa
                             onChange={(tags) => setVibe(tags.join(', '))}
                             suggestionType="vibe"
                             className="border-none bg-transparent p-0 focus-within:ring-0 focus-within:border-none max-h-[36px] rounded-none"
+                            onEnter={onSearch}
+                            onInputChange={setCurrentInput}
                         />
                     </span>
                     <span className="text-sm text-stone-500 whitespace-nowrap">in</span>
@@ -35,7 +39,7 @@ export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBa
                 <button
                     type="button"
                     onClick={onSearch}
-                    disabled={!vibe.trim()}
+                    disabled={!vibe.trim() && !currentInput.trim()}
                     className="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-pink-400 disabled:hover:to-rose-500 shadow-sm hover:shadow-md shrink-0 group"
                     title="Search (Enter)"
                 >

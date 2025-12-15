@@ -11,6 +11,8 @@ interface SmartTagInputProps {
     suggestionType?: 'vibe' | 'event' | 'exclusion' | 'location'
     className?: string
     autoFocus?: boolean
+    onEnter?: () => void
+    onInputChange?: (value: string) => void
 }
 
 // Example placeholders for cycling animation
@@ -32,7 +34,9 @@ export function SmartTagInput({
     placeholder,
     suggestionType = 'vibe',
     className,
-    autoFocus
+    autoFocus,
+    onEnter,
+    onInputChange
 }: SmartTagInputProps) {
     const [inputValue, setInputValue] = useState("")
     const [suggestion, setSuggestion] = useState("")
@@ -148,6 +152,24 @@ export function SmartTagInput({
                 setSuggestion("")
                 setLastFullSuggestion("")
             }
+        } else if (e.key === "Enter") {
+            e.preventDefault()
+            const textToAdd = inputValue
+
+            // Add the current input as a tag (if not empty)
+            if (textToAdd.trim()) {
+                if (!value.includes(textToAdd.trim())) {
+                    onChange([...value, textToAdd.trim()])
+                }
+                setInputValue("")
+                setSuggestion("")
+                setLastFullSuggestion("")
+            }
+            
+            // Trigger search if onEnter callback is provided
+            if (onEnter) {
+                onEnter()
+            }
         } else if (e.key === "Backspace" && !inputValue && value.length > 0) {
             onChange(value.slice(0, -1))
         }
@@ -193,6 +215,7 @@ export function SmartTagInput({
                     onChange={(e) => {
                         setInputValue(e.target.value)
                         setSuggestion("")
+                        onInputChange?.(e.target.value)
                     }}
                     onKeyDown={handleKeyDown}
                     className="w-full bg-transparent outline-none text-stone-800"
