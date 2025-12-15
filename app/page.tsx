@@ -15,6 +15,7 @@ import type { Destination } from '@/lib/generateDestinationInfo'
 import { saveSearchToHistory, type SearchHistoryItem } from '@/lib/searchHistory'
 import { cn } from '@/lib/utils'
 import mockDestinations from '@/data/mock-gemini-response.json'
+import { usePostHog } from 'posthog-js/react'
 
 // Dynamic import to avoid SSR issues with Leaflet
 const WorldMap = dynamic(() => import('@/components/map/WorldMap'), { ssr: false })
@@ -25,6 +26,7 @@ const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
 const BATCH_SIZE = 5
 
 export default function Home() {
+  const posthog = usePostHog()
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [loading, setLoading] = useState(false)
   const [vibe, setVibe] = useState(isDev ? 'climb' : '')
@@ -42,6 +44,20 @@ export default function Home() {
     if (!v.trim()) {
       return
     }
+
+    // Track search submission
+    posthog?.capture('search_submitted', {
+      vibe: v,
+      month: m,
+      filters: {
+        origin: filterOrigin,
+        destinations: filterLocations,
+        duration: filterDuration,
+        budget: filterBudget,
+        exclusions: filterExclusions,
+        styles: filterStyles,
+      }
+    })
 
     const callId = ++callIdRef.current
     setLoading(true)
@@ -203,17 +219,43 @@ export default function Home() {
   const [filterStyles, setFilterStyles] = useState<string[]>([])
 
   const handleFilterClick = (filterType: string) => {
+    posthog?.capture('filter_panel_opened', { filter_type: filterType })
     setActiveFilterType(filterType)
     setIsFilterPanelOpen(true)
+  }
+
+  const handlePanelToggle = (panel: 'none' | 'search' | 'recent' | 'itinerary' | 'favorites') => {
+    // Calculate next state
+    const nextState = activePanel === panel ? 'none' : panel
+
+    // Track event
+    if (nextState !== 'none') {
+      posthog?.capture('panel_toggled', { panel: nextState, action: 'open' })
+    } else {
+      posthog?.capture('panel_toggled', { panel: activePanel, action: 'close' })
+    }
+
+    // Update state
+    setActivePanel(nextState)
+  }
+
+  const handleDestinationSelect = (destination: Destination | null) => {
+    if (destination) {
+      posthog?.capture('destination_selected', {
+        region: destination.region,
+        country: destination.country,
+      })
+    }
+    setSelectedDestination(destination)
   }
 
   return (
     <main className="relative w-screen h-screen overflow-hidden">
       <LeftSidebar
-        onRecentClick={() => setActivePanel(prev => prev === 'recent' ? 'none' : 'recent')}
-        onSearchClick={() => setActivePanel(prev => prev === 'search' ? 'none' : 'search')}
-        onItineraryClick={() => setActivePanel(prev => prev === 'itinerary' ? 'none' : 'itinerary')}
-        onFavoritesClick={() => setActivePanel(prev => prev === 'favorites' ? 'none' : 'favorites')}
+        onRecentClick={() => handlePanelToggle('recent')}
+        onSearchClick={() => handlePanelToggle('search')}
+        onItineraryClick={() => handlePanelToggle('itinerary')}
+        onFavoritesClick={() => handlePanelToggle('favorites')}
       />
       <RecentSearchPanel
         isOpen={activePanel === 'recent'}
@@ -223,7 +265,7 @@ export default function Home() {
       <SearchResultsPanel
         destinations={destinations}
         loading={loading}
-        onDestinationClick={setSelectedDestination}
+        onDestinationClick={handleDestinationSelect}
         selectedDestination={selectedDestination}
         isOpen={activePanel === 'search'}
         onClose={() => setActivePanel('none')}
@@ -231,13 +273,13 @@ export default function Home() {
       <ItineraryPanel
         isOpen={activePanel === 'itinerary'}
         onClose={() => setActivePanel('none')}
-        onDestinationClick={setSelectedDestination}
+        onDestinationClick={handleDestinationSelect}
         selectedDestination={selectedDestination}
       />
       <FavoritesPanel
         isOpen={activePanel === 'favorites'}
         onClose={() => setActivePanel('none')}
-        onDestinationClick={setSelectedDestination}
+        onDestinationClick={handleDestinationSelect}
         selectedDestination={selectedDestination}
       />
 
@@ -301,7 +343,7 @@ export default function Home() {
         loading={loading}
         destinations={destinations}
         selectedDestination={selectedDestination}
-        onDestinationSelect={setSelectedDestination}
+        onDestinationSelect={handleDestinationSelect}
         isSidebarOpen={activePanel !== 'none'}
       />
     </main>
