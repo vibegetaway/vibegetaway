@@ -349,14 +349,6 @@ export default function Home() {
           />
         </div>
       </div>
-
-      <WorldMap
-        loading={loading}
-        destinations={destinations}
-        selectedDestination={selectedDestination}
-        onDestinationSelect={handleDestinationSelect}
-        isSidebarOpen={activePanel !== 'none'}
-      />
     </main>
   )
 }
