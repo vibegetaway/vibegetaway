@@ -32,17 +32,17 @@ export function FlexibleDateSelect({ value, onChange }: FlexibleDateSelectProps)
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
                     "pl-2 pr-8 py-0.5 bg-transparent rounded-md",
-                    "text-stone-800 font-medium flex items-center gap-1.5",
-                    "focus:outline-none focus:bg-amber-50/50",
+                    "text-violet-800 font-medium flex items-center gap-1.5",
+                    "focus:outline-none focus:bg-pink-50/50",
                     "transition-all duration-200",
-                    "hover:bg-stone-50",
+                    "hover:bg-violet-50",
                     "min-w-[140px]"
                 )}
             >
-                <Calendar className="w-3.5 h-3.5 text-stone-400" />
+                <Calendar className="w-3.5 h-3.5 text-pink-400" />
                 <span className="text-base">{value || "Anytime"}</span>
                 <ChevronDown
-                    className={cn("h-3.5 w-3.5 absolute right-1 text-stone-400 transition-transform", isOpen && "rotate-180")}
+                    className={cn("h-3.5 w-3.5 absolute right-1 text-pink-400 transition-transform", isOpen && "rotate-180")}
                 />
             </button>
 
@@ -68,11 +68,11 @@ export function FlexibleDateSelect({ value, onChange }: FlexibleDateSelectProps)
                                     }}
                                     className={cn(
                                         "w-full px-3 py-2 text-left text-sm rounded-lg transition-colors flex items-center justify-between group",
-                                        value === option ? "bg-amber-50 text-amber-900" : "hover:bg-stone-50 text-stone-600"
+                                        value === option ? "bg-pink-50 text-pink-700" : "hover:bg-violet-50 text-violet-600"
                                     )}
                                 >
                                     {option}
-                                    {value === option && <Check className="w-3 h-3 text-amber-600" />}
+                                    {value === option && <Check className="w-3 h-3 text-pink-500" />}
                                 </button>
                             ))}
                         </div>
@@ -92,7 +92,7 @@ export function FlexibleDateSelect({ value, onChange }: FlexibleDateSelectProps)
                                         }}
                                         className={cn(
                                             "px-3 py-2 text-left text-sm rounded-lg transition-colors",
-                                            value === month ? "bg-amber-50 text-amber-900 font-medium" : "hover:bg-stone-50 text-stone-600"
+                                            value === month ? "bg-pink-50 text-pink-700 font-medium" : "hover:bg-violet-50 text-violet-600"
                                         )}
                                     >
                                         {month}

@@ -2,12 +2,11 @@
 > best-trip@0.1.0 dev
 > next dev
 
- ⚠ Port 3000 is in use, trying 3001 instead.
   ▲ Next.js 14.2.33
-  - Local:        http://localhost:3001
+  - Local:        http://localhost:3000
 
  ✓ Starting...
- ✓ Ready in 2.3s
+ ✓ Ready in 3.6s
  ○ Compiling / ...
- ✓ Compiled / in 10.2s (1457 modules)
- GET / 200 in 10833ms
+ ✓ Compiled / in 12.2s (1462 modules)
+ GET / 200 in 12854ms

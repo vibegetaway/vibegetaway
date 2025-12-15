@@ -6,15 +6,26 @@ export function MapZoomControls() {
     const map = useMap()
 
     const handleZoomIn = () => {
-        map.zoomIn()
+        const currentZoom = map.getZoom()
+        map.flyTo(map.getCenter(), currentZoom + 1, {
+            duration: 0.3,
+            easeLinearity: 0.25
+        })
     }
 
     const handleZoomOut = () => {
-        map.zoomOut()
+        const currentZoom = map.getZoom()
+        map.flyTo(map.getCenter(), Math.max(2, currentZoom - 1), {
+            duration: 0.3,
+            easeLinearity: 0.25
+        })
     }
 
     const handleRecenter = () => {
-        map.setView([20, 0], 2)
+        map.flyTo([20, 0], 2, {
+            duration: 0.5,
+            easeLinearity: 0.25
+        })
     }
 
     return (

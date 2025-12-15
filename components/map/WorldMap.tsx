@@ -234,6 +234,10 @@ export default function WorldMap({
           maxBounds={[[-60, -180], [85, 180]]}
           scrollWheelZoom={true}
           zoomControl={false}
+          zoomSnap={0.1}
+          zoomDelta={0.5}
+          wheelPxPerZoomLevel={120}
+          wheelDebounceTime={100}
           className="w-full h-full"
           style={{ background: '#f8f9fa' }}
         >

@@ -88,7 +88,7 @@ export function SearchResultsPanel({
 
   return (
     <div
-      className={`fixed left-20 top-0 h-screen w-full max-w-md bg-white/95 backdrop-blur-md border-r border-stone-200 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
+      className={`fixed left-20 top-0 h-screen w-full max-w-md bg-white/95 backdrop-blur-md border-r border-violet-200 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
     >
       {/* Spacer for text input */}
@@ -98,17 +98,17 @@ export function SearchResultsPanel({
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-stone-900 mb-1 tracking-tight">
+            <h2 className="text-2xl font-bold text-violet-900 mb-1 tracking-tight">
               {loading && destinations.length === 0 ? 'Searching...' : 'Results'}
             </h2>
-            <p className="text-stone-500 text-xs font-medium">
+            <p className="text-violet-500 text-xs font-medium">
               {loading && destinations.length === 0
                 ? ''
                 : `${destinations.length} ${destinations.length === 1 ? 'gem' : 'gems'} found`}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
-            <X className="w-5 h-5 text-stone-500" />
+          <button onClick={onClose} className="p-2 hover:bg-violet-100 rounded-full transition-colors">
+            <X className="w-5 h-5 text-violet-500" />
           </button>
         </div>
 
@@ -117,21 +117,21 @@ export function SearchResultsPanel({
           <div className="flex flex-col items-center justify-center py-20">
             <div className="relative">
               {/* Main loader */}
-              <Loader2 className="w-10 h-10 text-amber-500 animate-spin mb-4" />
+              <Loader2 className="w-10 h-10 text-pink-500 animate-spin mb-4" />
 
               {/* Sparkle effect - floating animated dots */}
               <div className="absolute inset-0 -m-4">
-                <div className="absolute top-0 left-1/2 w-1.5 h-1.5 bg-amber-400 rounded-full animate-ping" style={{ animationDelay: '0ms', animationDuration: '1500ms' }} />
+                <div className="absolute top-0 left-1/2 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '0ms', animationDuration: '1500ms' }} />
                 <div className="absolute top-1/4 right-0 w-1 h-1 bg-yellow-300 rounded-full animate-ping" style={{ animationDelay: '300ms', animationDuration: '1800ms' }} />
-                <div className="absolute bottom-1/4 left-0 w-1 h-1 bg-amber-300 rounded-full animate-ping" style={{ animationDelay: '600ms', animationDuration: '1600ms' }} />
-                <div className="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping" style={{ animationDelay: '900ms', animationDuration: '1700ms' }} />
+                <div className="absolute bottom-1/4 left-0 w-1 h-1 bg-emerald-300 rounded-full animate-ping" style={{ animationDelay: '600ms', animationDuration: '1600ms' }} />
+                <div className="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-sky-400 rounded-full animate-ping" style={{ animationDelay: '900ms', animationDuration: '1700ms' }} />
               </div>
 
               {/* Gentle glow effect */}
-              <div className="absolute inset-0 bg-amber-200/20 rounded-full blur-xl animate-pulse" />
+              <div className="absolute inset-0 bg-pink-200/20 rounded-full blur-xl animate-pulse" />
             </div>
-            <p className="text-stone-500 text-sm font-medium mt-8">Exploring the world for you...</p>
-            <p className="text-stone-400 text-xs mt-1">Sifting through thousands of destinations ✨</p>
+            <p className="text-violet-500 text-sm font-medium mt-8">Exploring the world for you...</p>
+            <p className="text-violet-400 text-xs mt-1">Sifting through thousands of destinations ✨</p>
           </div>
         ) : (
           /* Results list */
@@ -162,8 +162,8 @@ export function SearchResultsPanel({
                 <div
                   key={`${destination.country}-${destination.region}-${index}`}
                   className={`relative group w-full bg-white rounded-xl transition-all duration-300 shadow-sm border-2 ${isSelected
-                    ? 'ring-2 ring-amber-500 shadow-md shadow-amber-100 border-amber-200'
-                    : 'hover:shadow-lg hover:shadow-stone-200/50 border-stone-200/60 hover:border-stone-300'
+                    ? 'ring-2 ring-pink-400 shadow-md shadow-pink-100 border-pink-200'
+                    : 'hover:shadow-lg hover:shadow-violet-200/50 border-violet-200/60 hover:border-violet-300'
                     }`}
                 >
                   <div
@@ -172,10 +172,10 @@ export function SearchResultsPanel({
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="text-lg font-bold text-stone-900 leading-tight">
+                        <h3 className="text-lg font-bold text-violet-900 leading-tight">
                           {destination.region}
                         </h3>
-                        <div className="flex items-center gap-1 text-stone-500 mt-0.5">
+                        <div className="flex items-center gap-1 text-violet-500 mt-0.5">
                           <MapPin className="w-3 h-3" />
                           <span className="text-xs font-medium tracking-wide uppercase">{destination.country}</span>
                         </div>
@@ -191,12 +191,12 @@ export function SearchResultsPanel({
                             }}
                             disabled={inFavorites}
                             className={`p-1.5 rounded-full transition-colors ${inFavorites
-                              ? 'bg-red-50 cursor-default'
-                              : 'bg-stone-50 hover:bg-red-50 hover:scale-110'
+                              ? 'bg-rose-50 cursor-default'
+                              : 'bg-violet-50 hover:bg-rose-50 hover:scale-110'
                               }`}
                             title={inFavorites ? 'Already in favorites' : 'Add to favorites'}
                           >
-                            <Heart className={`w-3.5 h-3.5 ${inFavorites ? 'text-red-500 fill-red-500' : 'text-stone-400 hover:text-red-500'}`} />
+                            <Heart className={`w-3.5 h-3.5 ${inFavorites ? 'text-rose-500 fill-rose-500' : 'text-violet-400 hover:text-rose-500'}`} />
                           </button>
 
                           <button
@@ -206,12 +206,12 @@ export function SearchResultsPanel({
                             }}
                             disabled={inItinerary}
                             className={`p-1.5 rounded-full transition-colors ${inItinerary
-                              ? 'bg-green-50 cursor-default'
-                              : 'bg-stone-50 hover:bg-green-50 hover:scale-110'
+                              ? 'bg-emerald-50 cursor-default'
+                              : 'bg-violet-50 hover:bg-emerald-50 hover:scale-110'
                               }`}
                             title={inItinerary ? 'Already in itinerary' : 'Add to itinerary'}
                           >
-                            <Calendar className={`w-3.5 h-3.5 ${inItinerary ? 'text-green-600 fill-green-600' : 'text-stone-400 hover:text-green-600'}`} />
+                            <Calendar className={`w-3.5 h-3.5 ${inItinerary ? 'text-emerald-500 fill-emerald-500' : 'text-violet-400 hover:text-emerald-500'}`} />
                           </button>
                         </div>
                       )}
@@ -220,8 +220,8 @@ export function SearchResultsPanel({
                     {/* Loading indicator for details */}
                     {!hasDetails && (
                       <div className="flex items-center gap-2 py-2">
-                        <Loader2 className="w-3 h-3 text-amber-500 animate-spin" />
-                        <span className="text-xs text-stone-500">Loading details...</span>
+                        <Loader2 className="w-3 h-3 text-pink-500 animate-spin" />
+                        <span className="text-xs text-violet-500">Loading details...</span>
                       </div>
                     )}
 
@@ -229,7 +229,7 @@ export function SearchResultsPanel({
                     {hasDetails && (
                       <div className="space-y-3">
                         {/* Description with Markdown - Full Text */}
-                        <div className="prose prose-xs prose-stone max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-amber-700 prose-li:marker:text-amber-500">
+                        <div className="prose prose-xs prose-violet max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-pink-600 prose-li:marker:text-pink-400">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {descriptionText}
                           </ReactMarkdown>
