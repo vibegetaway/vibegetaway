@@ -5,7 +5,6 @@ import { LeftSidebar } from '@/components/LeftSidebar'
 import { RecentSearchPanel } from '@/components/panels/RecentSearchPanel'
 import { SearchResultsPanel } from '@/components/panels/SearchResultsPanel'
 import { ItineraryPanel } from '@/components/panels/ItineraryPanel'
-import { FavoritesPanel } from '@/components/panels/FavoritesPanel'
 import { FilterBar } from '@/components/user-input/FilterBar'
 import { FilterSidePanel } from '@/components/panels/FilterSidePanel'
 import dynamic from 'next/dynamic'
@@ -31,7 +30,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [vibe, setVibe] = useState(isDev ? 'climb' : '')
   const [month, setMonth] = useState(isDev ? 'November' : 'Anytime')
-  const [activePanel, setActivePanel] = useState<'none' | 'search' | 'recent' | 'itinerary' | 'favorites'>('none')
+  const [activePanel, setActivePanel] = useState<'none' | 'search' | 'recent' | 'itinerary'>('none')
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
 
   // Ensure only the latest async call updates state
@@ -224,7 +223,7 @@ export default function Home() {
     setIsFilterPanelOpen(true)
   }
 
-  const handlePanelToggle = (panel: 'none' | 'search' | 'recent' | 'itinerary' | 'favorites') => {
+  const handlePanelToggle = (panel: 'none' | 'search' | 'recent' | 'itinerary') => {
     // Calculate next state
     const nextState = activePanel === panel ? 'none' : panel
 
@@ -265,7 +264,6 @@ export default function Home() {
         onRecentClick={() => handlePanelToggle('recent')}
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
-        onFavoritesClick={() => handlePanelToggle('favorites')}
       />
       <RecentSearchPanel
         isOpen={activePanel === 'recent'}
@@ -282,12 +280,6 @@ export default function Home() {
       />
       <ItineraryPanel
         isOpen={activePanel === 'itinerary'}
-        onClose={() => setActivePanel('none')}
-        onDestinationClick={handleDestinationSelect}
-        selectedDestination={selectedDestination}
-      />
-      <FavoritesPanel
-        isOpen={activePanel === 'favorites'}
         onClose={() => setActivePanel('none')}
         onDestinationClick={handleDestinationSelect}
         selectedDestination={selectedDestination}

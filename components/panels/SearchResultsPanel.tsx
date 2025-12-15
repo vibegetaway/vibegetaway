@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Destination } from '@/lib/generateDestinationInfo'
-import { MapPin, X, Loader2, Heart, Calendar } from 'lucide-react'
+import { MapPin, X, Loader2, Calendar } from 'lucide-react'
 import { addToItinerary, isInItinerary } from '@/lib/itinerary'
-import { addToFavorites, isInFavorites } from '@/lib/favorites'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -26,21 +25,17 @@ export function SearchResultsPanel({
   onClose,
 }: SearchResultsPanelProps) {
   const [itineraryStates, setItineraryStates] = useState<Record<string, boolean>>({})
-  const [favoritesStates, setFavoritesStates] = useState<Record<string, boolean>>({})
 
   // Update states when destinations change
   useEffect(() => {
     const newItineraryStates: Record<string, boolean> = {}
-    const newFavoritesStates: Record<string, boolean> = {}
 
     destinations.forEach(dest => {
       const key = `${dest.country}-${dest.region}`
       newItineraryStates[key] = isInItinerary(dest)
-      newFavoritesStates[key] = isInFavorites(dest)
     })
 
     setItineraryStates(newItineraryStates)
-    setFavoritesStates(newFavoritesStates)
   }, [destinations])
 
   // Listen for updates
@@ -54,21 +49,10 @@ export function SearchResultsPanel({
       setItineraryStates(newStates)
     }
 
-    const handleFavoritesUpdate = () => {
-      const newStates: Record<string, boolean> = {}
-      destinations.forEach(dest => {
-        const key = `${dest.country}-${dest.region}`
-        newStates[key] = isInFavorites(dest)
-      })
-      setFavoritesStates(newStates)
-    }
-
     window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
-    window.addEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
 
     return () => {
       window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
-      window.removeEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
     }
   }, [destinations])
 
@@ -142,7 +126,6 @@ export function SearchResultsPanel({
               const hasDetails = destination.description && destination.pricing
               const destKey = `${destination.country}-${destination.region}`
               const inItinerary = itineraryStates[destKey] || false
-              const inFavorites = favoritesStates[destKey] || false
 
               // Prepare description for markdown - ONLY FIRST ITEM
               const descriptionText = Array.isArray(destination.description)
@@ -184,21 +167,6 @@ export function SearchResultsPanel({
                       {/* Action Icons - Always Visible */}
                       {hasDetails && (
                         <div className="flex gap-1.5">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              if (!inFavorites) addToFavorites(destination)
-                            }}
-                            disabled={inFavorites}
-                            className={`p-1.5 rounded-full transition-colors ${inFavorites
-                              ? 'bg-rose-50 cursor-default'
-                              : 'bg-violet-50 hover:bg-rose-50 hover:scale-110'
-                              }`}
-                            title={inFavorites ? 'Already in favorites' : 'Add to favorites'}
-                          >
-                            <Heart className={`w-3.5 h-3.5 ${inFavorites ? 'text-rose-500 fill-rose-500' : 'text-violet-400 hover:text-rose-500'}`} />
-                          </button>
-
                           <button
                             onClick={(e) => {
                               e.stopPropagation()

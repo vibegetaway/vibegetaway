@@ -104,9 +104,8 @@ export function ItineraryPanel({
           <div className="mb-6">
             <button
               onClick={handleClearAll}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
+              className="text-xs text-red-500 hover:text-red-600 hover:underline transition-colors"
             >
-              <Trash2 className="w-4 h-4" />
               Clear All
             </button>
           </div>
@@ -156,40 +155,24 @@ export function ItineraryPanel({
                 >
                   <div
                     onClick={() => onDestinationClick(destination)}
-                    className="cursor-pointer p-4"
+                    className="cursor-pointer p-4 pr-10"
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-lg font-bold text-violet-900 leading-tight">{destination.region}</h3>
-                        <div className="flex items-center gap-1 text-violet-500 mt-0.5">
-                          <MapPin className="w-3 h-3" />
-                          <span className="text-xs font-medium tracking-wide uppercase">
-                            {getCountryName(destination.country)}
-                          </span>
-                        </div>
+                    <div className="mb-2">
+                      <h3 className="text-lg font-bold text-violet-900 leading-tight">{destination.region}</h3>
+                      <div className="flex items-center gap-1 text-violet-500 mt-0.5">
+                        <MapPin className="w-3 h-3" />
+                        <span className="text-xs font-medium tracking-wide uppercase">
+                          {getCountryName(destination.country)}
+                        </span>
                       </div>
-
-                      {/* Added Date Badge */}
-                      <span className="text-[10px] text-violet-400 font-medium bg-violet-50 px-1.5 py-0.5 rounded-md border border-violet-100">
-                        Added {formatAddedDate(item.addedAt)}
-                      </span>
                     </div>
 
                     {/* Description with Markdown */}
                     {descriptionText && (
-                      <div className="prose prose-xs prose-violet max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-pink-600 prose-li:marker:text-pink-400 mb-3">
+                      <div className="prose prose-xs prose-violet max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-pink-600 prose-li:marker:text-pink-400">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {descriptionText}
                         </ReactMarkdown>
-                      </div>
-                    )}
-
-                    {/* Pricing Info */}
-                    {dailyCost > 0 && (
-                      <div className="flex items-center pt-2 border-t border-violet-100">
-                        <span className="text-xs font-semibold text-violet-700">
-                          Est. <span className="text-pink-500">${dailyCost}</span> / day
-                        </span>
                       </div>
                     )}
                   </div>
@@ -197,10 +180,10 @@ export function ItineraryPanel({
                   {/* Remove button */}
                   <button
                     onClick={(e) => handleRemove(item.id, e)}
-                    className="absolute top-3 right-3 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-rose-50 text-violet-400 hover:text-rose-500 transition-all"
+                    className="absolute top-4 right-4 p-1.5 rounded-full bg-white/80 opacity-0 group-hover:opacity-100 hover:bg-rose-50 text-violet-400 hover:text-rose-500 transition-all shadow-sm"
                     aria-label="Remove from itinerary"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               )

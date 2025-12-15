@@ -1,6 +1,6 @@
 'use client'
 
-import { X, ArrowRight, Heart, Calendar } from 'lucide-react'
+import { X, ArrowRight, Calendar } from 'lucide-react'
 import type { Destination, UnsplashImage } from '@/lib/generateDestinationInfo'
 import { fetchUnsplashImages } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
@@ -10,7 +10,6 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useEffect, useState } from 'react'
 import { addToItinerary, isInItinerary } from '@/lib/itinerary'
-import { addToFavorites, isInFavorites } from '@/lib/favorites'
 
 interface DestinationInfoPanelProps {
   destination: Destination | null
@@ -57,7 +56,6 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
   const [flights, setFlights] = useState<SimplifiedFlight[]>([])
   const [loadingFlights, setLoadingFlights] = useState(false)
   const [inItinerary, setInItinerary] = useState(false)
-  const [inFavorites, setInFavorites] = useState(false)
 
   useEffect(() => {
     async function loadImages() {
@@ -114,9 +112,8 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
       loadImages()
       loadFlights()
 
-      // Check if destination is in itinerary/favorites
+      // Check if destination is in itinerary
       setInItinerary(isInItinerary(destination))
-      setInFavorites(isInFavorites(destination))
     }
 
     // Listen for updates
@@ -126,18 +123,10 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
       }
     }
 
-    const handleFavoritesUpdate = () => {
-      if (destination) {
-        setInFavorites(isInFavorites(destination))
-      }
-    }
-
     window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
-    window.addEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
 
     return () => {
       window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
-      window.removeEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
     }
   }, [destination, isOpen])
 
@@ -184,23 +173,6 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
 
             {/* Action buttons */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  if (!inFavorites) {
-                    addToFavorites(destination)
-                  }
-                }}
-                className={`p-2 rounded-lg transition-colors ${inFavorites
-                  ? 'bg-red-50'
-                  : 'hover:bg-amber-100'
-                  }`}
-                disabled={inFavorites}
-                aria-label={inFavorites ? 'In favorites' : 'Add to favorites'}
-              >
-                <Heart className={`w-5 h-5 transition-colors ${inFavorites ? 'text-red-500 fill-red-500' : 'text-stone-600'
-                  }`} />
-              </button>
-
               <button
                 onClick={() => {
                   if (!inItinerary) {
