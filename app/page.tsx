@@ -307,13 +307,15 @@ export default function Home() {
         </div>
       </div>
 
-      <WorldMap
-        loading={loading}
-        destinations={destinations}
-        selectedDestination={selectedDestination}
-        onDestinationSelect={setSelectedDestination}
-        isSidebarOpen={activePanel !== 'none'}
-      />
+      <div className="absolute inset-0 z-0">
+        <WorldMap
+          loading={loading}
+          destinations={destinations}
+          selectedDestination={selectedDestination}
+          onDestinationSelect={setSelectedDestination}
+          isSidebarOpen={activePanel !== 'none'}
+        />
+      </div>
     </main>
   )
 }
