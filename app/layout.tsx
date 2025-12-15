@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import 'leaflet/dist/leaflet.css'
+import { PostHogProvider } from './providers'
 
 export const metadata: Metadata = {
   title: 'VibeGetaway',
@@ -17,7 +18,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="w-full h-full">
-      <body className="w-full h-full m-0 p-0 overflow-hidden">{children}</body>
+      <body className="w-full h-full m-0 p-0 overflow-hidden">
+        <PostHogProvider>{children}</PostHogProvider>
+      </body>
     </html>
   )
 }
