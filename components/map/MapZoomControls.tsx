@@ -1,6 +1,7 @@
 'use client'
 
 import { useMap } from 'react-leaflet'
+import { RotateCcw } from 'lucide-react'
 
 export function MapZoomControls() {
     const map = useMap()
@@ -49,11 +50,11 @@ export function MapZoomControls() {
                 </button>
                 <button
                     onClick={handleRecenter}
-                    className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-lg shadow-lg flex items-center justify-center font-bold text-base transition-all hover:scale-105 border-none cursor-pointer"
+                    className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-lg shadow-lg flex items-center justify-center transition-all hover:scale-105 border-none cursor-pointer"
                     title="Recenter Map"
                     type="button"
                 >
-                    ⟲
+                    <RotateCcw className="w-4 h-4" />
                 </button>
             </div>
         </div>
