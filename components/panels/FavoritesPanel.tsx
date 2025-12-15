@@ -60,7 +60,7 @@ export function FavoritesPanel({
 
   return (
     <div
-      className={`fixed left-20 top-0 h-screen w-full max-w-md bg-white/95 backdrop-blur-md border-r border-stone-200 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
+      className={`fixed left-20 top-0 h-screen w-full max-w-md bg-white/95 backdrop-blur-md border-r border-violet-200 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
     >
       {/* Spacer for text input */}
@@ -70,8 +70,8 @@ export function FavoritesPanel({
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-stone-900 mb-1 tracking-tight">My Favorites</h2>
-            <p className="text-stone-500 text-xs font-medium">
+            <h2 className="text-2xl font-bold text-violet-900 mb-1 tracking-tight">My Favorites</h2>
+            <p className="text-violet-500 text-xs font-medium">
               {favoriteItems.length === 0
                 ? 'No favorites saved yet'
                 : `${favoriteItems.length} ${favoriteItems.length === 1 ? 'destination' : 'destinations'} saved`}
@@ -79,9 +79,9 @@ export function FavoritesPanel({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+            className="p-2 hover:bg-violet-100 rounded-full transition-colors"
           >
-            <X className="w-5 h-5 text-stone-500" />
+            <X className="w-5 h-5 text-violet-500" />
           </button>
         </div>
 
@@ -101,11 +101,11 @@ export function FavoritesPanel({
         {/* Empty state */}
         {favoriteItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4">
-              <Heart className="w-10 h-10 text-red-400" />
+            <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mb-4">
+              <Heart className="w-10 h-10 text-rose-400" />
             </div>
-            <h3 className="text-lg font-bold text-stone-900 mb-2">No favorites yet</h3>
-            <p className="text-stone-500 text-sm max-w-xs">
+            <h3 className="text-lg font-bold text-violet-900 mb-2">No favorites yet</h3>
+            <p className="text-violet-500 text-sm max-w-xs">
               Start adding destinations to your favorites by clicking the heart icon on destination cards
             </p>
           </div>
@@ -136,8 +136,8 @@ export function FavoritesPanel({
                 <div
                   key={item.id}
                   className={`relative group w-full bg-white rounded-xl transition-all duration-300 shadow-sm border-2 ${isSelected
-                    ? 'ring-2 ring-amber-500 shadow-md shadow-amber-100 border-amber-200'
-                    : 'hover:shadow-lg hover:shadow-stone-200/50 border-stone-200/60 hover:border-stone-300'
+                    ? 'ring-2 ring-pink-400 shadow-md shadow-pink-100 border-pink-200'
+                    : 'hover:shadow-lg hover:shadow-violet-200/50 border-violet-200/60 hover:border-violet-300'
                     }`}
                 >
                   <div
@@ -146,8 +146,8 @@ export function FavoritesPanel({
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="text-lg font-bold text-stone-900 leading-tight">{destination.region}</h3>
-                        <div className="flex items-center gap-1 text-stone-500 mt-0.5">
+                        <h3 className="text-lg font-bold text-violet-900 leading-tight">{destination.region}</h3>
+                        <div className="flex items-center gap-1 text-violet-500 mt-0.5">
                           <MapPin className="w-3 h-3" />
                           <span className="text-xs font-medium tracking-wide uppercase">
                             {getCountryName(destination.country)}
@@ -156,14 +156,14 @@ export function FavoritesPanel({
                       </div>
 
                       {/* Added Date Badge */}
-                      <span className="text-[10px] text-stone-400 font-medium bg-stone-50 px-1.5 py-0.5 rounded-md border border-stone-100">
+                      <span className="text-[10px] text-violet-400 font-medium bg-violet-50 px-1.5 py-0.5 rounded-md border border-violet-100">
                         Added {formatAddedDate(item.addedAt)}
                       </span>
                     </div>
 
                     {/* Description with Markdown */}
                     {descriptionText && (
-                      <div className="prose prose-xs prose-stone max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-amber-700 prose-li:marker:text-amber-500 mb-3">
+                      <div className="prose prose-xs prose-violet max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-strong:text-pink-600 prose-li:marker:text-pink-400 mb-3">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {descriptionText}
                         </ReactMarkdown>
@@ -172,9 +172,9 @@ export function FavoritesPanel({
 
                     {/* Pricing Info */}
                     {dailyCost > 0 && (
-                      <div className="flex items-center pt-2 border-t border-stone-100">
-                        <span className="text-xs font-semibold text-stone-700">
-                          Est. <span className="text-amber-600">${dailyCost}</span> / day
+                      <div className="flex items-center pt-2 border-t border-violet-100">
+                        <span className="text-xs font-semibold text-violet-700">
+                          Est. <span className="text-pink-500">${dailyCost}</span> / day
                         </span>
                       </div>
                     )}
@@ -183,7 +183,7 @@ export function FavoritesPanel({
                   {/* Remove button */}
                   <button
                     onClick={(e) => handleRemove(item.id, e)}
-                    className="absolute top-3 right-3 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-50 text-stone-400 hover:text-red-500 transition-all"
+                    className="absolute top-3 right-3 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-rose-50 text-violet-400 hover:text-rose-500 transition-all"
                     aria-label="Remove from favorites"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

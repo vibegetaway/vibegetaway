@@ -30,10 +30,10 @@ export function FilterBar({ onFilterClick, filterCounts = {}, className }: Filte
                         onClick={() => onFilterClick(filter.id)}
                         className={cn(
                             "relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm",
-                            "bg-white/90 backdrop-blur-md border border-stone-200",
-                            "hover:bg-amber-50 hover:border-amber-200 hover:text-amber-800",
+                            "bg-white/90 backdrop-blur-md border border-violet-200",
+                            "hover:bg-pink-50 hover:border-pink-300 hover:text-pink-700",
                             "active:scale-95",
-                            hasFilter && "bg-amber-50 border-amber-300 text-amber-800"
+                            hasFilter && "bg-sky-50 border-sky-300 text-sky-700"
                         )}
                     >
                         <filter.icon className="w-3.5 h-3.5" />
@@ -41,7 +41,7 @@ export function FilterBar({ onFilterClick, filterCounts = {}, className }: Filte
 
                         {/* Badge for counts > 0 */}
                         {hasFilter && (
-                            <span className="flex items-center justify-center min-w-[16px] h-[16px] px-1 bg-amber-500 text-white text-xs font-bold rounded-full">
+                            <span className="flex items-center justify-center min-w-[16px] h-[16px] px-1 bg-sky-400 text-white text-xs font-bold rounded-full">
                                 {count}
                             </span>
                         )}

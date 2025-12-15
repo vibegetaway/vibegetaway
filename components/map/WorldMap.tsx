@@ -225,8 +225,8 @@ export default function WorldMap({
   }, [])
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen">
-      <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full z-0">
+    <div className="fixed inset-0 w-full h-full">
+      <div className="absolute inset-0 w-full h-full z-0">
         <MapContainer
           center={[20, 0]}
           zoom={2}
@@ -234,6 +234,10 @@ export default function WorldMap({
           maxBounds={[[-60, -180], [85, 180]]}
           scrollWheelZoom={true}
           zoomControl={false}
+          zoomSnap={0.1}
+          zoomDelta={0.5}
+          wheelPxPerZoomLevel={120}
+          wheelDebounceTime={100}
           className="w-full h-full"
           style={{ background: '#f8f9fa' }}
         >

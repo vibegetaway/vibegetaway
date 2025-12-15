@@ -182,13 +182,13 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Handle keyboard shortcut (Cmd+Enter / Ctrl+Enter) to trigger search
+  // Handle keyboard shortcut (Enter) to trigger search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      if (e.key === 'Enter' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault()
-        if (vibe.trim()) {
-          console.log('[INFO] Keyboard shortcut triggered search')
+        if (vibe.trim() && !loading) {
+          console.log('[INFO] Enter key triggered search')
           handleFindDestinations(vibe, month)
         }
       }
@@ -197,7 +197,7 @@ export default function Home() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vibe, month])
+  }, [vibe, month, loading])
 
   // Auto-open search panel when destinations are loaded
   useEffect(() => {
@@ -251,6 +251,16 @@ export default function Home() {
 
   return (
     <main className="relative w-screen h-screen overflow-hidden">
+      {/* Map fills entire screen - lowest z-index */}
+      <WorldMap
+        loading={loading}
+        destinations={destinations}
+        selectedDestination={selectedDestination}
+        onDestinationSelect={setSelectedDestination}
+        isSidebarOpen={activePanel !== 'none'}
+      />
+
+      {/* UI elements overlay on top of map */}
       <LeftSidebar
         onRecentClick={() => handlePanelToggle('recent')}
         onSearchClick={() => handlePanelToggle('search')}
@@ -301,6 +311,7 @@ export default function Home() {
         setStyles={setFilterStyles}
       />
 
+      {/* Search bar and filter tags overlay on top of map */}
       <div className={cn(
         "absolute top-4 flex flex-col gap-2 transition-all duration-300 ease-in-out",
         // Shift right when side panels are open, otherwise stay at left-24

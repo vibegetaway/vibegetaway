@@ -3,7 +3,6 @@
 import { SmartTagInput } from './SmartTagInput'
 import { FlexibleDateSelect } from './FlexibleDateSelect'
 import { Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
 
 interface SearchBarProps {
     vibe: string
@@ -14,13 +13,6 @@ interface SearchBarProps {
 }
 
 export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBarProps) {
-    const [isMac, setIsMac] = useState(true)
-
-    useEffect(() => {
-        setIsMac(navigator.platform.toLowerCase().includes('mac'))
-    }, [])
-
-    const shortcutKey = isMac ? '⌘' : 'Ctrl'
 
     return (
         <div className="relative z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2.5 px-3">
@@ -44,14 +36,14 @@ export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBa
                     type="button"
                     onClick={onSearch}
                     disabled={!vibe.trim()}
-                    className="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-amber-500 disabled:hover:to-amber-600 shadow-sm hover:shadow-md shrink-0 group"
-                    title={`Search (${shortcutKey}+Enter)`}
+                    className="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-pink-400 disabled:hover:to-rose-500 shadow-sm hover:shadow-md shrink-0 group"
+                    title="Search (Enter)"
                 >
                     <Search className="w-4 h-4" />
-                    <span className="text-sm">Search</span>
+                    <span className="text-sm">Find destinations</span>
                     {/* Keyboard shortcut hint */}
                     <span className="ml-1 text-xs opacity-70 border border-white/30 px-1.5 py-0.5 rounded">
-                        {shortcutKey}↵
+                        ↵
                     </span>
                 </button>
             </div>

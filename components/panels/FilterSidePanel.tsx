@@ -53,18 +53,18 @@ export function FilterSidePanel({
             {/* Panel */}
             <div
                 className={cn(
-                    "fixed top-0 left-0 h-screen w-full max-w-md bg-stone-50 shadow-2xl z-[90] transition-transform duration-300 ease-in-out flex flex-col",
+                    "fixed top-0 left-0 h-screen w-full max-w-md bg-violet-50 shadow-2xl z-[90] transition-transform duration-300 ease-in-out flex flex-col",
                     isOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-stone-200 bg-white">
-                    <h2 className="text-xl font-bold text-stone-800">Filters</h2>
+                <div className="flex items-center justify-between p-6 border-b border-violet-200 bg-white">
+                    <h2 className="text-xl font-bold text-violet-800">Filters</h2>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+                        className="p-2 hover:bg-violet-100 rounded-full transition-colors"
                     >
-                        <X className="w-5 h-5 text-stone-500" />
+                        <X className="w-5 h-5 text-violet-500" />
                     </button>
                 </div>
 
@@ -75,7 +75,7 @@ export function FilterSidePanel({
                     <div className="space-y-6">
                         {/* Origin */}
                         <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-sm font-semibold text-stone-700 uppercase tracking-wide">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
                                 <MapPin className="w-4 h-4" />
                                 Origin
                             </label>
@@ -84,14 +84,14 @@ export function FilterSidePanel({
                                 value={origin}
                                 onChange={(e) => setOrigin(e.target.value)}
                                 placeholder="Where are you flying from?"
-                                className="w-full px-4 py-3 rounded-lg bg-white border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-lg bg-white border border-violet-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 outline-none transition-all"
                                 autoFocus={activeFilter === 'origin'}
                             />
                         </div>
 
                         {/* Destination Area */}
                         <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-sm font-semibold text-stone-700 uppercase tracking-wide">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
                                 <Globe className="w-4 h-4" />
                                 Destination Area
                             </label>
@@ -102,7 +102,7 @@ export function FilterSidePanel({
                                 suggestionType="location"
                                 autoFocus={activeFilter === 'destination'}
                             />
-                            <p className="text-xs text-stone-500">
+                            <p className="text-xs text-violet-500">
                                 Specify countries, regions, cities, or even airports.
                             </p>
                         </div>
@@ -110,7 +110,7 @@ export function FilterSidePanel({
 
                     {/* Exclusions */}
                     <div className="space-y-3">
-                        <label className="flex items-center gap-2 text-sm font-semibold text-stone-700 uppercase tracking-wide">
+                        <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
                             <Ban className="w-4 h-4" />
                             Exclusions
                         </label>
@@ -124,35 +124,35 @@ export function FilterSidePanel({
 
                     {/* Trip Details */}
                     <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-stone-800 border-b border-stone-200 pb-2">Trip Details</h3>
+                        <h3 className="text-lg font-semibold text-violet-800 border-b border-violet-200 pb-2">Trip Details</h3>
 
                         {/* Duration */}
                         <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-sm font-semibold text-stone-700 uppercase tracking-wide">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
                                 <Clock className="w-4 h-4" />
                                 Duration (Days)
                             </label>
                             <div className="flex items-center gap-4">
                                 <div className="flex-1 space-y-1">
-                                    <span className="text-xs text-stone-500">Min</span>
+                                    <span className="text-xs text-violet-500">Min</span>
                                     <input
                                         type="number"
                                         min="1"
                                         max="30"
                                         value={duration[0]}
                                         onChange={(e) => setDuration([parseInt(e.target.value) || 1, duration[1]])}
-                                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-100 outline-none"
+                                        className="w-full px-3 py-2 bg-white border border-violet-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-100 outline-none"
                                     />
                                 </div>
                                 <div className="flex-1 space-y-1">
-                                    <span className="text-xs text-stone-500">Max</span>
+                                    <span className="text-xs text-violet-500">Max</span>
                                     <input
                                         type="number"
                                         min="1"
                                         max="60"
                                         value={duration[1]}
                                         onChange={(e) => setDuration([duration[0], parseInt(e.target.value) || 1])}
-                                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-100 outline-none"
+                                        className="w-full px-3 py-2 bg-white border border-violet-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-100 outline-none"
                                     />
                                 </div>
                             </div>
@@ -161,11 +161,11 @@ export function FilterSidePanel({
                         {/* Budget */}
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <label className="flex items-center gap-2 text-sm font-semibold text-stone-700 uppercase tracking-wide">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
                                     <Wallet className="w-4 h-4" />
                                     Max Budget
                                 </label>
-                                <span className="text-sm font-medium text-green-700 bg-green-50 px-2 py-1 rounded">
+                                <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
                                     ${budget}
                                 </span>
                             </div>
@@ -176,14 +176,14 @@ export function FilterSidePanel({
                                 step="100"
                                 value={budget}
                                 onChange={(e) => setBudget(parseInt(e.target.value))}
-                                className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                                className="w-full h-2 bg-violet-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-stone-200 bg-white">
+                <div className="p-6 border-t border-violet-200 bg-white">
                     <div className="flex gap-3">
                         <button
                             onClick={() => {
@@ -194,19 +194,19 @@ export function FilterSidePanel({
                                 setExclusions([])
                                 setStyles([])
                             }}
-                            className="px-6 py-3 rounded-lg border border-stone-200 text-stone-600 font-semibold hover:bg-stone-50 transition-colors"
+                            className="px-6 py-3 rounded-lg border border-violet-200 text-violet-600 font-semibold hover:bg-violet-50 transition-colors"
                         >
                             Reset
                         </button>
                         <button
                             onClick={onClose}
-                            className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-amber-600 to-orange-500 text-white font-semibold hover:from-amber-700 hover:to-orange-600 shadow-md hover:shadow-lg transition-all"
+                            className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-pink-400 to-rose-500 text-white font-semibold hover:from-pink-500 hover:to-rose-600 shadow-md hover:shadow-lg transition-all"
                         >
                             Show results
                         </button>
                     </div>
                 </div>
-            </div>
+            </div >
         </>
     )
 }

@@ -130,13 +130,14 @@ export function SmartTagInput({
     }, [inputValue, value, lastFullSuggestion, suggestionType])
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Tab" && suggestion) {
+        if (e.key === "ArrowRight" && suggestion) {
+            // Right Arrow accepts the autocomplete suggestion
             e.preventDefault()
             setInputValue(inputValue + suggestion)
             setSuggestion("")
-        } else if (e.key === "Enter" || e.key === ",") {
+        } else if (e.key === "Tab" || e.key === ",") {
+            // Tab adds the current input as a new tag
             e.preventDefault()
-            // Only use what the user actually typed, NOT the suggestion
             const textToAdd = inputValue
 
             if (textToAdd.trim()) {
@@ -160,7 +161,7 @@ export function SmartTagInput({
     return (
         <div
             className={cn(
-                "relative flex flex-nowrap items-center gap-2 p-2 bg-white border border-stone-200 rounded-lg focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100 transition-all cursor-text overflow-x-auto",
+                "relative flex flex-nowrap items-center gap-2 p-2 bg-white border border-violet-200 rounded-lg focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-100 transition-all cursor-text overflow-x-auto",
                 className
             )}
             onClick={() => inputRef.current?.focus()}
@@ -168,7 +169,7 @@ export function SmartTagInput({
             {value.map((tag, index) => (
                 <span
                     key={index}
-                    className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 rounded-md text-sm animate-in fade-in zoom-in duration-200 whitespace-nowrap shrink-0"
+                    className="flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded-md text-sm animate-in fade-in zoom-in duration-200 whitespace-nowrap shrink-0"
                 >
                     {tag}
                     <button
@@ -177,7 +178,7 @@ export function SmartTagInput({
                             e.stopPropagation()
                             removeTag(index)
                         }}
-                        className="hover:text-amber-900 focus:outline-none"
+                        className="hover:text-violet-900 focus:outline-none"
                     >
                         <X className="h-3 w-3" />
                     </button>
