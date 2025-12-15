@@ -47,9 +47,9 @@ export function RecentSearchPanel({ isOpen, onClose, onSearchSelect }: RecentSea
 
   return (
     <>
-      {/* Panel - positioned next to LeftSidebar (left-20), same width as SidePanel */}
+      {/* Panel - positioned next to LeftSidebar (left-16), same width as SidePanel */}
       <div
-        className={`fixed left-20 top-0 h-screen w-full max-w-md bg-violet-50 border-r border-violet-200/50 shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed left-16 top-0 h-screen w-full max-w-md bg-violet-50 border-r border-violet-200/50 shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
       >
         {/* Spacer for text input */}
