@@ -5,8 +5,9 @@ import type { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { HiOutlineHeart, HiOutlineCalendarDays, HiCheckCircle } from 'react-icons/hi2'
+import { HiOutlineHeart, HiHeart, HiOutlineCalendarDays, HiCheckCircle } from 'react-icons/hi2'
 import { addToItinerary, isInItinerary } from '@/lib/itinerary'
+import { addToFavorites, isInFavorites } from '@/lib/favorites'
 
 interface DestinationOverlayProps {
   destination: Destination
@@ -24,22 +25,32 @@ function parsePricing(value: string | number): number {
 export function DestinationOverlay({ destination, mousePosition }: DestinationOverlayProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [isInItineraryState, setIsInItineraryState] = useState(false)
+  const [isInFavoritesState, setIsInFavoritesState] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
+  const [justFavorited, setJustFavorited] = useState(false)
   const [position, setPosition] = useState({ left: 0, top: 0 })
 
-  // Check if destination is in itinerary
+  // Check if destination is in itinerary and favorites
   useEffect(() => {
     setIsInItineraryState(isInItinerary(destination))
+    setIsInFavoritesState(isInFavorites(destination))
 
     // Listen for itinerary updates
     const handleItineraryUpdate = () => {
       setIsInItineraryState(isInItinerary(destination))
     }
 
+    // Listen for favorites updates
+    const handleFavoritesUpdate = () => {
+      setIsInFavoritesState(isInFavorites(destination))
+    }
+
     window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+    window.addEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
 
     return () => {
       window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+      window.removeEventListener('favoritesUpdated' as any, handleFavoritesUpdate)
     }
   }, [destination])
 
@@ -94,6 +105,15 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
     }
   }
 
+  const handleAddToFavorites = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!isInFavoritesState) {
+      addToFavorites(destination)
+      setJustFavorited(true)
+      setTimeout(() => setJustFavorited(false), 2000)
+    }
+  }
+
   return (
     <div
       className="fixed z-[1001] pointer-events-auto"
@@ -101,9 +121,13 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
         left: `${position.left}px`,
         top: `${position.top}px`,
       }}
+      onMouseEnter={() => {
+        // Cancel any pending hide when entering overlay
+        const event = new CustomEvent('cancelHideDestinationOverlay')
+        window.dispatchEvent(event)
+      }}
       onMouseLeave={() => {
         // Hide overlay when mouse leaves the overlay area
-        // This is called from WorldMap to hide the overlay
         const event = new CustomEvent('hideDestinationOverlay')
         window.dispatchEvent(event)
       }}
@@ -122,17 +146,22 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
               {/* Action buttons */}
               <div className="flex items-center gap-1">
                 <button
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors group relative"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    // TODO: Add to favorites logic
-                    console.log('Add to favorites:', destination.region)
-                  }}
-                  aria-label="Add to favorites"
+                  className={`p-1.5 rounded-lg transition-colors group relative ${
+                    isInFavoritesState ? 'bg-red-50' : 'hover:bg-gray-100'
+                  }`}
+                  onClick={handleAddToFavorites}
+                  aria-label={isInFavoritesState ? 'In favorites' : 'Add to favorites'}
+                  disabled={isInFavoritesState}
                 >
-                  <HiOutlineHeart className="w-4 h-4 text-gray-600 group-hover:text-red-500 transition-colors" />
+                  {isInFavoritesState ? (
+                    <HiHeart className="w-4 h-4 text-red-500" />
+                  ) : (
+                    <HiOutlineHeart className={`w-4 h-4 transition-colors ${
+                      justFavorited ? 'text-red-500' : 'text-gray-600 group-hover:text-red-500'
+                    }`} />
+                  )}
                   <span className="absolute -bottom-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    Add to favorites
+                    {isInFavoritesState ? 'In favorites' : 'Add to favorites'}
                   </span>
                 </button>
 

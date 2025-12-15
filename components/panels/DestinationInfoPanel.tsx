@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react'
 import { addToItinerary, isInItinerary } from '@/lib/itinerary'
 import { addToFavorites, isInFavorites } from '@/lib/favorites'
 
-interface SidePanelProps {
+interface DestinationInfoPanelProps {
   destination: Destination | null
   isOpen: boolean
   onClose: () => void
@@ -49,7 +49,7 @@ function formatDate(isoString: string): string {
   return date.toLocaleDateString('en-US', options)
 }
 
-export function SidePanel({ destination, isOpen, onClose, isSidebarOpen = false }: SidePanelProps) {
+export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOpen = false }: DestinationInfoPanelProps) {
   const [images, setImages] = useState<UnsplashImage[]>([])
   const [loadingImages, setLoadingImages] = useState(false)
   const [coverImage, setCoverImage] = useState<UnsplashImage | null>(null)
@@ -151,7 +151,7 @@ export function SidePanel({ destination, isOpen, onClose, isSidebarOpen = false 
     <>
       {/* Panel - positioned after SearchResultsPanel */}
       <div
-        className={`fixed top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-[60] transition-all duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isSidebarOpen ? 'left-[33rem]' : 'left-20'
+        className={`fixed top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-[60] transition-all duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isSidebarOpen ? 'left-[32rem]' : 'left-16'
           } ${isOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
       >

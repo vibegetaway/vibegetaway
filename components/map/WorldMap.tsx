@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { COUNTRY_CENTROIDS } from '@/lib/countryCentroids'
-import { SidePanel } from '@/components/panels/SidePanel'
+import { DestinationInfoPanel } from '@/components/panels/DestinationInfoPanel'
 import { DestinationOverlay } from '@/components/map/DestinationOverlay'
 import { MapZoomControls } from '@/components/map/MapZoomControls'
 
@@ -141,6 +141,7 @@ export default function WorldMap({
   const [internalSelectedDestination, setInternalSelectedDestination] = useState<Destination | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [overlayPosition, setOverlayPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Use external selectedDestination if provided, otherwise use internal
   const selectedDestination = externalSelectedDestination || internalSelectedDestination
@@ -199,6 +200,12 @@ export default function WorldMap({
   }
 
   const handleMarkerHover = (destination: Destination, e: L.LeafletMouseEvent) => {
+    // Clear any pending hide timeout when hovering
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current)
+      hideTimeoutRef.current = null
+    }
+    
     setOverlayPosition({
       x: e.originalEvent.clientX,
       y: e.originalEvent.clientY
@@ -207,20 +214,48 @@ export default function WorldMap({
   }
 
   const handleMarkerLeave = () => {
-    // Hide immediately - no delay, no complexity
-    setHoveredDestination(null)
+    // Add a delay before hiding to allow cursor to move to overlay
+    hideTimeoutRef.current = setTimeout(() => {
+      setHoveredDestination(null)
+    }, 150) // 150ms delay
   }
 
-  // Listen for overlay hide events
+  const cancelHideOverlay = () => {
+    // Cancel hide when cursor enters overlay
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current)
+      hideTimeoutRef.current = null
+    }
+  }
+
+  const hideOverlay = () => {
+    // Hide overlay when cursor leaves overlay area
+    hideTimeoutRef.current = setTimeout(() => {
+      setHoveredDestination(null)
+    }, 100) // Small delay for smoother UX
+  }
+
+  // Listen for overlay events
   useEffect(() => {
     const handleHideOverlay = () => {
-      setHoveredDestination(null)
+      hideOverlay()
+    }
+
+    const handleCancelHide = () => {
+      cancelHideOverlay()
     }
 
     window.addEventListener('hideDestinationOverlay' as any, handleHideOverlay)
+    window.addEventListener('cancelHideDestinationOverlay' as any, handleCancelHide)
 
     return () => {
       window.removeEventListener('hideDestinationOverlay' as any, handleHideOverlay)
+      window.removeEventListener('cancelHideDestinationOverlay' as any, handleCancelHide)
+      
+      // Clear timeout on unmount
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current)
+      }
     }
   }, [])
 
@@ -265,7 +300,7 @@ export default function WorldMap({
       </div>
 
       <div className="relative z-40">
-        <SidePanel
+        <DestinationInfoPanel
           destination={selectedDestination}
           isOpen={isPanelOpen}
           onClose={handleClosePanel}
