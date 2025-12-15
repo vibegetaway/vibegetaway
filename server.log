@@ -1,0 +1,16 @@
+
+> best-trip@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.33
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 1727ms
+ ○ Compiling / ...
+ ✓ Compiled / in 10.6s (1457 modules)
+ GET / 200 in 11176ms
+ ✓ Compiled in 538ms (620 modules)
+ ✓ Compiled in 406ms (620 modules)
+ ✓ Compiled / in 461ms (820 modules)
+ GET / 200 in 754ms

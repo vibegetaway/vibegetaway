@@ -8,6 +8,7 @@ import { ItineraryPanel } from '@/components/panels/ItineraryPanel'
 import { FavoritesPanel } from '@/components/panels/FavoritesPanel'
 import { FilterBar } from '@/components/user-input/FilterBar'
 import { FilterSidePanel } from '@/components/panels/FilterSidePanel'
+import { InspirationChips } from '@/components/user-input/InspirationChips'
 import dynamic from 'next/dynamic'
 import { useState, useEffect, useRef } from 'react'
 import { fetchDestinationsWithDetails } from '@/lib/fetchDestinations'
@@ -266,13 +267,22 @@ export default function Home() {
         // Lower z-index when FilterSidePanel is open so it appears above search bar
         isFilterPanelOpen ? "z-50" : "z-[70]"
       )}>
-        <SearchBar
-          vibe={vibe}
-          setVibe={setVibe}
-          month={month}
-          setMonth={setMonth}
-          onSearch={() => handleFindDestinations(vibe, month)}
-        />
+        <div className="flex items-center gap-4">
+          <SearchBar
+            vibe={vibe}
+            setVibe={setVibe}
+            month={month}
+            setMonth={setMonth}
+            onSearch={() => handleFindDestinations(vibe, month)}
+          />
+
+          <InspirationChips
+            onSelectVibe={(v) => {
+              setVibe(v)
+              handleFindDestinations(v, month)
+            }}
+          />
+        </div>
 
         {/* Filter Tags - floating individual pills */}
         <div className={cn(
