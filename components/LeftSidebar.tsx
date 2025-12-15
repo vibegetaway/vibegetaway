@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Clock, Heart, Settings, Calendar } from 'lucide-react'
+import { Search, Clock, Heart, Calendar } from 'lucide-react'
 import { getItineraryCount } from '@/lib/itinerary'
 import { getFavoritesCount } from '@/lib/favorites'
 
@@ -39,7 +39,7 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick, on
   }, [])
 
   return (
-    <div className="fixed left-0 top-0 w-20 h-screen bg-violet-50 border-r border-violet-200/50 flex flex-col items-center py-4 gap-6 z-[60]">
+    <div className="fixed left-0 top-0 w-16 h-screen bg-violet-50 border-r border-violet-200/50 flex flex-col items-center py-4 gap-6 z-[60]">
 
 
       {/* Search icon */}
@@ -90,18 +90,6 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick, on
             {favoritesCount > 9 ? '9+' : favoritesCount}
           </span>
         )}
-      </button>
-
-      {/* Flex spacer */}
-      <div className="flex-1" />
-
-      {/* Settings icon */}
-      <button
-        type="button"
-        className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-pink-100/60 transition-colors cursor-pointer"
-        aria-label="Settings"
-      >
-        <Settings className="w-5 h-5 text-pink-500" strokeWidth={2} />
       </button>
     </div>
   )

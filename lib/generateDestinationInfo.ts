@@ -195,7 +195,7 @@ export async function generateDestinationNames(
     }
 
     const { text } = await generateText({
-      model: google('gemini-2.5-flash-lite'),
+      model: google('gemini-2.0-flash'),
       system: DESTINATION_NAMES_SYSTEM_PROMPT,
       prompt: prompt,
     })
@@ -265,7 +265,7 @@ export async function generateDestinationInfo(
     console.log(`[SERVER] Making single LLM call for ${destinations.length} destinations`)
 
     const { text } = await generateText({
-      model: google('gemini-2.5-flash-lite'),
+      model: google('gemini-2.0-flash'),
       system: DESTINATION_DETAIL_SYSTEM_PROMPT,
       prompt: prompt,
     })
