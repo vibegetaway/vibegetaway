@@ -229,7 +229,7 @@ export default function WorldMap({
       <div className="absolute inset-0 w-full h-full z-0">
         <MapContainer
           center={[20, 0]}
-          zoom={2}
+          zoom={2.25}
           minZoom={2}
           maxBounds={[[-60, -180], [85, 180]]}
           scrollWheelZoom={true}
