@@ -2,11 +2,12 @@
 
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useUser } from '@clerk/nextjs'
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   const { user, isSignedIn } = useUser()
+  const hasTrackedSession = useRef(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -25,7 +26,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (isSignedIn && user) {
+    if (isSignedIn && user && !hasTrackedSession.current) {
       posthog.identify(user.id, {
         email: user.primaryEmailAddress?.emailAddress,
         name: user.fullName,
@@ -34,8 +35,31 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
         imageUrl: user.imageUrl,
         createdAt: user.createdAt,
       })
-    } else if (!isSignedIn) {
+
+      const accountAge = user.createdAt 
+        ? Date.now() - new Date(user.createdAt).getTime() 
+        : Infinity
+      const isNewUser = accountAge < 60000
+
+      if (isNewUser) {
+        posthog.capture('user_signed_up', {
+          method: 'google',
+          email: user.primaryEmailAddress?.emailAddress,
+          name: user.fullName,
+        })
+      } else {
+        posthog.capture('user_logged_in', {
+          method: 'google',
+          email: user.primaryEmailAddress?.emailAddress,
+          name: user.fullName,
+        })
+      }
+
+      hasTrackedSession.current = true
+    } else if (!isSignedIn && hasTrackedSession.current) {
+      posthog.capture('user_logged_out')
       posthog.reset()
+      hasTrackedSession.current = false
     }
   }, [isSignedIn, user])
 
