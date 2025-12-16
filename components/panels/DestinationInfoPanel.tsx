@@ -1,6 +1,6 @@
 'use client'
 
-import { X, ArrowRight, Calendar } from 'lucide-react'
+import { X, ArrowRight, CalendarPlus, CalendarCheck } from 'lucide-react'
 import type { Destination, UnsplashImage } from '@/lib/generateDestinationInfo'
 import { fetchUnsplashImages } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
@@ -9,7 +9,7 @@ import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useEffect, useState } from 'react'
-import { addToItinerary, isInItinerary } from '@/lib/itinerary'
+import { addToItinerary, removeFromItineraryByDestination, isInItinerary } from '@/lib/itinerary'
 
 interface DestinationInfoPanelProps {
   destination: Destination | null
@@ -175,19 +175,30 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
-                  if (!inItinerary) {
+                  if (inItinerary) {
+                    removeFromItineraryByDestination(destination)
+                  } else {
                     addToItinerary(destination)
                   }
                 }}
-                className={`p-2 rounded-lg transition-colors ${inItinerary
-                  ? 'bg-green-50'
-                  : 'hover:bg-amber-100'
-                  }`}
-                disabled={inItinerary}
-                aria-label={inItinerary ? 'In itinerary' : 'Add to itinerary'}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  inItinerary
+                    ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md'
+                    : 'bg-amber-500 text-white hover:bg-amber-600 shadow-md'
+                }`}
+                aria-label={inItinerary ? 'Remove from plan' : 'Add to plan'}
               >
-                <Calendar className={`w-5 h-5 transition-colors ${inItinerary ? 'text-green-600' : 'text-stone-600'
-                  }`} />
+                {inItinerary ? (
+                  <>
+                    <CalendarCheck className="w-5 h-5" />
+                    <span>In Plan</span>
+                  </>
+                ) : (
+                  <>
+                    <CalendarPlus className="w-5 h-5" />
+                    <span>Add to Plan</span>
+                  </>
+                )}
               </button>
 
               <button onClick={onClose} className="p-2 hover:bg-amber-100 rounded-lg transition-colors">

@@ -5,8 +5,8 @@ import type { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { HiOutlineCalendarDays, HiCheckCircle } from 'react-icons/hi2'
-import { addToItinerary, isInItinerary } from '@/lib/itinerary'
+import { CalendarPlus, CalendarCheck } from 'lucide-react'
+import { addToItinerary, removeFromItineraryByDestination, isInItinerary } from '@/lib/itinerary'
 
 interface DestinationOverlayProps {
   destination: Destination
@@ -85,9 +85,11 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
   const activitiesPrice = parsePricing(destination.pricing?.activities || 0)
   const totalDaily = accommodationPrice + foodPrice + activitiesPrice
 
-  const handleAddToItinerary = (e: React.MouseEvent) => {
+  const handleToggleItinerary = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!isInItineraryState) {
+    if (isInItineraryState) {
+      removeFromItineraryByDestination(destination)
+    } else {
       addToItinerary(destination)
       setJustAdded(true)
       setTimeout(() => setJustAdded(false), 2000)
@@ -123,28 +125,28 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
                 <p className="text-xs text-gray-500 mt-0.5">{getCountryName(destination.country)}</p>
               </div>
 
-              {/* Action buttons */}
-              <div className="flex items-center gap-1">
-                <button
-                  className={`p-1.5 rounded-lg transition-colors group relative ${isInItineraryState
-                    ? 'bg-green-50'
-                    : 'hover:bg-gray-100'
-                    }`}
-                  onClick={handleAddToItinerary}
-                  aria-label={isInItineraryState ? 'In itinerary' : 'Add to itinerary'}
-                  disabled={isInItineraryState}
-                >
-                  {isInItineraryState ? (
-                    <HiCheckCircle className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <HiOutlineCalendarDays className={`w-4 h-4 transition-colors ${justAdded ? 'text-green-500' : 'text-gray-600 group-hover:text-blue-500'
-                      }`} />
-                  )}
-                  <span className="absolute -bottom-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    {isInItineraryState ? 'In itinerary' : 'Add to itinerary'}
-                  </span>
-                </button>
-              </div>
+              {/* Itinerary button - more prominent */}
+              <button
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
+                  isInItineraryState
+                    ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
+                    : 'bg-blue-500 text-white hover:bg-blue-600 shadow-sm'
+                }`}
+                onClick={handleToggleItinerary}
+                aria-label={isInItineraryState ? 'Remove from plan' : 'Add to plan'}
+              >
+                {isInItineraryState ? (
+                  <>
+                    <CalendarCheck className="w-4 h-4" />
+                    <span>In Plan</span>
+                  </>
+                ) : (
+                  <>
+                    <CalendarPlus className="w-4 h-4" />
+                    <span>Add to Plan</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 

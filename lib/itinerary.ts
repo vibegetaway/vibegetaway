@@ -95,6 +95,27 @@ export function removeFromItinerary(id: string): void {
 }
 
 /**
+ * Remove a destination from itinerary by destination object
+ */
+export function removeFromItineraryByDestination(destination: Destination): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    const itinerary = getItinerary()
+    const item = itinerary.find(
+      item => item.destination.region === destination.region && 
+              item.destination.country === destination.country
+    )
+    
+    if (item) {
+      removeFromItinerary(item.id)
+    }
+  } catch (error) {
+    console.error('Error removing from itinerary by destination:', error)
+  }
+}
+
+/**
  * Clear all itinerary items
  */
 export function clearItinerary(): void {

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Destination } from '@/lib/generateDestinationInfo'
-import { MapPin, X, Loader2, Calendar } from 'lucide-react'
-import { addToItinerary, isInItinerary } from '@/lib/itinerary'
+import { MapPin, X, Loader2, CalendarPlus, CalendarCheck } from 'lucide-react'
+import { addToItinerary, removeFromItineraryByDestination, isInItinerary } from '@/lib/itinerary'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -164,24 +164,36 @@ export function SearchResultsPanel({
                         </div>
                       </div>
 
-                      {/* Action Icons - Always Visible */}
+                      {/* Itinerary Button - More Prominent */}
                       {hasDetails && (
-                        <div className="flex gap-1.5">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              if (!inItinerary) addToItinerary(destination)
-                            }}
-                            disabled={inItinerary}
-                            className={`p-1.5 rounded-full transition-colors ${inItinerary
-                              ? 'bg-emerald-50 cursor-default'
-                              : 'bg-violet-50 hover:bg-emerald-50 hover:scale-110'
-                              }`}
-                            title={inItinerary ? 'Already in itinerary' : 'Add to itinerary'}
-                          >
-                            <Calendar className={`w-3.5 h-3.5 ${inItinerary ? 'text-emerald-500 fill-emerald-500' : 'text-violet-400 hover:text-emerald-500'}`} />
-                          </button>
-                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (inItinerary) {
+                              removeFromItineraryByDestination(destination)
+                            } else {
+                              addToItinerary(destination)
+                            }
+                          }}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
+                            inItinerary
+                              ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
+                              : 'bg-violet-100 text-violet-700 hover:bg-violet-200'
+                          }`}
+                          title={inItinerary ? 'Remove from plan' : 'Add to plan'}
+                        >
+                          {inItinerary ? (
+                            <>
+                              <CalendarCheck className="w-4 h-4" />
+                              <span>In Plan</span>
+                            </>
+                          ) : (
+                            <>
+                              <CalendarPlus className="w-4 h-4" />
+                              <span>Add to Plan</span>
+                            </>
+                          )}
+                        </button>
                       )}
                     </div>
 

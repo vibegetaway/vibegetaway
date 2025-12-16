@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
-import { MapPin, X, Trash2, Plane, Calendar } from 'lucide-react'
+import { MapPin, X, Trash2, Route, Calendar } from 'lucide-react'
 import { getItinerary, removeFromItinerary, clearItinerary, formatAddedDate, type ItineraryItem } from '@/lib/itinerary'
 import { TripPlannerModal } from './TripPlannerModal'
 import ReactMarkdown from 'react-markdown'
@@ -47,7 +47,7 @@ export function ItineraryPanel({
   }
 
   const handleClearAll = () => {
-    if (window.confirm('Are you sure you want to clear your entire itinerary?')) {
+    if (window.confirm('Are you sure you want to clear your entire trip plan?')) {
       clearItinerary()
     }
   }
@@ -84,11 +84,11 @@ export function ItineraryPanel({
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-violet-900 mb-1 tracking-tight">My Itinerary</h2>
+            <h2 className="text-2xl font-bold text-violet-900 mb-1 tracking-tight">Trip Plan</h2>
             <p className="text-violet-500 text-xs font-medium">
               {itineraryItems.length === 0
-                ? 'No destinations added yet'
-                : `${itineraryItems.length} ${itineraryItems.length === 1 ? 'destination' : 'destinations'} in your plan`}
+                ? 'Start building your trip'
+                : `${itineraryItems.length} ${itineraryItems.length === 1 ? 'destination' : 'destinations'} added`}
             </p>
           </div>
           <button
@@ -117,9 +117,9 @@ export function ItineraryPanel({
             <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-4">
               <Calendar className="w-10 h-10 text-pink-400" />
             </div>
-            <h3 className="text-lg font-bold text-violet-900 mb-2">Your plan is empty</h3>
+            <h3 className="text-lg font-bold text-violet-900 mb-2">Start Planning Your Trip</h3>
             <p className="text-violet-500 text-sm max-w-xs">
-              Start adding destinations to your itinerary by clicking the calendar icon on destination cards
+              Add destinations to your plan by clicking "Add to Plan" on any destination
             </p>
           </div>
         ) : (
@@ -196,12 +196,9 @@ export function ItineraryPanel({
                   onClick={() => setIsTripPlannerOpen(true)}
                   className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
-                  <Plane className="w-5 h-5" />
-                  Plan My Trip
+                  <Route className="w-5 h-5" />
+                  Create Itinerary
                 </button>
-                <p className="text-xs text-center text-violet-500 mt-3">
-                  Ready to finalize? View your complete multi-city itinerary
-                </p>
               </div>
             )}
           </div>

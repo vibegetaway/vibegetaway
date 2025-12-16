@@ -57,7 +57,7 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
         type="button"
         className="relative w-12 h-12 flex items-center justify-center rounded-lg hover:bg-pink-100/60 transition-colors cursor-pointer"
         onClick={onItineraryClick}
-        aria-label="My Itinerary"
+        aria-label="Trip Plan"
       >
         <Calendar className="w-5 h-5 text-pink-500" strokeWidth={2} />
         {itineraryCount > 0 && (
