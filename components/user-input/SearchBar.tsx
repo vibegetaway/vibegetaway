@@ -20,8 +20,8 @@ export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBa
         <div className="relative z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2.5 px-3">
             {/* Single row: Vibe input, date selector, and search button */}
             <div className="flex items-center gap-3">
-                <h1 className="text-lg font-bold leading-tight flex items-center gap-2">
-                    <span className="text-foreground whitespace-nowrap">I want to</span>
+                <h1 className="text-lg font-bold leading-tight flex items-center gap-2 whitespace-nowrap">
+                    <span className="text-foreground">I want to</span>
                     {/* Fixed-width container with horizontal scroll for tags */}
                     <span className="inline-block align-middle w-[280px] max-w-[280px]">
                         <SmartTagInput
@@ -33,7 +33,7 @@ export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBa
                             onInputChange={setCurrentInput}
                         />
                     </span>
-                    <span className="text-sm text-stone-500 whitespace-nowrap">in</span>
+                    <span className="text-sm text-stone-500">in</span>
                     <FlexibleDateSelect value={month} onChange={setMonth} />
                 </h1>
                 <button

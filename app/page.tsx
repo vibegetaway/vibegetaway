@@ -273,10 +273,6 @@ export default function Home() {
     
     setVibe(chip.vibes.join(', '))
     setFilterLocations(chip.destinations)
-    
-    setTimeout(() => {
-      handleFindDestinations(chip.vibes.join(', '), month)
-    }, 100)
   }
 
   return (

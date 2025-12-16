@@ -140,7 +140,7 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
     <>
       {/* Panel - positioned after SearchResultsPanel */}
       <div
-        className={`fixed top-0 h-screen w-full max-w-md bg-stone-50 border-r border-amber-200/50 shadow-2xl z-[60] transition-all duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isSidebarOpen ? 'left-[32rem]' : 'left-16'
+        className={`fixed top-0 h-screen w-[28rem] bg-stone-50 border-r border-amber-200/50 shadow-2xl z-[60] transition-all duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isSidebarOpen ? 'left-[32rem]' : 'left-16'
           } ${isOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
       >

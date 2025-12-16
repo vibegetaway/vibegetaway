@@ -12,7 +12,7 @@ export function InspirationChips({ onChipClick, isVisible }: InspirationChipsPro
   return (
     <div 
       className={cn(
-        "absolute top-4 left-[calc(100%+16px)] flex gap-2",
+        "absolute top-1/2 -translate-y-1/2 left-[calc(100%+16px)] flex gap-2",
         "transition-all duration-300",
         isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none"
       )}
