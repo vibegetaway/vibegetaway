@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Search, Clock, Calendar } from 'lucide-react'
 import { getItineraryCount } from '@/lib/itinerary'
 
@@ -30,7 +31,15 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
 
   return (
     <div className="fixed left-0 top-0 w-16 h-screen bg-violet-50 border-r border-violet-200/50 flex flex-col items-center py-4 gap-6 z-[60]">
-
+      <div className="mb-2">
+        <Image
+          src="/assets/icon.png"
+          alt="VibeGetaway"
+          width={40}
+          height={40}
+          className="rounded-lg"
+        />
+      </div>
 
       {/* Search icon */}
       <button
@@ -40,16 +49,6 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
         aria-label="Search Results"
       >
         <Search className="w-5 h-5 text-pink-500" strokeWidth={2} />
-      </button>
-
-      {/* Recent icon */}
-      <button
-        type="button"
-        className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-pink-100/60 transition-colors cursor-pointer"
-        onClick={onRecentClick}
-        aria-label="Recent"
-      >
-        <Clock className="w-5 h-5 text-pink-500" strokeWidth={2} />
       </button>
 
       {/* Itinerary icon with counter badge */}
@@ -65,6 +64,16 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
             {itineraryCount > 9 ? '9+' : itineraryCount}
           </span>
         )}
+      </button>
+
+      {/* Recent icon */}
+      <button
+        type="button"
+        className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-pink-100/60 transition-colors cursor-pointer"
+        onClick={onRecentClick}
+        aria-label="Recent"
+      >
+        <Clock className="w-5 h-5 text-pink-500" strokeWidth={2} />
       </button>
     </div>
   )
