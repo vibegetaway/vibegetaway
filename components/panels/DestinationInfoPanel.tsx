@@ -9,7 +9,7 @@ import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useEffect, useState } from 'react'
-import { addToItinerary, removeFromItineraryByDestination, isInItinerary } from '@/lib/itinerary'
+import { addToActiveItinerary, removeFromActiveItinerary, isDestinationInActiveItinerary } from '@/lib/itinerary'
 
 interface DestinationInfoPanelProps {
   destination: Destination | null
@@ -113,13 +113,13 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
       loadFlights()
 
       // Check if destination is in itinerary
-      setInItinerary(isInItinerary(destination))
+      setInItinerary(isDestinationInActiveItinerary(destination))
     }
 
     // Listen for updates
     const handleItineraryUpdate = () => {
       if (destination) {
-        setInItinerary(isInItinerary(destination))
+        setInItinerary(isDestinationInActiveItinerary(destination))
       }
     }
 
@@ -176,9 +176,9 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
               <button
                 onClick={() => {
                   if (inItinerary) {
-                    removeFromItineraryByDestination(destination)
+                    removeFromActiveItinerary(destination)
                   } else {
-                    addToItinerary(destination)
+                    addToActiveItinerary(destination)
                   }
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${

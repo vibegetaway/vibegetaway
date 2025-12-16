@@ -283,6 +283,7 @@ export default function Home() {
         onClose={() => setActivePanel('none')}
         onDestinationClick={handleDestinationSelect}
         selectedDestination={selectedDestination}
+        currentVibe={vibe}
       />
 
       <FilterSidePanel

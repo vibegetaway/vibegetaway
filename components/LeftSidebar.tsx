@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Search, Clock, Calendar } from 'lucide-react'
-import { getItineraryCount } from '@/lib/itinerary'
+import { getActiveItineraryDestinationCount, getActiveItinerary } from '@/lib/itinerary'
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 
 interface LeftSidebarProps {
@@ -18,16 +18,16 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
 
   useEffect(() => {
     // Initial load
-    setItineraryCount(getItineraryCount())
+    setItineraryCount(getActiveItineraryDestinationCount())
 
-    const handleItineraryUpdate = (event: CustomEvent) => {
-      setItineraryCount(event.detail.length)
+    const handleItineraryUpdate = () => {
+      setItineraryCount(getActiveItineraryDestinationCount())
     }
 
-    window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+    window.addEventListener('itineraryUpdated', handleItineraryUpdate)
 
     return () => {
-      window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+      window.removeEventListener('itineraryUpdated', handleItineraryUpdate)
     }
   }, [])
 

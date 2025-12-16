@@ -6,7 +6,7 @@ import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { CalendarPlus, CalendarCheck } from 'lucide-react'
-import { addToItinerary, removeFromItineraryByDestination, isInItinerary } from '@/lib/itinerary'
+import { addToActiveItinerary, removeFromActiveItinerary, isDestinationInActiveItinerary } from '@/lib/itinerary'
 
 interface DestinationOverlayProps {
   destination: Destination
@@ -29,17 +29,17 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
 
   // Check if destination is in itinerary
   useEffect(() => {
-    setIsInItineraryState(isInItinerary(destination))
+    setIsInItineraryState(isDestinationInActiveItinerary(destination))
 
     // Listen for itinerary updates
     const handleItineraryUpdate = () => {
-      setIsInItineraryState(isInItinerary(destination))
+      setIsInItineraryState(isDestinationInActiveItinerary(destination))
     }
 
-    window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+    window.addEventListener('itineraryUpdated', handleItineraryUpdate)
 
     return () => {
-      window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+      window.removeEventListener('itineraryUpdated', handleItineraryUpdate)
     }
   }, [destination])
 
@@ -88,9 +88,9 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
   const handleToggleItinerary = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (isInItineraryState) {
-      removeFromItineraryByDestination(destination)
+      removeFromActiveItinerary(destination)
     } else {
-      addToItinerary(destination)
+      addToActiveItinerary(destination)
       setJustAdded(true)
       setTimeout(() => setJustAdded(false), 2000)
     }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Destination } from '@/lib/generateDestinationInfo'
 import { MapPin, X, Loader2, CalendarPlus, CalendarCheck } from 'lucide-react'
-import { addToItinerary, removeFromItineraryByDestination, isInItinerary } from '@/lib/itinerary'
+import { addToActiveItinerary, removeFromActiveItinerary, isDestinationInActiveItinerary } from '@/lib/itinerary'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -32,7 +32,7 @@ export function SearchResultsPanel({
 
     destinations.forEach(dest => {
       const key = `${dest.country}-${dest.region}`
-      newItineraryStates[key] = isInItinerary(dest)
+      newItineraryStates[key] = isDestinationInActiveItinerary(dest)
     })
 
     setItineraryStates(newItineraryStates)
@@ -44,15 +44,15 @@ export function SearchResultsPanel({
       const newStates: Record<string, boolean> = {}
       destinations.forEach(dest => {
         const key = `${dest.country}-${dest.region}`
-        newStates[key] = isInItinerary(dest)
+        newStates[key] = isDestinationInActiveItinerary(dest)
       })
       setItineraryStates(newStates)
     }
 
-    window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+    window.addEventListener('itineraryUpdated', handleItineraryUpdate)
 
     return () => {
-      window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+      window.removeEventListener('itineraryUpdated', handleItineraryUpdate)
     }
   }, [destinations])
 
@@ -170,9 +170,9 @@ export function SearchResultsPanel({
                           onClick={(e) => {
                             e.stopPropagation()
                             if (inItinerary) {
-                              removeFromItineraryByDestination(destination)
+                              removeFromActiveItinerary(destination)
                             } else {
-                              addToItinerary(destination)
+                              addToActiveItinerary(destination)
                             }
                           }}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
