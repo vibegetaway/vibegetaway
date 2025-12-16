@@ -1,6 +1,7 @@
 'use client'
 
 import { SearchBar } from '@/components/user-input/SearchBar'
+import { InspirationChips } from '@/components/user-input/InspirationChips'
 import { LeftSidebar } from '@/components/LeftSidebar'
 import { RecentSearchPanel } from '@/components/panels/RecentSearchPanel'
 import { SearchResultsPanel } from '@/components/panels/SearchResultsPanel'
@@ -15,6 +16,7 @@ import { saveSearchToHistory, type SearchHistoryItem } from '@/lib/searchHistory
 import { cn } from '@/lib/utils'
 import mockDestinations from '@/data/mock-gemini-response.json'
 import { usePostHog } from 'posthog-js/react'
+import type { InspirationChip } from '@/data/inspirationChips'
 
 // Dynamic import to avoid SSR issues with Leaflet
 const WorldMap = dynamic(() => import('@/components/map/WorldMap'), { ssr: false })
@@ -248,6 +250,17 @@ export default function Home() {
     setSelectedDestination(destination)
   }
 
+  const handleInspirationChipClick = (chip: InspirationChip) => {
+    posthog?.capture('inspiration_chip_clicked', { chip_id: chip.id })
+    
+    setVibe(chip.vibes.join(', '))
+    setFilterLocations(chip.destinations)
+    
+    setTimeout(() => {
+      handleFindDestinations(chip.vibes.join(', '), month)
+    }, 100)
+  }
+
   return (
     <main className="relative w-screen h-screen overflow-hidden">
       {/* Map fills entire screen - lowest z-index */}
@@ -312,13 +325,19 @@ export default function Home() {
         // Lower z-index when FilterSidePanel is open so it appears above search bar
         isFilterPanelOpen ? "z-50" : "z-[70]"
       )}>
-        <SearchBar
-          vibe={vibe}
-          setVibe={setVibe}
-          month={month}
-          setMonth={setMonth}
-          onSearch={() => handleFindDestinations(vibe, month)}
-        />
+        <div className="relative">
+          <SearchBar
+            vibe={vibe}
+            setVibe={setVibe}
+            month={month}
+            setMonth={setMonth}
+            onSearch={() => handleFindDestinations(vibe, month)}
+          />
+          <InspirationChips 
+            onChipClick={handleInspirationChipClick}
+            isVisible={activePanel === 'none' && !isFilterPanelOpen}
+          />
+        </div>
 
         {/* Filter Tags - floating individual pills */}
         <div className={cn(
