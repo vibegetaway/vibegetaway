@@ -3,7 +3,11 @@
 import { useMap } from 'react-leaflet'
 import { RotateCcw } from 'lucide-react'
 
-export function MapZoomControls() {
+interface MapZoomControlsProps {
+    initialZoom: number
+}
+
+export function MapZoomControls({ initialZoom }: MapZoomControlsProps) {
     const map = useMap()
 
     const handleZoomIn = () => {
@@ -23,7 +27,7 @@ export function MapZoomControls() {
     }
 
     const handleRecenter = () => {
-        map.flyTo([20, 0], 2, {
+        map.flyTo([20, 0], initialZoom, {
             duration: 0.5,
             easeLinearity: 0.25
         })

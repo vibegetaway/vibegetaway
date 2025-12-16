@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import type { Destination } from '@/lib/generateDestinationInfo'
@@ -143,6 +143,13 @@ export default function WorldMap({
   const [overlayPosition, setOverlayPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  const initialZoom = useMemo(() => {
+    if (typeof window === 'undefined') return 2.25
+    const screenHeight = window.innerHeight
+    const calculatedZoom = Math.log2(screenHeight / 205) + 0.3
+    return Math.max(2, Math.min(5, calculatedZoom))
+  }, [])
+
   // Use external selectedDestination if provided, otherwise use internal
   const selectedDestination = externalSelectedDestination || internalSelectedDestination
 
@@ -264,15 +271,15 @@ export default function WorldMap({
       <div className="absolute inset-0 w-full h-full z-0">
         <MapContainer
           center={[20, 0]}
-          zoom={2.25}
+          zoom={initialZoom}
           minZoom={2}
           maxBounds={[[-60, -180], [85, 180]]}
           scrollWheelZoom={true}
           zoomControl={false}
-          zoomSnap={0.1}
-          zoomDelta={0.5}
-          wheelPxPerZoomLevel={120}
-          wheelDebounceTime={100}
+          zoomSnap={0}
+          zoomDelta={0.25}
+          wheelPxPerZoomLevel={60}
+          wheelDebounceTime={40}
           className="w-full h-full"
           style={{ background: '#f8f9fa' }}
         >
@@ -295,7 +302,7 @@ export default function WorldMap({
               setHoveredDestination(null)
             }}
           />
-          <MapZoomControls />
+          <MapZoomControls initialZoom={initialZoom} />
         </MapContainer>
       </div>
 
