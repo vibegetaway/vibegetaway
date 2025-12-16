@@ -3,26 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ChevronDown, ChevronUp, ArrowLeft, Sun, Cloud, Moon, MapPin, Sparkles } from 'lucide-react'
-import { getItineraryById } from '@/lib/itineraryHistory'
+import { getItineraryById, type DayBreakdown } from '@/lib/itineraryHistory'
 import type { Destination } from '@/lib/generateDestinationInfo'
-
-interface DayActivity {
-  activity: string
-  description: string
-}
-
-interface DayBreakdown {
-  day: number
-  location: string
-  morning: DayActivity
-  midday: DayActivity
-  evening: DayActivity
-}
 
 export default function ViewItineraryPage() {
   const router = useRouter()
   const params = useParams()
-  const id = params.id as string
+  const id = typeof params.id === 'string' ? params.id : ''
 
   const [itineraryName, setItineraryName] = useState('')
   const [savedLocations, setSavedLocations] = useState<Destination[]>([])
@@ -32,6 +19,11 @@ export default function ViewItineraryPage() {
   const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
+    if (!id) {
+      setNotFound(true)
+      return
+    }
+
     const itinerary = getItineraryById(id)
     
     if (!itinerary) {

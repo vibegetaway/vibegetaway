@@ -42,7 +42,6 @@ Return ONLY the trip name, nothing else.`
       model: groq('llama-3.3-70b-versatile'),
       prompt,
       temperature: 0.8,
-      maxTokens: 20,
     })
 
     const name = text.trim().replace(/['"]/g, '')

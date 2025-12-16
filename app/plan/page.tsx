@@ -5,20 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronUp, Loader2, Sparkles, ArrowLeft, Sun, Cloud, Moon, MapPin } from 'lucide-react'
 import { getSavedLocations } from '@/lib/itinerary'
 import type { Destination } from '@/lib/generateDestinationInfo'
-import { saveItineraryToHistory } from '@/lib/itineraryHistory'
-
-interface DayActivity {
-  activity: string
-  description: string
-}
-
-interface DayBreakdown {
-  day: number
-  location: string
-  morning: DayActivity
-  midday: DayActivity
-  evening: DayActivity
-}
+import { saveItineraryToHistory, type DayBreakdown } from '@/lib/itineraryHistory'
 
 export default function PlanPage() {
   const router = useRouter()
