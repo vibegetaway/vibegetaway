@@ -9,7 +9,7 @@ import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useEffect, useState } from 'react'
-import { addToActiveItinerary, removeFromActiveItinerary, isDestinationInActiveItinerary } from '@/lib/itinerary'
+import { addToSavedLocations, removeFromSavedLocations, isDestinationSaved } from '@/lib/itinerary'
 
 interface DestinationInfoPanelProps {
   destination: Destination | null
@@ -55,7 +55,7 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
   const [loadingCover, setLoadingCover] = useState(false)
   const [flights, setFlights] = useState<SimplifiedFlight[]>([])
   const [loadingFlights, setLoadingFlights] = useState(false)
-  const [inItinerary, setInItinerary] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
 
   useEffect(() => {
     async function loadImages() {
@@ -111,22 +111,19 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
       loadCoverImage()
       loadImages()
       loadFlights()
-
-      // Check if destination is in itinerary
-      setInItinerary(isDestinationInActiveItinerary(destination))
+      setIsSaved(isDestinationSaved(destination))
     }
 
-    // Listen for updates
-    const handleItineraryUpdate = () => {
+    const handleLocationsUpdate = () => {
       if (destination) {
-        setInItinerary(isDestinationInActiveItinerary(destination))
+        setIsSaved(isDestinationSaved(destination))
       }
     }
 
-    window.addEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+    window.addEventListener('locationsUpdated', handleLocationsUpdate)
 
     return () => {
-      window.removeEventListener('itineraryUpdated' as any, handleItineraryUpdate)
+      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
     }
   }, [destination, isOpen])
 
@@ -175,20 +172,20 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
-                  if (inItinerary) {
-                    removeFromActiveItinerary(destination)
+                  if (isSaved) {
+                    removeFromSavedLocations(destination)
                   } else {
-                    addToActiveItinerary(destination)
+                    addToSavedLocations(destination)
                   }
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                  inItinerary
+                  isSaved
                     ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md'
                     : 'bg-amber-500 text-white hover:bg-amber-600 shadow-md'
                 }`}
-                aria-label={inItinerary ? 'Remove from plan' : 'Add to plan'}
+                aria-label={isSaved ? 'Remove from plan' : 'Add to plan'}
               >
-                {inItinerary ? (
+                {isSaved ? (
                   <>
                     <CalendarCheck className="w-5 h-5" />
                     <span>In Plan</span>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Destination } from '@/lib/generateDestinationInfo'
 import { MapPin, X, Loader2, CalendarPlus, CalendarCheck } from 'lucide-react'
-import { addToActiveItinerary, removeFromActiveItinerary, isDestinationInActiveItinerary } from '@/lib/itinerary'
+import { addToSavedLocations, removeFromSavedLocations, isDestinationSaved } from '@/lib/itinerary'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -24,35 +24,33 @@ export function SearchResultsPanel({
   isOpen,
   onClose,
 }: SearchResultsPanelProps) {
-  const [itineraryStates, setItineraryStates] = useState<Record<string, boolean>>({})
+  const [savedStates, setSavedStates] = useState<Record<string, boolean>>({})
 
-  // Update states when destinations change
   useEffect(() => {
-    const newItineraryStates: Record<string, boolean> = {}
+    const newSavedStates: Record<string, boolean> = {}
 
     destinations.forEach(dest => {
       const key = `${dest.country}-${dest.region}`
-      newItineraryStates[key] = isDestinationInActiveItinerary(dest)
+      newSavedStates[key] = isDestinationSaved(dest)
     })
 
-    setItineraryStates(newItineraryStates)
+    setSavedStates(newSavedStates)
   }, [destinations])
 
-  // Listen for updates
   useEffect(() => {
-    const handleItineraryUpdate = () => {
+    const handleLocationsUpdate = () => {
       const newStates: Record<string, boolean> = {}
       destinations.forEach(dest => {
         const key = `${dest.country}-${dest.region}`
-        newStates[key] = isDestinationInActiveItinerary(dest)
+        newStates[key] = isDestinationSaved(dest)
       })
-      setItineraryStates(newStates)
+      setSavedStates(newStates)
     }
 
-    window.addEventListener('itineraryUpdated', handleItineraryUpdate)
+    window.addEventListener('locationsUpdated', handleLocationsUpdate)
 
     return () => {
-      window.removeEventListener('itineraryUpdated', handleItineraryUpdate)
+      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
     }
   }, [destinations])
 
@@ -125,7 +123,7 @@ export function SearchResultsPanel({
                 selectedDestination?.country === destination.country
               const hasDetails = destination.description && destination.pricing
               const destKey = `${destination.country}-${destination.region}`
-              const inItinerary = itineraryStates[destKey] || false
+              const isSaved = savedStates[destKey] || false
 
               // Prepare description for markdown - ONLY FIRST ITEM
               const descriptionText = Array.isArray(destination.description)
@@ -164,25 +162,24 @@ export function SearchResultsPanel({
                         </div>
                       </div>
 
-                      {/* Itinerary Button - More Prominent */}
                       {hasDetails && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
-                            if (inItinerary) {
-                              removeFromActiveItinerary(destination)
+                            if (isSaved) {
+                              removeFromSavedLocations(destination)
                             } else {
-                              addToActiveItinerary(destination)
+                              addToSavedLocations(destination)
                             }
                           }}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
-                            inItinerary
+                            isSaved
                               ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
                               : 'bg-violet-100 text-violet-700 hover:bg-violet-200'
                           }`}
-                          title={inItinerary ? 'Remove from plan' : 'Add to plan'}
+                          title={isSaved ? 'Remove from plan' : 'Add to plan'}
                         >
-                          {inItinerary ? (
+                          {isSaved ? (
                             <>
                               <CalendarCheck className="w-4 h-4" />
                               <span>In Plan</span>

@@ -1,17 +1,29 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { createGroq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
-import type { GeneratedDay, TimeSlotActivity } from '@/lib/itinerary'
 
 export const maxDuration = 60
 
-interface GenerateItineraryRequest {
-  destinations: Array<{
+interface DayActivity {
+  activity: string
+  description: string
+}
+
+interface DayBreakdown {
+  day: number
+  location: string
+  morning: DayActivity
+  midday: DayActivity
+  evening: DayActivity
+}
+
+interface PlanTripRequest {
+  locations: Array<{
     region?: string
     country: string
     recommendedDuration?: string
   }>
   tripDuration: number
-  vibe: string
 }
 
 function stripMarkdownFences(text: string): string {
@@ -37,7 +49,7 @@ CRITICAL: Return ONLY a valid JSON array with no additional text, markdown, or e
 Example format:
 [
   {
-    "dayNumber": 1,
+    "day": 1,
     "location": "Bali, Indonesia",
     "morning": {
       "activity": "Arrive in Bali",
@@ -56,11 +68,11 @@ Example format:
 
 export async function POST(req: Request) {
   try {
-    const body: GenerateItineraryRequest = await req.json()
-    const { destinations, tripDuration, vibe } = body
+    const body: PlanTripRequest = await req.json()
+    const { locations, tripDuration } = body
 
-    if (!destinations || destinations.length === 0) {
-      return new Response(JSON.stringify({ error: 'No destinations provided' }), {
+    if (!locations || locations.length === 0) {
+      return new Response(JSON.stringify({ error: 'No locations provided' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       })
@@ -73,25 +85,37 @@ export async function POST(req: Request) {
       })
     }
 
-    const google = createGoogleGenerativeAI({
-      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-    })
+    // Use Groq with Llama in development, Gemini Flash in production
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    
+    let model: any
+    if (isDevelopment && process.env.GROQ_API_KEY) {
+      const groq = createGroq({
+        apiKey: process.env.GROQ_API_KEY,
+      })
+      model = groq('llama-3.3-70b-versatile')
+      console.log('[plan-trip] Using Groq (Llama 3.3 70B) in development')
+    } else {
+      const google = createGoogleGenerativeAI({
+        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+      })
+      model = google('gemini-2.0-flash-exp')
+      console.log('[plan-trip] Using Gemini Flash in production')
+    }
 
-    const locationList = destinations
-      .map(d => d.region ? `${d.region}, ${d.country}` : d.country)
+    const locationList = locations
+      .map(l => l.region ? `${l.region}, ${l.country}` : l.country)
       .join(', ')
 
-    const recommendedDurations = destinations
-      .map(d => {
-        const name = d.region ? `${d.region}` : d.country
-        const days = d.recommendedDuration || '3-5'
+    const recommendedDurations = locations
+      .map(l => {
+        const name = l.region ? `${l.region}` : l.country
+        const days = l.recommendedDuration || '3-5'
         return `${name}: ${days} days recommended`
       })
       .join('\n')
 
     const userPrompt = `Generate a ${tripDuration}-day travel itinerary for the following destinations: ${locationList}
-
-The traveler's main interest/vibe: ${vibe || 'general exploration and relaxation'}
 
 Destination recommendations:
 ${recommendedDurations}
@@ -101,28 +125,27 @@ Requirements:
 2. Distribute time across all destinations intelligently based on activities available and recommendations
 3. Include travel days between destinations (airports, transportation)
 4. Each day should have morning, midday, and evening activities
-5. Focus activities on the traveler's main interest: "${vibe}"
-6. Keep it realistic - don't pack too many activities in one day
-7. Include local food/dining recommendations for evenings
+5. Keep it realistic - don't pack too many activities in one day
+6. Include local food/dining recommendations for evenings
 
 Return the itinerary as a JSON array.`
 
-    console.log('[generate-itinerary] Making LLM call for', tripDuration, 'days across', destinations.length, 'destinations')
+    console.log('[plan-trip] Making LLM call for', tripDuration, 'days across', locations.length, 'locations')
 
     const { text } = await generateText({
-      model: google('gemini-2.5-flash-lite'),
+      model,
       system: SYSTEM_PROMPT,
       prompt: userPrompt,
       temperature: 0.7,
     })
 
     const cleanedText = stripMarkdownFences(text)
-    let generatedPlan: GeneratedDay[]
+    let generatedPlan: DayBreakdown[]
 
     try {
       generatedPlan = JSON.parse(cleanedText)
     } catch (parseError) {
-      console.error('[generate-itinerary] Failed to parse LLM response:', cleanedText)
+      console.error('[plan-trip] Failed to parse LLM response:', cleanedText)
       return new Response(JSON.stringify({ error: 'Failed to parse itinerary response' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
@@ -136,21 +159,21 @@ Return the itinerary as a JSON array.`
       })
     }
 
-    const normalizedPlan: GeneratedDay[] = generatedPlan.map((day, index) => ({
-      dayNumber: day.dayNumber || index + 1,
+    const normalizedPlan: DayBreakdown[] = generatedPlan.map((day, index) => ({
+      day: day.day || index + 1,
       location: day.location || 'Unknown',
-      morning: normalizeTimeSlot(day.morning),
-      midday: normalizeTimeSlot(day.midday),
-      evening: normalizeTimeSlot(day.evening),
+      morning: normalizeActivity(day.morning),
+      midday: normalizeActivity(day.midday),
+      evening: normalizeActivity(day.evening),
     }))
 
-    console.log('[generate-itinerary] Successfully generated', normalizedPlan.length, 'days')
+    console.log('[plan-trip] Successfully generated', normalizedPlan.length, 'days')
 
     return new Response(JSON.stringify({ plan: normalizedPlan }), {
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (error) {
-    console.error('[generate-itinerary] Error:', error)
+    console.error('[plan-trip] Error:', error)
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to generate itinerary' }),
       {
@@ -161,17 +184,17 @@ Return the itinerary as a JSON array.`
   }
 }
 
-function normalizeTimeSlot(slot: any): TimeSlotActivity {
-  if (!slot) {
+function normalizeActivity(activity: any): DayActivity {
+  if (!activity) {
     return { activity: 'Free time', description: 'Explore at your own pace.' }
   }
 
-  if (typeof slot === 'string') {
-    return { activity: slot, description: '' }
+  if (typeof activity === 'string') {
+    return { activity, description: '' }
   }
 
   return {
-    activity: slot.activity || 'Activity',
-    description: slot.description || '',
+    activity: activity.activity || 'Activity',
+    description: activity.description || '',
   }
 }

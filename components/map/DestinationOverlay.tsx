@@ -6,7 +6,7 @@ import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { CalendarPlus, CalendarCheck } from 'lucide-react'
-import { addToActiveItinerary, removeFromActiveItinerary, isDestinationInActiveItinerary } from '@/lib/itinerary'
+import { addToSavedLocations, removeFromSavedLocations, isDestinationSaved } from '@/lib/itinerary'
 
 interface DestinationOverlayProps {
   destination: Destination
@@ -23,23 +23,20 @@ function parsePricing(value: string | number): number {
 
 export function DestinationOverlay({ destination, mousePosition }: DestinationOverlayProps) {
   const cardRef = useRef<HTMLDivElement>(null)
-  const [isInItineraryState, setIsInItineraryState] = useState(false)
-  const [justAdded, setJustAdded] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
   const [position, setPosition] = useState({ left: 0, top: 0 })
 
-  // Check if destination is in itinerary
   useEffect(() => {
-    setIsInItineraryState(isDestinationInActiveItinerary(destination))
+    setIsSaved(isDestinationSaved(destination))
 
-    // Listen for itinerary updates
-    const handleItineraryUpdate = () => {
-      setIsInItineraryState(isDestinationInActiveItinerary(destination))
+    const handleLocationsUpdate = () => {
+      setIsSaved(isDestinationSaved(destination))
     }
 
-    window.addEventListener('itineraryUpdated', handleItineraryUpdate)
+    window.addEventListener('locationsUpdated', handleLocationsUpdate)
 
     return () => {
-      window.removeEventListener('itineraryUpdated', handleItineraryUpdate)
+      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
     }
   }, [destination])
 
@@ -85,14 +82,12 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
   const activitiesPrice = parsePricing(destination.pricing?.activities || 0)
   const totalDaily = accommodationPrice + foodPrice + activitiesPrice
 
-  const handleToggleItinerary = (e: React.MouseEvent) => {
+  const handleToggleSaved = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (isInItineraryState) {
-      removeFromActiveItinerary(destination)
+    if (isSaved) {
+      removeFromSavedLocations(destination)
     } else {
-      addToActiveItinerary(destination)
-      setJustAdded(true)
-      setTimeout(() => setJustAdded(false), 2000)
+      addToSavedLocations(destination)
     }
   }
 
@@ -125,17 +120,16 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
                 <p className="text-xs text-gray-500 mt-0.5">{getCountryName(destination.country)}</p>
               </div>
 
-              {/* Itinerary button - more prominent */}
               <button
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
-                  isInItineraryState
+                  isSaved
                     ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
                     : 'bg-blue-500 text-white hover:bg-blue-600 shadow-sm'
                 }`}
-                onClick={handleToggleItinerary}
-                aria-label={isInItineraryState ? 'Remove from plan' : 'Add to plan'}
+                onClick={handleToggleSaved}
+                aria-label={isSaved ? 'Remove from plan' : 'Add to plan'}
               >
-                {isInItineraryState ? (
+                {isSaved ? (
                   <>
                     <CalendarCheck className="w-4 h-4" />
                     <span>In Plan</span>

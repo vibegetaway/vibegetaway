@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Search, Clock, Calendar } from 'lucide-react'
-import { getActiveItineraryDestinationCount, getActiveItinerary } from '@/lib/itinerary'
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
+import { getSavedLocationsCount } from '@/lib/itinerary'
 
 interface LeftSidebarProps {
   onRecentClick?: () => void
@@ -13,21 +13,20 @@ interface LeftSidebarProps {
 }
 
 export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: LeftSidebarProps) {
-  const [itineraryCount, setItineraryCount] = useState(0)
   const { isSignedIn } = useUser()
+  const [savedCount, setSavedCount] = useState(0)
 
   useEffect(() => {
-    // Initial load
-    setItineraryCount(getActiveItineraryDestinationCount())
+    setSavedCount(getSavedLocationsCount())
 
-    const handleItineraryUpdate = () => {
-      setItineraryCount(getActiveItineraryDestinationCount())
+    const handleLocationsUpdate = () => {
+      setSavedCount(getSavedLocationsCount())
     }
 
-    window.addEventListener('itineraryUpdated', handleItineraryUpdate)
+    window.addEventListener('locationsUpdated', handleLocationsUpdate)
 
     return () => {
-      window.removeEventListener('itineraryUpdated', handleItineraryUpdate)
+      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
     }
   }, [])
 
@@ -61,9 +60,9 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
         aria-label="Trip Plan"
       >
         <Calendar className="w-5 h-5 text-pink-500" strokeWidth={2} />
-        {itineraryCount > 0 && (
+        {savedCount > 0 && (
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-400 text-white text-xs font-bold rounded-full flex items-center justify-center">
-            {itineraryCount > 9 ? '9+' : itineraryCount}
+            {savedCount > 9 ? '9+' : savedCount}
           </span>
         )}
       </button>
