@@ -1,24 +1,24 @@
 # Find Location User Journey
 
 ## Description
-This journey describes how a user discovers travel destinations based on their preferences (vibe/activity) and timing. The goal is to provide personalized recommendations displayed on an interactive map and list view.
+User discovers travel destinations based on vibe, activity, and timing, viewing results on an interactive map.
 
 ## User Actions
-1.  **Enter Preferences:** User enters a natural language "vibe" or activity (e.g., "surfing", "quiet hiking") in the search bar.
+1.  **Enter Preferences:** User enters a "vibe" or activity (e.g., "surfing") in the search bar.
 2.  **Select Timing:** User selects a preferred month for travel (or "Anytime").
-3.  **Search:** User initiates the search via button click or pressing Enter.
+3.  **Search:** User initiates the search.
 4.  **View Results:**
-    *   **Map View:** Destinations are plotted as markers on the world map.
-    *   **List View:** A side panel displays detailed cards for each destination.
+    *   **Map View:** Destinations are plotted as markers.
+    *   **List View:** Side panel displays destination cards.
 5.  **Filter Results:** User refines results using specific criteria:
     *   Origin City
-    *   Specific Locations
     *   Trip Duration (days)
     *   Budget (total cost)
-    *   Exclusions (places to avoid)
+    *   Exclusions (things/vibes/places/activities to avoid)
     *   Travel Styles
-6.  **Select Destination:** Clicking a destination (on map or list) highlights it and provides more details (description, pricing, etc.).
-7.  **Recent Searches:** User can access and reload previous search queries from a history panel.
+6.  **Select Destination:** Clicking a destination opens a panel with a detailed breakdown of the location.
+7.  **Browse Details:** User browses destination information including description, pricing, and other metadata.
+8.  **Recent Searches:** User can access and reload previous search queries.
 
 ## Test Scenarios
 
@@ -47,7 +47,7 @@ This journey describes how a user discovers travel destinations based on their p
 *   **Steps:**
     1.  Perform a search that yields multiple results.
     2.  In the "Search Results" panel, click on a specific destination card (e.g., "Bali, Indonesia").
-*   **Expected Result:** The map zooms or focuses on the selected location. The destination card may expand or a details view appears showing description, pricing breakdown, and other metadata.
+*   **Expected Result:** A panel opens displaying a breakdown of the destination info, including description, pricing, and metadata.
 
 ### Scenario 4: Reload a Recent Search
 *   **Goal:** Verify the search history functionality works and restores state.
@@ -64,4 +64,4 @@ This journey describes how a user discovers travel destinations based on their p
     1.  Navigate to the homepage.
     2.  Clear the "vibe" input field if it has text.
     3.  Click the search button or press Enter.
-*   **Expected Result:** No search is initiated. The application remains in its current state (or shows a prompt to enter a vibe), preventing unnecessary API calls.
+*   **Expected Result:** No search is initiated. The application remains in its current state, preventing unnecessary API calls.
