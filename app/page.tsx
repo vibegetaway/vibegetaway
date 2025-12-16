@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 import mockDestinations from '@/data/mock-gemini-response.json'
 import { usePostHog } from 'posthog-js/react'
 import type { InspirationChip } from '@/data/inspirationChips'
+import { getUserLocation, formatLocationString } from '@/lib/geolocation'
 
 // Dynamic import to avoid SSR issues with Leaflet
 const WorldMap = dynamic(() => import('@/components/map/WorldMap'), { ssr: false })
@@ -180,6 +181,23 @@ export default function Home() {
       setDestinations(mockDestinations as Destination[])
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Auto-detect user location on mount
+  useEffect(() => {
+    const detectLocation = async () => {
+      if (!filterOrigin) {
+        const location = await getUserLocation()
+        if (location) {
+          const locationString = formatLocationString(location)
+          setFilterOrigin(locationString)
+          console.log('[INFO] User location detected:', locationString)
+        }
+      }
+    }
+    
+    detectLocation()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

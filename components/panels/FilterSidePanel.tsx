@@ -1,7 +1,8 @@
-import { X, MapPin, Globe, Plane, Clock, Wallet, Ban, PartyPopper, CloudSun, Check } from "lucide-react"
-import { useState } from "react"
+import { X, MapPin, Globe, Plane, Clock, Wallet, Ban, PartyPopper, CloudSun, Check, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { SmartTagInput } from "../user-input/SmartTagInput"
+import { getUserLocation, formatLocationString } from "@/lib/geolocation"
 
 interface FilterSidePanelProps {
     isOpen: boolean
@@ -38,6 +39,25 @@ export function FilterSidePanel({
     styles,
     setStyles
 }: FilterSidePanelProps) {
+    const [isDetectingLocation, setIsDetectingLocation] = useState(false)
+    const [hasDetectedLocation, setHasDetectedLocation] = useState(false)
+
+    useEffect(() => {
+        const detectLocation = async () => {
+            if (!origin && !hasDetectedLocation && isOpen) {
+                setIsDetectingLocation(true)
+                const location = await getUserLocation()
+                if (location) {
+                    const locationString = formatLocationString(location)
+                    setOrigin(locationString)
+                    setHasDetectedLocation(true)
+                }
+                setIsDetectingLocation(false)
+            }
+        }
+        
+        detectLocation()
+    }, [isOpen, origin, hasDetectedLocation, setOrigin])
 
     return (
         <>
@@ -79,14 +99,28 @@ export function FilterSidePanel({
                                 <MapPin className="w-4 h-4" />
                                 Origin
                             </label>
-                            <input
-                                type="text"
-                                value={origin}
-                                onChange={(e) => setOrigin(e.target.value)}
-                                placeholder="Where are you flying from?"
-                                className="w-full px-4 py-3 rounded-lg bg-white border border-violet-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 outline-none transition-all"
-                                autoFocus={activeFilter === 'origin'}
-                            />
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={origin}
+                                    onChange={(e) => setOrigin(e.target.value)}
+                                    placeholder="Where are you flying from?"
+                                    className="w-full px-4 py-3 rounded-lg bg-white border border-violet-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 outline-none transition-all"
+                                    autoFocus={activeFilter === 'origin'}
+                                    disabled={isDetectingLocation}
+                                />
+                                {isDetectingLocation && (
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                        <Loader2 className="w-5 h-5 text-violet-400 animate-spin" />
+                                    </div>
+                                )}
+                            </div>
+                            {hasDetectedLocation && origin && (
+                                <p className="text-xs text-emerald-600 flex items-center gap-1">
+                                    <Check className="w-3 h-3" />
+                                    Location detected automatically
+                                </p>
+                            )}
                         </div>
 
                         {/* Destination Area */}
