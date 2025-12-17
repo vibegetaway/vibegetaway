@@ -18,6 +18,7 @@ import mockDestinations from '@/data/mock-gemini-response.json'
 import { usePostHog } from 'posthog-js/react'
 import type { InspirationChip } from '@/data/inspirationChips'
 import { getUserLocation, formatLocationString } from '@/lib/geolocation'
+import { useTripFilters } from '@/hooks/useTripFilters'
 
 // Dynamic import to avoid SSR issues with Leaflet
 const WorldMap = dynamic(() => import('@/components/map/WorldMap'), { ssr: false })
@@ -52,12 +53,12 @@ export default function Home() {
       vibe: v,
       month: m,
       filters: {
-        origin: filterOrigin,
-        destinations: filterLocations,
-        duration: filterDuration,
-        budget: filterBudget,
-        exclusions: filterExclusions,
-        styles: filterStyles,
+        origin: filters.origin,
+        destinations: filters.locations,
+        duration: filters.duration,
+        budget: filters.budget,
+        exclusions: filters.exclusions,
+        styles: filters.styles,
       }
     })
 
@@ -72,12 +73,12 @@ export default function Home() {
         params: {
           vibe: v,
           timePeriod: m,
-          from: filterOrigin,
-          destinations: filterLocations,
-          duration: filterDuration,
-          budget: filterBudget,
-          exclusions: filterExclusions,
-          styles: filterStyles,
+          from: filters.origin,
+          destinations: filters.locations,
+          duration: filters.duration,
+          budget: filters.budget,
+          exclusions: filters.exclusions,
+          styles: filters.styles,
         },
         callbacks: {
           onInitialDestinations: (destinations) => {
@@ -105,12 +106,12 @@ export default function Home() {
               // Get the final destinations state
               setDestinations(prev => {
                 saveSearchToHistory(v, m, prev, {
-                  origin: filterOrigin,
-                  destinations: filterLocations,
-                  duration: filterDuration,
-                  budget: filterBudget,
-                  exclusions: filterExclusions,
-                  styles: filterStyles
+                  origin: filters.origin,
+                  destinations: filters.locations,
+                  duration: filters.duration,
+                  budget: filters.budget,
+                  exclusions: filters.exclusions,
+                  styles: filters.styles
                 })
                 return prev
               })
@@ -141,20 +142,20 @@ export default function Home() {
 
     // Restore filters if present
     if (item.filters) {
-      setFilterOrigin(item.filters.origin || "")
-      setFilterLocations(item.filters.destinations || [])
-      setFilterDuration(item.filters.duration || [3, 14])
-      setFilterBudget(item.filters.budget || 2000)
-      setFilterExclusions(item.filters.exclusions || [])
-      setFilterStyles(item.filters.styles || [])
+      setOrigin(item.filters.origin || "")
+      setLocations(item.filters.destinations || [])
+      setDuration(item.filters.duration || [3, 14])
+      setBudget(item.filters.budget || 2000)
+      setExclusions(item.filters.exclusions || [])
+      setStyles(item.filters.styles || [])
     } else {
       // Reset filters if not present in history
-      setFilterOrigin("")
-      setFilterLocations([])
-      setFilterDuration([3, 14])
-      setFilterBudget(2000)
-      setFilterExclusions([])
-      setFilterStyles([])
+      setOrigin("")
+      setLocations([])
+      setDuration([3, 14])
+      setBudget(2000)
+      setExclusions([])
+      setStyles([])
     }
 
     // If we have cached destinations, use them immediately
@@ -187,16 +188,16 @@ export default function Home() {
   // Auto-detect user location on mount
   useEffect(() => {
     const detectLocation = async () => {
-      if (!filterOrigin) {
+      if (!filters.origin) {
         const location = await getUserLocation()
         if (location) {
           const locationString = formatLocationString(location)
-          setFilterOrigin(locationString)
+          setOrigin(locationString)
           console.log('[INFO] User location detected:', locationString)
         }
       }
     }
-    
+
     detectLocation()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -225,22 +226,24 @@ export default function Home() {
     }
   }, [destinations])
 
-  // Filter state
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false)
-  const [activeFilterType, setActiveFilterType] = useState<string | undefined>(undefined)
-
-  // Filter values state (lifted from FilterSidePanel)
-  const [filterOrigin, setFilterOrigin] = useState("")
-  const [filterLocations, setFilterLocations] = useState<string[]>([])
-  const [filterDuration, setFilterDuration] = useState<[number, number]>([3, 14])
-  const [filterBudget, setFilterBudget] = useState<number>(2000)
-  const [filterExclusions, setFilterExclusions] = useState<string[]>([])
-  const [filterStyles, setFilterStyles] = useState<string[]>([])
+  // Shared filter logic
+  const {
+    filters,
+    isFilterPanelOpen,
+    activeFilterType,
+    setOrigin,
+    setLocations,
+    setDuration,
+    setBudget,
+    setExclusions,
+    setStyles,
+    openFilterPanel,
+    closeFilterPanel,
+    filterCounts
+  } = useTripFilters()
 
   const handleFilterClick = (filterType: string) => {
-    posthog?.capture('filter_panel_opened', { filter_type: filterType })
-    setActiveFilterType(filterType)
-    setIsFilterPanelOpen(true)
+    openFilterPanel(filterType)
   }
 
   const handlePanelToggle = (panel: 'none' | 'search' | 'recent' | 'itinerary') => {
@@ -270,10 +273,14 @@ export default function Home() {
 
   const handleInspirationChipClick = (chip: InspirationChip) => {
     posthog?.capture('inspiration_chip_clicked', { chip_id: chip.id })
-    
+
     setVibe(chip.vibes.join(', '))
-    setFilterLocations(chip.destinations)
+    setLocations(chip.destinations)
   }
+
+  // Update handleFindDestinations and handleSearchFromHistory to use the new filters object
+  // NOTE: We need to update the references inside these functions too.
+  // Since replace_file_content works on chunks, let's just do the whole bottom part of the component.
 
   return (
     <main className="relative w-screen h-screen overflow-hidden">
@@ -314,20 +321,20 @@ export default function Home() {
 
       <FilterSidePanel
         isOpen={isFilterPanelOpen}
-        onClose={() => setIsFilterPanelOpen(false)}
+        onClose={closeFilterPanel}
         activeFilter={activeFilterType}
-        origin={filterOrigin}
-        setOrigin={setFilterOrigin}
-        locations={filterLocations}
-        setLocations={setFilterLocations}
-        duration={filterDuration}
-        setDuration={setFilterDuration}
-        budget={filterBudget}
-        setBudget={setFilterBudget}
-        exclusions={filterExclusions}
-        setExclusions={setFilterExclusions}
-        styles={filterStyles}
-        setStyles={setFilterStyles}
+        origin={filters.origin}
+        setOrigin={setOrigin}
+        locations={filters.locations}
+        setLocations={setLocations}
+        duration={filters.duration}
+        setDuration={setDuration}
+        budget={filters.budget}
+        setBudget={setBudget}
+        exclusions={filters.exclusions}
+        setExclusions={setExclusions}
+        styles={filters.styles}
+        setStyles={setStyles}
       />
 
       {/* Search bar and filter tags overlay on top of map */}
@@ -346,7 +353,7 @@ export default function Home() {
             setMonth={setMonth}
             onSearch={() => handleFindDestinations(vibe, month)}
           />
-          <InspirationChips 
+          <InspirationChips
             onChipClick={handleInspirationChipClick}
             isVisible={activePanel === 'none' && !isFilterPanelOpen}
           />
@@ -361,16 +368,7 @@ export default function Home() {
         )}>
           <FilterBar
             onFilterClick={handleFilterClick}
-            filterCounts={{
-              origin: filterOrigin ? 1 : 0,
-              destination: filterLocations.length,
-              exclusions: filterExclusions.length,
-              budget: filterBudget !== 2000 ? 1 : 0,
-              all: (filterOrigin ? 1 : 0) +
-                filterLocations.length +
-                filterExclusions.length +
-                (filterBudget !== 2000 ? 1 : 0)
-            }}
+            filterCounts={filterCounts}
           />
         </div>
       </div>

@@ -17,6 +17,13 @@ interface DayBreakdown {
   evening: DayActivity
 }
 
+interface TripFilters {
+  origin: string
+  budget: number
+  exclusions: string[]
+  styles: string[]
+}
+
 interface PlanTripRequest {
   locations: Array<{
     region?: string
@@ -24,6 +31,7 @@ interface PlanTripRequest {
     recommendedDuration?: string
   }>
   tripDuration: number
+  filters?: TripFilters
 }
 
 function stripMarkdownFences(text: string): string {
@@ -69,7 +77,7 @@ Example format:
 export async function POST(req: Request) {
   try {
     const body: PlanTripRequest = await req.json()
-    const { locations, tripDuration } = body
+    const { locations, tripDuration, filters } = body
 
     if (!locations || locations.length === 0) {
       return new Response(JSON.stringify({ error: 'No locations provided' }), {
@@ -87,7 +95,7 @@ export async function POST(req: Request) {
 
     // Use Groq with Llama in development, Gemini Flash in production
     const isDevelopment = process.env.NODE_ENV === 'development'
-    
+
     let model: any
     if (isDevelopment && process.env.GROQ_API_KEY) {
       const groq = createGroq({
@@ -115,18 +123,32 @@ export async function POST(req: Request) {
       })
       .join('\n')
 
+    let filterContext = ''
+    if (filters) {
+      const parts = []
+      if (filters.origin) parts.push(`Starting Point: ${filters.origin}`)
+      if (filters.budget) parts.push(`Budget: Approx $${filters.budget} total`)
+      if (filters.styles && filters.styles.length > 0) parts.push(`Travel Styles: ${filters.styles.join(', ')}`)
+      if (filters.exclusions && filters.exclusions.length > 0) parts.push(`Avoid: ${filters.exclusions.join(', ')}`)
+
+      if (parts.length > 0) {
+        filterContext = `\nAdditional Constraints & Preferences:\n${parts.join('\n')}\n`
+      }
+    }
+
     const userPrompt = `Generate a ${tripDuration}-day travel itinerary for the following destinations: ${locationList}
 
 Destination recommendations:
 ${recommendedDurations}
-
+${filterContext}
 Requirements:
 1. Create exactly ${tripDuration} days of activities
-2. Distribute time across all destinations intelligently based on activities available and recommendations
+2. Distribute time across all destinations intelligently based on activities available and recommendations. Respect the order provided if logical.
 3. Include travel days between destinations (airports, transportation)
 4. Each day should have morning, midday, and evening activities
 5. Keep it realistic - don't pack too many activities in one day
 6. Include local food/dining recommendations for evenings
+7. Tailor activities to the "Travel Styles" and preferences provided immediately above.
 
 Return the itinerary as a JSON array.`
 

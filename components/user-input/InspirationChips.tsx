@@ -41,3 +41,4 @@ export function InspirationChips({ onChipClick, isVisible }: InspirationChipsPro
     </div>
   )
 }
+

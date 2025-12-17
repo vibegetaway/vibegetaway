@@ -38,3 +38,4 @@ export const inspirationChips: InspirationChip[] = [
     vibes: ['work remotely', 'explore', 'coworking', 'network', 'culture']
   }
 ]
+
