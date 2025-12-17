@@ -17,7 +17,7 @@ export function InspirationChips({ onChipClick, isVisible }: InspirationChipsPro
         isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none"
       )}
     >
-      {inspirationChips.map((chip) => {
+      {inspirationChips.slice(0, 3).map((chip) => {
         const Icon = chip.icon
         return (
           <button

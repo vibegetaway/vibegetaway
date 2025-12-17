@@ -19,6 +19,9 @@ import { usePostHog } from 'posthog-js/react'
 import type { InspirationChip } from '@/data/inspirationChips'
 import { getUserLocation, formatLocationString } from '@/lib/geolocation'
 import { useTripFilters } from '@/hooks/useTripFilters'
+import { getSavedLocationsCount } from '@/lib/itinerary'
+import { useRouter } from 'next/navigation'
+import { Calendar } from 'lucide-react'
 
 // Dynamic import to avoid SSR issues with Leaflet
 const WorldMap = dynamic(() => import('@/components/map/WorldMap'), { ssr: false })
@@ -30,12 +33,14 @@ const BATCH_SIZE = 5
 
 export default function Home() {
   const posthog = usePostHog()
+  const router = useRouter()
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [loading, setLoading] = useState(false)
   const [vibe, setVibe] = useState(isDev ? 'climb' : '')
   const [month, setMonth] = useState(isDev ? 'November' : 'Anytime')
   const [activePanel, setActivePanel] = useState<'none' | 'search' | 'recent' | 'itinerary'>('none')
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
+  const [savedCount, setSavedCount] = useState(0)
 
   // Ensure only the latest async call updates state
   const callIdRef = useRef(0)
@@ -202,6 +207,21 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Track saved locations count
+  useEffect(() => {
+    setSavedCount(getSavedLocationsCount())
+
+    const handleLocationsUpdate = () => {
+      setSavedCount(getSavedLocationsCount())
+    }
+
+    window.addEventListener('locationsUpdated', handleLocationsUpdate)
+
+    return () => {
+      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
+    }
+  }, [])
+
   // Handle keyboard shortcut (Enter) to trigger search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -294,6 +314,34 @@ export default function Home() {
         onDestinationSelect={setSelectedDestination}
         isSidebarOpen={activePanel !== 'none'}
       />
+
+      {/* Itinerary Planner Button - top right, aligned with search bar */}
+      <div className={cn(
+        "absolute flex items-center transition-all duration-300 ease-in-out z-[70] right-4",
+        // Align with search bar visual center
+        // Search bar container: top-4 (16px)
+        // Search bar has p-2.5 (10px top padding) and content height ~38px
+        // Center = 16px + 10px + 19px = 45px, but we want to align button center
+        "top-[calc(1rem+0.625rem+19px)]"
+      )}>
+        <button
+          onClick={() => router.push('/plan')}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 shadow-sm -translate-y-1/2",
+            savedCount > 0
+              ? "bg-gradient-to-r from-violet-600 to-pink-600 text-white hover:from-violet-700 hover:to-pink-700 shadow-md hover:shadow-lg"
+              : "bg-white/90 backdrop-blur-md border border-violet-200 text-violet-600 hover:bg-violet-50 hover:border-violet-300"
+          )}
+        >
+          <Calendar className="w-4 h-4" />
+          <span>Plan Trip</span>
+          {savedCount > 0 && (
+            <span className="flex items-center justify-center min-w-[20px] h-[20px] px-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-bold rounded-full">
+              {savedCount > 9 ? '9+' : savedCount}
+            </span>
+          )}
+        </button>
+      </div>
 
       {/* UI elements overlay on top of map */}
       <LeftSidebar

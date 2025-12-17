@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Sparkles, MapPin, GripVertical, Loader2, ChevronDown, ChevronUp, Sun, Cloud, Moon, Info, Plus, Minus } from 'lucide-react'
+import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 import { getSavedLocations } from '@/lib/itinerary'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { saveItineraryToHistory, type DayBreakdown } from '@/lib/itineraryHistory'
@@ -99,6 +100,7 @@ export default function PlanPage() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([1]))
   const [isConfigOpen, setIsConfigOpen] = useState(true)
+  const [month, setMonth] = useState('Anytime')
 
   // Integrate Filters
   const {
@@ -119,19 +121,17 @@ export default function PlanPage() {
   // Load locations on mount
   useEffect(() => {
     const locations = getSavedLocations()
-    if (locations.length === 0) {
-      router.push('/')
-      return
-    }
     setOrderedLocations(locations)
 
     // Calculate suggested duration
-    const suggestedDuration = locations.reduce((total, loc) => {
-      const recommended = parseInt(loc.recommendedDuration || '3', 10)
-      return total + (isNaN(recommended) ? 3 : recommended)
-    }, 0)
-    setTripDuration(Math.max(7, Math.min(suggestedDuration, 30)))
-  }, [router])
+    if (locations.length > 0) {
+      const suggestedDuration = locations.reduce((total, loc) => {
+        const recommended = parseInt(loc.recommendedDuration || '3', 10)
+        return total + (isNaN(recommended) ? 3 : recommended)
+      }, 0)
+      setTripDuration(Math.max(7, Math.min(suggestedDuration, 30)))
+    }
+  }, [])
 
   // Drag and Drop Sensors
   const sensors = useSensors(
@@ -242,8 +242,10 @@ export default function PlanPage() {
   const collapseAll = () => setExpandedDays(new Set())
 
 
+  const { isSignedIn } = useUser()
+
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-violet-100 via-pink-100 to-rose-100 flex flex-col">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-violet-100 via-pink-100 to-rose-100 flex flex-col relative">
       {/* Header */}
       <div className="bg-white/90 backdrop-blur-xl border-b border-violet-200/50 z-20 shadow-sm shrink-0">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -297,59 +299,67 @@ export default function PlanPage() {
 
               {/* Draggable List */}
               <div className="space-y-4">
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={orderedLocations.map(l => l.region || l.country)}
-                    strategy={verticalListSortingStrategy}
+                {orderedLocations.length === 0 ? (
+                  <div className="text-center py-8 px-4 bg-violet-50/50 rounded-xl border border-violet-200/50">
+                    <MapPin className="w-8 h-8 text-violet-300 mx-auto mb-2" />
+                    <p className="text-sm text-violet-600 font-medium mb-1">No destinations added yet</p>
+                    <p className="text-xs text-violet-500">Add destinations from the map to start planning your trip</p>
+                  </div>
+                ) : (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
                   >
-                    <div className="space-y-2 pl-6">
-                      {orderedLocations.map((location, index) => (
-                        <SortableLocationItem
-                          key={location.region || location.country}
-                          id={location.region || location.country}
-                          location={location}
-                          index={index}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
+                    <SortableContext
+                      items={orderedLocations.map(l => l.region || l.country)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-2 pl-6">
+                        {orderedLocations.map((location, index) => (
+                          <SortableLocationItem
+                            key={location.region || location.country}
+                            id={location.region || location.country}
+                            location={location}
+                            index={index}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
 
-                  <DragOverlay 
-                    dropAnimation={dropAnimation}
-                    adjustScale={false}
-                    modifiers={[snapCenterToCursor]}
-                    style={{ cursor: 'grabbing' }}
-                  >
-                    {activeId ? (() => {
-                      const draggedLocation = orderedLocations.find(l => (l.region || l.country) === activeId)!
-                      const draggedIndex = orderedLocations.findIndex(l => (l.region || l.country) === activeId)
-                      return (
-                        <div className="group relative flex items-center gap-4 p-4 bg-white backdrop-blur-sm rounded-xl border border-violet-400 shadow-2xl ring-2 ring-violet-400 opacity-95">
-                          <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-br from-violet-500 to-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md border-2 border-white z-10">
-                            {draggedIndex + 1}
-                          </div>
-                          <div className="cursor-grabbing text-violet-600 p-1 pointer-events-none">
-                            <GripVertical className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-violet-900 truncate pr-2">
-                              {draggedLocation.region || draggedLocation.country}
-                            </h3>
-                            <div className="flex items-center gap-2 text-xs text-violet-500 truncate">
-                              <MapPin className="w-3 h-3" />
-                              {draggedLocation.country}
+                    <DragOverlay 
+                      dropAnimation={dropAnimation}
+                      adjustScale={false}
+                      modifiers={[snapCenterToCursor]}
+                      style={{ cursor: 'grabbing' }}
+                    >
+                      {activeId ? (() => {
+                        const draggedLocation = orderedLocations.find(l => (l.region || l.country) === activeId)!
+                        const draggedIndex = orderedLocations.findIndex(l => (l.region || l.country) === activeId)
+                        return (
+                          <div className="group relative flex items-center gap-4 p-4 bg-white backdrop-blur-sm rounded-xl border border-violet-400 shadow-2xl ring-2 ring-violet-400 opacity-95">
+                            <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-br from-violet-500 to-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md border-2 border-white z-10">
+                              {draggedIndex + 1}
+                            </div>
+                            <div className="cursor-grabbing text-violet-600 p-1 pointer-events-none">
+                              <GripVertical className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-violet-900 truncate pr-2">
+                                {draggedLocation.region || draggedLocation.country}
+                              </h3>
+                              <div className="flex items-center gap-2 text-xs text-violet-500 truncate">
+                                <MapPin className="w-3 h-3" />
+                                {draggedLocation.country}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )
-                    })() : null}
-                  </DragOverlay>
-                </DndContext>
+                        )
+                      })() : null}
+                    </DragOverlay>
+                  </DndContext>
+                )}
               </div>
 
               {/* Integrated Filters Section */}
@@ -404,7 +414,7 @@ export default function PlanPage() {
               {/* Action Button */}
               <button
                 onClick={handlePlanTrip}
-                disabled={loading}
+                disabled={loading || orderedLocations.length === 0}
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 mt-6 bg-gradient-to-r from-violet-600 to-pink-600 text-white font-bold rounded-xl hover:from-violet-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {loading ? (
@@ -529,7 +539,40 @@ export default function PlanPage() {
         setExclusions={setExclusions}
         styles={filters.styles}
         setStyles={setStyles}
+        month={month}
+        setMonth={setMonth}
       />
+
+      {/* User profile button - bottom left */}
+      <div className="fixed bottom-4 left-4 z-[70]">
+        {isSignedIn ? (
+          <UserButton 
+            appearance={{
+              elements: {
+                avatarBox: "w-10 h-10 rounded-full ring-2 ring-violet-300 hover:ring-pink-400 transition-all",
+                userButtonPopoverCard: "shadow-xl border border-violet-200",
+              }
+            }}
+          />
+        ) : (
+          <SignInButton mode="modal">
+            <button
+              type="button"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-violet-500 hover:from-pink-500 hover:to-violet-600 transition-all shadow-md hover:shadow-lg active:scale-95"
+              aria-label="Sign In"
+              title="Sign in with Google"
+            >
+              <svg 
+                className="w-5 h-5 text-white" 
+                fill="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+              </svg>
+            </button>
+          </SignInButton>
+        )}
+      </div>
     </div>
   )
 }
