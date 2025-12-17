@@ -172,7 +172,7 @@ export function SearchResultsPanel({
                               addToSavedLocations(destination)
                             }
                           }}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all whitespace-nowrap ${
                             isSaved
                               ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
                               : 'bg-violet-100 text-violet-700 hover:bg-violet-200'
