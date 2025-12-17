@@ -23,35 +23,12 @@ const Popup = dynamic(
     () => import('react-leaflet').then((mod) => mod.Popup),
     { ssr: false }
 )
-const useMap = dynamic(
-    () => import('react-leaflet').then((mod) => mod.useMap),
+const MapBoundsUpdater = dynamic(
+    () => import('./MapBoundsUpdater'),
     { ssr: false }
 )
 
-// Component to update map bounds when locations change
-function MapBoundsUpdater({ locations }: { locations: Destination[] }) {
-    const map = useMap() as any
 
-    useEffect(() => {
-        if (!map || locations.length === 0) return
-
-        import('leaflet').then((L) => {
-            // Create bounds from all locations
-            const bounds = L.latLngBounds(
-                locations.map(loc => [
-                    // Safe fallback coordinates if missing
-                    loc.coordinates?.latitude || 0,
-                    loc.coordinates?.longitude || 0
-                ])
-            )
-
-            // Pad the bounds so markers aren't on the edge
-            map.fitBounds(bounds, { padding: [50, 50] })
-        })
-    }, [map, locations])
-
-    return null
-}
 
 interface TripMapProps {
     locations: Destination[]
@@ -89,9 +66,9 @@ export default function TripMap({ locations, className }: TripMapProps) {
     }
 
     // Calculate center (average of coords) or default
-    const validLocations = locations.filter(l => l.coordinates?.latitude && l.coordinates?.longitude)
-    const centerLat = validLocations.reduce((sum, loc) => sum + (loc.coordinates?.latitude || 0), 0) / (validLocations.length || 1)
-    const centerLng = validLocations.reduce((sum, loc) => sum + (loc.coordinates?.longitude || 0), 0) / (validLocations.length || 1)
+    const validLocations = locations.filter(l => l.coordinates?.lat && l.coordinates?.lng)
+    const centerLat = validLocations.reduce((sum, loc) => sum + (loc.coordinates?.lat || 0), 0) / (validLocations.length || 1)
+    const centerLng = validLocations.reduce((sum, loc) => sum + (loc.coordinates?.lng || 0), 0) / (validLocations.length || 1)
 
     return (
         <div className={`relative w-full h-full rounded-2xl overflow-hidden shadow-inner border border-violet-100 ${className}`}>
@@ -110,7 +87,7 @@ export default function TripMap({ locations, className }: TripMapProps) {
                 {validLocations.map((loc, idx) => (
                     <Marker
                         key={`${loc.region}-${loc.country}-${idx}`}
-                        position={[loc.coordinates?.latitude || 0, loc.coordinates?.longitude || 0]}
+                        position={[loc.coordinates?.lat || 0, loc.coordinates?.lng || 0]}
                     >
                         <Popup>
                             <div className="font-sans">
