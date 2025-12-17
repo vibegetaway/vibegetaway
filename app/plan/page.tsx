@@ -10,6 +10,9 @@ import { useTripFilters } from '@/hooks/useTripFilters'
 import { FilterBar } from '@/components/user-input/FilterBar'
 import { FilterSidePanel } from '@/components/panels/FilterSidePanel'
 import { cn } from '@/lib/utils'
+import dynamic from 'next/dynamic'
+
+const TripMap = dynamic(() => import('@/components/TripMap'), { ssr: false, loading: () => <div className="w-full h-full bg-violet-50/50 animate-pulse rounded-2xl" /> })
 
 // Drag and Drop imports
 import {
@@ -25,6 +28,7 @@ import {
   type DragEndEvent,
   type DragStartEvent
 } from '@dnd-kit/core'
+import { snapCenterToCursor } from '@dnd-kit/modifiers'
 import {
   arrayMove,
   SortableContext,
@@ -59,7 +63,7 @@ function SortableLocationItem({ location, id, index }: { location: Destination, 
         isDragging ? "opacity-50 border-violet-400 z-50 ring-2 ring-violet-400" : "border-violet-100/50 hover:border-violet-300",
       )}
     >
-      <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-violet-100 text-violet-600 rounded-full flex items-center justify-center text-xs font-bold border border-violet-200">
+      <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-br from-violet-500 to-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md border-2 border-white z-10">
         {index + 1}
       </div>
 
@@ -94,6 +98,7 @@ export default function PlanPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([1]))
+  const [isConfigOpen, setIsConfigOpen] = useState(true)
 
   // Integrate Filters
   const {
@@ -130,7 +135,11 @@ export default function PlanPage() {
 
   // Drag and Drop Sensors
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -202,6 +211,7 @@ export default function PlanPage() {
       const data = await response.json()
       setGeneratedPlan(data.plan)
       setExpandedDays(new Set([1]))
+      setIsConfigOpen(false)
 
       // We don't auto-save immediately here, letting user view it first? 
       // Or keep existing behavior. Existing behavior saved it.
@@ -257,128 +267,170 @@ export default function PlanPage() {
         {/* Left Column - Configuration & Itinerary */}
         <div className="w-[45%] flex flex-col gap-6 overflow-y-auto pr-2 no-scrollbar">
 
-          {/* Configuration Card */}
-          <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-white/50 shadow-lg p-6 space-y-8">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-violet-100 pb-4">
+          {/* Configuration Card (Collapsable) */}
+          <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-white/50 shadow-lg p-6 transition-all duration-300">
+            {/* Header with Toggle */}
+            <div
+              className="flex items-center justify-between cursor-pointer"
+              onClick={() => setIsConfigOpen(!isConfigOpen)}
+            >
               <div>
                 <h2 className="text-xl font-bold text-violet-900 flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-violet-500" />
                   Trip Configuration
                 </h2>
+                {!isConfigOpen && <p className="text-sm text-violet-500 mt-1">Review your settings</p>}
+              </div>
+
+              <div className="flex items-center gap-4">
+                {!isConfigOpen && (
+                  <div className="text-sm font-semibold text-violet-600 bg-violet-100 px-3 py-1 rounded-lg">
+                    {tripDuration} Days
+                  </div>
+                )}
+                {isConfigOpen ? <ChevronUp className="w-5 h-5 text-violet-400" /> : <ChevronDown className="w-5 h-5 text-violet-400" />}
               </div>
             </div>
 
-            {/* Draggable List */}
-            <div className="space-y-4">
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={orderedLocations.map(l => l.region || l.country)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-2">
-                    {orderedLocations.map((location, index) => (
-                      <SortableLocationItem
-                        key={location.region || location.country}
-                        id={location.region || location.country}
-                        location={location}
-                        index={index}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
+            {/* Collapsable Content */}
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isConfigOpen ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
 
-                <DragOverlay dropAnimation={dropAnimation}>
-                  {activeId ? (
-                    <SortableLocationItem
-                      id={activeId}
-                      location={orderedLocations.find(l => (l.region || l.country) === activeId)!}
-                      index={orderedLocations.findIndex(l => (l.region || l.country) === activeId)}
-                    />
-                  ) : null}
-                </DragOverlay>
-              </DndContext>
-            </div>
-
-            {/* Integrated Filters Section */}
-            <div className="space-y-4 pt-4 border-t border-violet-100">
-              <div className="flex items-center justify-between text-sm text-violet-600 font-medium mb-2">
-                <span>Preferences & Constraints</span>
-              </div>
-              
-              <div className="bg-violet-50/50 rounded-xl p-4 border border-violet-100 space-y-4">
-                {/* Prominent Duration Display/Input */}
-                <div className="flex justify-center">
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-violet-500 to-pink-500 p-2 rounded-xl shadow-md">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 text-white font-medium text-xs uppercase tracking-wide">
-                      Duration
-                    </div>
-                    <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-lg">
-                      <button
-                        onClick={() => setTripDuration(Math.max(1, tripDuration - 1))}
-                        disabled={tripDuration <= 1}
-                        className="p-1.5 text-white hover:bg-white/30 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label="Decrease duration"
-                      >
-                        <Minus className="w-4 h-4" />
-                      </button>
-                      <input
-                        type="number"
-                        min="1"
-                        max="30"
-                        value={tripDuration}
-                        onChange={(e) => setTripDuration(Math.max(1, Math.min(30, parseInt(e.target.value, 10) || 7)))}
-                        className="w-16 bg-transparent text-white font-bold text-xl text-center focus:outline-none placeholder-white/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                      <button
-                        onClick={() => setTripDuration(Math.min(30, tripDuration + 1))}
-                        disabled={tripDuration >= 30}
-                        className="p-1.5 text-white hover:bg-white/30 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label="Increase duration"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <span className="text-white font-semibold pr-2">Days</span>
-                  </div>
+              {/* Draggable List */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-sm text-violet-600 font-medium">
+                  <span>Destinations Order</span>
+                  <span className="text-xs bg-violet-100 px-2 py-1 rounded-full">Drag to reorder</span>
                 </div>
-                
-                <FilterBar
-                  onFilterClick={(type) => openFilterPanel(type)}
-                  filterCounts={filterCounts}
-                />
-              </div>
-            </div>
 
-            {/* Action Button */}
-            <button
-              onClick={handlePlanTrip}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-violet-600 to-pink-600 text-white font-bold rounded-xl hover:from-violet-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Generating Itinerary...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  Generate Itinerary
-                </>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={orderedLocations.map(l => l.region || l.country)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2 pl-6">
+                      {orderedLocations.map((location, index) => (
+                        <SortableLocationItem
+                          key={location.region || location.country}
+                          id={location.region || location.country}
+                          location={location}
+                          index={index}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+
+                  <DragOverlay 
+                    dropAnimation={dropAnimation}
+                    adjustScale={false}
+                    modifiers={[snapCenterToCursor]}
+                    style={{ cursor: 'grabbing' }}
+                  >
+                    {activeId ? (() => {
+                      const draggedLocation = orderedLocations.find(l => (l.region || l.country) === activeId)!
+                      const draggedIndex = orderedLocations.findIndex(l => (l.region || l.country) === activeId)
+                      return (
+                        <div className="group relative flex items-center gap-4 p-4 bg-white backdrop-blur-sm rounded-xl border border-violet-400 shadow-2xl ring-2 ring-violet-400 opacity-95">
+                          <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-br from-violet-500 to-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md border-2 border-white z-10">
+                            {draggedIndex + 1}
+                          </div>
+                          <div className="cursor-grabbing text-violet-600 p-1 pointer-events-none">
+                            <GripVertical className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-violet-900 truncate pr-2">
+                              {draggedLocation.region || draggedLocation.country}
+                            </h3>
+                            <div className="flex items-center gap-2 text-xs text-violet-500 truncate">
+                              <MapPin className="w-3 h-3" />
+                              {draggedLocation.country}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })() : null}
+                  </DragOverlay>
+                </DndContext>
+              </div>
+
+              {/* Integrated Filters Section */}
+              <div className="space-y-4 pt-4 border-t border-violet-100 mt-6">
+                <div className="flex items-center justify-between text-sm text-violet-600 font-medium mb-2">
+                  <span>Preferences & Constraints</span>
+                </div>
+                <div className="bg-violet-50/50 rounded-xl p-4 border border-violet-100 space-y-4">
+                  {/* Prominent Duration Display/Input */}
+                  <div className="flex justify-center">
+                    <div className="flex items-center gap-3 bg-gradient-to-r from-violet-500 to-pink-500 p-2 rounded-xl shadow-md">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 text-white font-medium text-xs uppercase tracking-wide">
+                        Duration
+                      </div>
+                      <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-lg">
+                        <button
+                          onClick={() => setTripDuration(Math.max(1, tripDuration - 1))}
+                          disabled={tripDuration <= 1}
+                          className="p-1.5 text-white hover:bg-white/30 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label="Decrease duration"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <input
+                          type="number"
+                          min="1"
+                          max="30"
+                          value={tripDuration}
+                          onChange={(e) => setTripDuration(Math.max(1, Math.min(30, parseInt(e.target.value, 10) || 7)))}
+                          className="w-16 bg-transparent text-white font-bold text-xl text-center focus:outline-none placeholder-white/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <button
+                          onClick={() => setTripDuration(Math.min(30, tripDuration + 1))}
+                          disabled={tripDuration >= 30}
+                          className="p-1.5 text-white hover:bg-white/30 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label="Increase duration"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <span className="text-white font-semibold pr-2">Days</span>
+                    </div>
+                  </div>
+                  
+                  <FilterBar
+                    onFilterClick={(type) => openFilterPanel(type)}
+                    filterCounts={filterCounts}
+                  />
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button
+                onClick={handlePlanTrip}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 mt-6 bg-gradient-to-r from-violet-600 to-pink-600 text-white font-bold rounded-xl hover:from-violet-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Generating Itinerary...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" />
+                    Generate Itinerary
+                  </>
+                )}
+              </button>
+
+              {error && (
+                <div className="mt-4 p-3 bg-rose-50 text-rose-700 text-sm rounded-lg border border-rose-200">
+                  {error}
+                </div>
               )}
-            </button>
-
-            {error && (
-              <div className="p-3 bg-rose-50 text-rose-700 text-sm rounded-lg border border-rose-200">
-                {error}
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Generated Itinerary Result */}
@@ -450,15 +502,10 @@ export default function PlanPage() {
         {/* Right Column - Placeholders */}
         <div className="w-[55%] flex flex-col gap-6">
           {/* Top Right: Map Placeholder - Takes more space now */}
-          <div className="flex-[3] bg-white/60 backdrop-blur-md rounded-2xl border border-white/50 shadow-lg relative flex items-center justify-center flex-col gap-3 group overflow-hidden">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-500 to-pink-500 opacity-50"></div>
-            <div className="p-6 bg-violet-100 rounded-full text-violet-500 group-hover:scale-110 transition-transform shadow-inner">
-              <MapPin className="w-10 h-10" />
-            </div>
-            <div className="text-center">
-              <p className="font-bold text-violet-900 text-lg">Interactive Map</p>
-              <p className="text-sm text-violet-500">Route visualization coming soon</p>
-            </div>
+
+          {/* Top Right: Map Component */}
+          <div className="flex-[3] relative flex flex-col group overflow-hidden">
+            <TripMap locations={orderedLocations} className="h-full w-full" />
           </div>
 
           {/* Bottom Right: Info Placeholder */}
