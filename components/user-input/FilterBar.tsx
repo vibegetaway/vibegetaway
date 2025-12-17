@@ -1,6 +1,6 @@
 "use client"
 
-import { SlidersHorizontal, MapPin, Wallet, Ban, Globe } from "lucide-react"
+import { MapPin, Wallet, Ban, Globe } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface FilterBarProps {
@@ -15,7 +15,6 @@ export function FilterBar({ onFilterClick, filterCounts = {}, className }: Filte
         { id: "destination", label: "Destination", icon: Globe },
         { id: "exclusions", label: "Exclusions", icon: Ban },
         { id: "budget", label: "Budget", icon: Wallet },
-        { id: "all", label: "All filters", icon: SlidersHorizontal },
     ]
 
     return (

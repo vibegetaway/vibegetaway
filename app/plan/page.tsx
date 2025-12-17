@@ -297,11 +297,6 @@ export default function PlanPage() {
 
               {/* Draggable List */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between text-sm text-violet-600 font-medium">
-                  <span>Destinations Order</span>
-                  <span className="text-xs bg-violet-100 px-2 py-1 rounded-full">Drag to reorder</span>
-                </div>
-
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
