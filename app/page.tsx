@@ -368,6 +368,8 @@ export default function Home() {
         setExclusions={setExclusions}
         styles={filters.styles}
         setStyles={setStyles}
+        month={month}
+        setMonth={setMonth}
       />
 
       {/* Search bar and filter tags overlay on top of map */}
@@ -382,8 +384,6 @@ export default function Home() {
           <SearchBar
             vibe={vibe}
             setVibe={setVibe}
-            month={month}
-            setMonth={setMonth}
             onSearch={() => handleFindDestinations(vibe, month)}
           />
           <InspirationChips
@@ -395,13 +395,15 @@ export default function Home() {
         {/* Filter Tags - floating individual pills */}
         <div className={cn(
           "transition-all duration-300 ease-in-out",
-          isFilterPanelOpen
-            ? "opacity-0 -translate-y-2 pointer-events-none"
-            : "opacity-100 translate-y-0"
+          activePanel === 'none' && !isFilterPanelOpen
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 -translate-y-2 pointer-events-none"
         )}>
           <FilterBar
             onFilterClick={handleFilterClick}
             filterCounts={filterCounts}
+            month={month}
+            setMonth={setMonth}
           />
         </div>
       </div>

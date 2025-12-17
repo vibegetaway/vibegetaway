@@ -1,8 +1,9 @@
-import { X, MapPin, Globe, Plane, Clock, Wallet, Ban, PartyPopper, CloudSun, Check, Loader2 } from "lucide-react"
+import { X, MapPin, Globe, Ban, Check, Loader2, Calendar } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { SmartTagInput } from "../user-input/SmartTagInput"
 import { getUserLocation, formatLocationString } from "@/lib/geolocation"
+import { FlexibleDateSelect } from "../user-input/FlexibleDateSelect"
 
 interface FilterSidePanelProps {
     isOpen: boolean
@@ -20,6 +21,8 @@ interface FilterSidePanelProps {
     setExclusions: (value: string[]) => void
     styles: string[]
     setStyles: (value: string[]) => void
+    month: string
+    setMonth: (value: string) => void
 }
 
 export function FilterSidePanel({
@@ -37,7 +40,9 @@ export function FilterSidePanel({
     exclusions,
     setExclusions,
     styles,
-    setStyles
+    setStyles,
+    month,
+    setMonth
 }: FilterSidePanelProps) {
     const [isDetectingLocation, setIsDetectingLocation] = useState(false)
     const [hasDetectedLocation, setHasDetectedLocation] = useState(false)
@@ -91,14 +96,35 @@ export function FilterSidePanel({
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
 
+                    {/* Date */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-4">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide whitespace-nowrap">
+                                <Calendar className="w-4 h-4" />
+                                Travel Date
+                            </label>
+                            <span className="text-xs text-violet-500 text-right">
+                                Select when you want to travel
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <FlexibleDateSelect value={month} onChange={setMonth} />
+                        </div>
+                    </div>
+
                     {/* Origin & Destination */}
                     <div className="space-y-6">
                         {/* Origin */}
                         <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
-                                <MapPin className="w-4 h-4" />
-                                Origin
-                            </label>
+                            <div className="flex items-center justify-between gap-4">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide whitespace-nowrap">
+                                    <MapPin className="w-4 h-4" />
+                                    Origin
+                                </label>
+                                <span className="text-xs text-violet-500 text-right">
+                                    Where you're flying from
+                                </span>
+                            </div>
                             <div className="relative">
                                 <input
                                     type="text"
@@ -125,10 +151,15 @@ export function FilterSidePanel({
 
                         {/* Destination Area */}
                         <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
-                                <Globe className="w-4 h-4" />
-                                Destination Area
-                            </label>
+                            <div className="flex items-center justify-between gap-4">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide whitespace-nowrap">
+                                    <Globe className="w-4 h-4" />
+                                    Destination Area
+                                </label>
+                                <span className="text-xs text-violet-500 text-right">
+                                    Specify countries, regions, cities, or even airports.
+                                </span>
+                            </div>
                             <SmartTagInput
                                 value={locations}
                                 onChange={setLocations}
@@ -136,84 +167,29 @@ export function FilterSidePanel({
                                 suggestionType="location"
                                 autoFocus={activeFilter === 'destination'}
                             />
-                            <p className="text-xs text-violet-500">
-                                Specify countries, regions, cities, or even airports.
-                            </p>
                         </div>
                     </div>
 
                     {/* Exclusions */}
                     <div className="space-y-3">
-                        <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
-                            <Ban className="w-4 h-4" />
-                            Exclusions
-                        </label>
+                        <div className="flex items-center justify-between gap-4">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
+                                <Ban className="w-4 h-4" />
+                                Exclusions
+                            </label>
+                            <span className="text-xs text-violet-500 whitespace-nowrap">
+                                Things to avoid
+                            </span>
+                        </div>
                         <SmartTagInput
                             value={exclusions}
                             onChange={setExclusions}
                             placeholder="e.g. Crowds, Rainy Season"
                             suggestionType="exclusion"
+                            autoFocus={activeFilter === 'exclusions'}
                         />
                     </div>
 
-                    {/* Trip Details */}
-                    <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-violet-800 border-b border-violet-200 pb-2">Trip Details</h3>
-
-                        {/* Duration */}
-                        <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
-                                <Clock className="w-4 h-4" />
-                                Duration (Days)
-                            </label>
-                            <div className="flex items-center gap-4">
-                                <div className="flex-1 space-y-1">
-                                    <span className="text-xs text-violet-500">Min</span>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="30"
-                                        value={duration[0]}
-                                        onChange={(e) => setDuration([parseInt(e.target.value) || 1, duration[1]])}
-                                        className="w-full px-3 py-2 bg-white border border-violet-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-100 outline-none"
-                                    />
-                                </div>
-                                <div className="flex-1 space-y-1">
-                                    <span className="text-xs text-violet-500">Max</span>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="60"
-                                        value={duration[1]}
-                                        onChange={(e) => setDuration([duration[0], parseInt(e.target.value) || 1])}
-                                        className="w-full px-3 py-2 bg-white border border-violet-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-100 outline-none"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Budget */}
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide">
-                                    <Wallet className="w-4 h-4" />
-                                    Max Budget
-                                </label>
-                                <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                                    ${budget}
-                                </span>
-                            </div>
-                            <input
-                                type="range"
-                                min="500"
-                                max="10000"
-                                step="100"
-                                value={budget}
-                                onChange={(e) => setBudget(parseInt(e.target.value))}
-                                className="w-full h-2 bg-violet-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                            />
-                        </div>
-                    </div>
                 </div>
 
                 {/* Footer */}

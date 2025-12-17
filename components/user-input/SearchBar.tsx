@@ -2,18 +2,15 @@
 
 import { useState } from 'react'
 import { SmartTagInput } from './SmartTagInput'
-import { FlexibleDateSelect } from './FlexibleDateSelect'
 import { Search } from 'lucide-react'
 
 interface SearchBarProps {
     vibe: string
     setVibe: (value: string) => void
-    month: string
-    setMonth: (value: string) => void
     onSearch: () => void
 }
 
-export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBarProps) {
+export function SearchBar({ vibe, setVibe, onSearch }: SearchBarProps) {
     const [currentInput, setCurrentInput] = useState("")
 
     return (
@@ -33,20 +30,18 @@ export function SearchBar({ vibe, setVibe, month, setMonth, onSearch }: SearchBa
                             onInputChange={setCurrentInput}
                         />
                     </span>
-                    <span className="text-sm text-stone-500">in</span>
-                    <FlexibleDateSelect value={month} onChange={setMonth} />
                 </h1>
                 <button
                     type="button"
                     onClick={onSearch}
                     disabled={!vibe.trim() && !currentInput.trim()}
-                    className="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-pink-400 disabled:hover:to-rose-500 shadow-sm hover:shadow-md shrink-0 group"
+                    className="relative flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-pink-400 disabled:hover:to-rose-500 shadow-sm hover:shadow-md shrink-0 group text-xs"
                     title="Search (Enter)"
                 >
-                    <Search className="w-4 h-4" />
-                    <span className="text-sm">Find destinations</span>
+                    <Search className="w-3.5 h-3.5" />
+                    <span>Find destinations</span>
                     {/* Keyboard shortcut hint */}
-                    <span className="ml-1 text-xs opacity-70 border border-white/30 px-1.5 py-0.5 rounded">
+                    <span className="ml-0.5 text-[10px] opacity-70 border border-white/30 px-1 py-0.5 rounded">
                         ↵
                     </span>
                 </button>

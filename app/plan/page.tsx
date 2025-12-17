@@ -448,7 +448,7 @@ export default function PlanPage() {
                       className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-violet-50/50 to-pink-50/50 hover:from-violet-100/50 hover:to-pink-100/50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="w-8 h-8 flex items-center justify-center bg-white text-violet-600 font-bold rounded-lg shadow-sm text-sm border border-violet-100">
+                        <span className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-violet-500 to-pink-500 text-white font-bold rounded-xl shadow-lg text-lg border-2 border-white">
                           {day.day}
                         </span>
                         <div className="text-left">
