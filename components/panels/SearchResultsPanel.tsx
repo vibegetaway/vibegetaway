@@ -142,15 +142,13 @@ export function SearchResultsPanel({
               return (
                 <div
                   key={`${destination.country}-${destination.region}-${index}`}
-                  className={`relative group w-full bg-white rounded-xl transition-all duration-300 shadow-sm border-2 ${isSelected
+                  onClick={() => onDestinationClick(destination)}
+                  className={`relative group w-full bg-white rounded-xl transition-all duration-200 shadow-sm border-2 ${isSelected
                     ? 'ring-2 ring-pink-400 shadow-md shadow-pink-100 border-pink-200'
-                    : 'hover:shadow-lg hover:shadow-violet-200/50 border-violet-200/60 hover:border-violet-300'
+                    : 'hover:shadow-lg hover:shadow-violet-200/50 border-violet-200/60 hover:border-violet-300 hover:border-pink-300 hover:bg-violet-50/30 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5'
                     }`}
                 >
-                  <div
-                    onClick={() => onDestinationClick(destination)}
-                    className="cursor-pointer p-4"
-                  >
+                  <div className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h3 className="text-lg font-bold text-violet-900 leading-tight">

@@ -59,12 +59,28 @@ function MapEventHandler({ onMapInteraction }: { onMapInteraction: () => void })
     // Hide overlay when user interacts with map
     map.on('movestart', handleInteraction)
     map.on('zoomstart', handleInteraction)
-    map.on('click', handleInteraction)
+    
+    // Only hide overlay on map clicks, not marker clicks
+    const handleMapClick = (e: L.LeafletMouseEvent) => {
+      // Check if click was on a marker by checking the target
+      const target = e.originalEvent.target as HTMLElement
+      // Check for both default Leaflet markers and custom markers
+      const isMarkerClick = target.closest('.leaflet-marker-icon') !== null ||
+                            target.closest('.custom-marker') !== null ||
+                            target.closest('.leaflet-marker-pane') !== null
+      
+      // Only hide overlay if it's not a marker click
+      if (!isMarkerClick) {
+        handleInteraction()
+      }
+    }
+    
+    map.on('click', handleMapClick)
 
     return () => {
       map.off('movestart', handleInteraction)
       map.off('zoomstart', handleInteraction)
-      map.off('click', handleInteraction)
+      map.off('click', handleMapClick)
     }
   }, [map, onMapInteraction])
 
@@ -119,8 +135,17 @@ function DestinationMarkers({
             position={position}
             icon={createPurpleIcon(isSelected, hasDetails)}
             eventHandlers={{
-              click: () => onMarkerClick(dest),
-              mouseover: (e) => onMarkerHover(dest, e),
+              click: (e) => {
+                // Stop event propagation to prevent map click handler from interfering
+                e.originalEvent.stopPropagation()
+                e.originalEvent.stopImmediatePropagation()
+                // Call handler immediately
+                onMarkerClick(dest)
+              },
+              mouseover: (e) => {
+                e.originalEvent.stopPropagation()
+                onMarkerHover(dest, e)
+              },
               mouseout: () => onMarkerLeave(),
             }}
           />
@@ -189,11 +214,17 @@ export default function WorldMap({
   }, [destinations, hoveredDestination])
 
   const handleMarkerClick = (destination: Destination) => {
+    // Clear hover state when clicking
+    setHoveredDestination(null)
+    
+    // Set the selected destination
     if (onDestinationSelect) {
       onDestinationSelect(destination)
     } else {
       setInternalSelectedDestination(destination)
     }
+    
+    // Always open the panel
     setIsPanelOpen(true)
   }
 

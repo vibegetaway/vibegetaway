@@ -18,14 +18,6 @@ interface DestinationInfoPanelProps {
   isSidebarOpen?: boolean
 }
 
-// Helper to parse pricing values (e.g., "20-40", "25", or numbers)
-function parsePricing(value: string | number): number {
-  if (typeof value === 'number') return value
-  const strValue = String(value)
-  const match = strValue.match(/(\d+)/)
-  return match ? parseInt(match[1], 10) : 0
-}
-
 // Helper to format duration from minutes to "Xh Ym" format
 function formatDuration(minutes: number): string {
   const hours = Math.floor(minutes / 60)
@@ -128,10 +120,6 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
   }, [destination, isOpen])
 
   if (!destination) return null
-
-  const accommodationPrice = parsePricing(destination.pricing?.accommodation || 0)
-  const foodPrice = parsePricing(destination.pricing?.food || 0)
-  const activitiesPrice = parsePricing(destination.pricing?.activities || 0)
 
   return (
     <>
@@ -257,69 +245,25 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
           </div>
 
           {/* Pricing Details */}
-          <div className="mb-8">
-            <h3 className="text-sm font-semibold text-violet-700 uppercase tracking-widest mb-4">Pricing Details</h3>
-            {destination.pricing ? (
-              <div className="space-y-3">
-                <div className="p-4 rounded-lg bg-violet-50 border border-violet-200/50">
-                  <p className="text-xs text-violet-600 mb-1">Accommodation Range</p>
-                  <p className="text-2xl font-bold text-violet-700">${destination.pricing.accommodation}/night</p>
-                </div>
-                <div className="p-4 rounded-lg bg-pink-50 border border-pink-200/50">
-                  <p className="text-xs text-violet-600 mb-1">Food & Dining</p>
-                  <p className="text-2xl font-bold text-pink-700">${destination.pricing.food}/day</p>
-                </div>
-                <div className="p-4 rounded-lg bg-purple-50 border border-purple-200/50">
-                  <p className="text-xs text-violet-600 mb-1">Activities & Entertainment</p>
-                  <p className="text-2xl font-bold text-purple-700">${destination.pricing.activities}/day</p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="p-4 rounded-lg bg-violet-50/50 border border-violet-200/50 animate-pulse">
-                  <div className="h-3 bg-violet-100 rounded w-2/3 mb-2"></div>
-                  <div className="h-8 bg-violet-100 rounded w-1/2"></div>
-                </div>
-                <div className="p-4 rounded-lg bg-pink-50/50 border border-pink-200/50 animate-pulse">
-                  <div className="h-3 bg-pink-100 rounded w-2/3 mb-2"></div>
-                  <div className="h-8 bg-pink-100 rounded w-1/2"></div>
-                </div>
-                <div className="p-4 rounded-lg bg-purple-50/50 border border-purple-200/50 animate-pulse">
-                  <div className="h-3 bg-purple-100 rounded w-2/3 mb-2"></div>
-                  <div className="h-8 bg-purple-100 rounded w-1/2"></div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Trip Summary */}
-          {destination.pricing ? (
-            <div className="mb-8 p-4 rounded-lg bg-gradient-to-r from-violet-100/60 to-pink-100/60 border border-violet-300/50">
-              <p className="text-sm font-semibold text-violet-800 mb-3">7-Day Trip Estimate</p>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between text-violet-700">
+          {destination.pricing && (
+            <div className="mb-8">
+              <h3 className="text-sm font-semibold text-violet-700 uppercase tracking-widest mb-3">Pricing</h3>
+              <div className="space-y-2 text-sm text-violet-700">
+                <div className="flex justify-between">
                   <span>Accommodation</span>
-                  <span>
-                    ${accommodationPrice * 7}/week
-                  </span>
+                  <span className="font-semibold">${destination.pricing.accommodation}/night</span>
                 </div>
-                <div className="flex justify-between text-violet-700">
+                <div className="flex justify-between">
                   <span>Food</span>
-                  <span>${foodPrice * 7}/week</span>
+                  <span className="font-semibold">${destination.pricing.food}/day</span>
                 </div>
-                <div className="flex justify-between text-violet-700">
+                <div className="flex justify-between">
                   <span>Activities</span>
-                  <span>${activitiesPrice * 7}/week</span>
-                </div>
-                <div className="border-t border-violet-300/50 pt-2 flex justify-between font-semibold text-violet-800">
-                  <span>Total</span>
-                  <span>
-                    ${accommodationPrice * 7 + foodPrice * 7 + activitiesPrice * 7}/week
-                  </span>
+                  <span className="font-semibold">${destination.pricing.activities}/day</span>
                 </div>
               </div>
             </div>
-          ) : null}
+          )}
 
           {/* Flight Details */}
           <div className="mb-8">
