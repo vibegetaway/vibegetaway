@@ -25,7 +25,7 @@ export default function ViewItineraryPage() {
     }
 
     const itinerary = getItineraryById(id)
-    
+
     if (!itinerary) {
       setNotFound(true)
       return
@@ -75,7 +75,7 @@ export default function ViewItineraryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-100 via-pink-100 to-rose-100">
+    <div className="h-screen overflow-y-auto bg-gradient-to-br from-violet-100 via-pink-100 to-rose-100">
       {/* Header */}
       <div className="bg-white/90 backdrop-blur-xl border-b border-violet-200/50 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -103,7 +103,7 @@ export default function ViewItineraryPage() {
             {/* Trip Summary */}
             <div className="relative bg-gradient-to-br from-white to-violet-50/30 rounded-2xl shadow-xl p-8 border border-violet-200/50 backdrop-blur-sm">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-violet-400/10 rounded-full blur-3xl"></div>
-              
+
               <div className="relative">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg">
@@ -111,7 +111,7 @@ export default function ViewItineraryPage() {
                   </div>
                   <h2 className="text-2xl font-bold text-violet-900">Trip Summary</h2>
                 </div>
-                
+
                 <div className="mb-6 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-violet-100">
                   <p className="text-sm text-violet-700 font-semibold mb-3 flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
@@ -140,7 +140,7 @@ export default function ViewItineraryPage() {
             {generatedPlan.length > 0 && (
               <div className="relative bg-gradient-to-br from-white to-pink-50/30 rounded-2xl shadow-xl p-8 border border-pink-200/50 backdrop-blur-sm">
                 <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-violet-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
-                
+
                 <div className="relative">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
@@ -168,7 +168,7 @@ export default function ViewItineraryPage() {
                   <div className="space-y-4">
                     {generatedPlan.map((day) => {
                       const isExpanded = expandedDays.has(day.day)
-                      
+
                       return (
                         <div
                           key={day.day}
@@ -197,9 +197,8 @@ export default function ViewItineraryPage() {
 
                           {/* Day Content */}
                           <div
-                            className={`transition-all duration-300 ease-in-out ${
-                              isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
-                            } overflow-hidden`}
+                            className={`transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+                              } overflow-hidden`}
                           >
                             <div className="p-6 space-y-5 bg-gradient-to-br from-white to-violet-50/30">
                               {/* Morning */}
