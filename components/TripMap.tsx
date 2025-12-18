@@ -1,31 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import 'leaflet/dist/leaflet.css'
-import dynamic from 'next/dynamic'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import L from 'leaflet'
 import { MapPin } from 'lucide-react'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import type { DayBreakdown } from '@/lib/itineraryHistory'
 
-// Dynamically import Leaflet components to avoid SSR issues
-const MapContainer = dynamic(
-    () => import('react-leaflet').then((mod) => mod.MapContainer),
-    { ssr: false }
-)
-const TileLayer = dynamic(
-    () => import('react-leaflet').then((mod) => mod.TileLayer),
-    { ssr: false }
-)
-const Marker = dynamic(
-    () => import('react-leaflet').then((mod) => mod.Marker),
-    { ssr: false }
-)
-const Popup = dynamic(
-    () => import('react-leaflet').then((mod) => mod.Popup),
-    { ssr: false }
-)
-
-
+// Fix default marker icon issues in Next.js/Leaflet
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+})
 
 interface TripMapProps {
     locations: Destination[]
@@ -33,25 +23,31 @@ interface TripMapProps {
     className?: string
 }
 
-export default function TripMap({ locations, selectedDay, className }: TripMapProps) {
-    const [L, setL] = useState<any>(null)
+function MapController({ markers }: { markers: { lat: number; lng: number }[] }) {
+    const map = useMap()
+    const prevMarkersRef = useRef<string>('')
 
     useEffect(() => {
-        // Import Leaflet client-side only to configure icons
-        import('leaflet').then((Leaflet) => {
-            setL(Leaflet)
+        if (markers.length === 0) return
 
-            // Fix default marker icon issues in Next.js/Leaflet
-            // @ts-ignore
-            delete Leaflet.Icon.Default.prototype._getIconUrl
-            Leaflet.Icon.Default.mergeOptions({
-                iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        // Create a signature of the markers to avoid unnecessary updates
+        const markersSignature = JSON.stringify(markers.map(m => [m.lat, m.lng]))
+
+        // Only fit bounds if markers have actually changed
+        if (prevMarkersRef.current !== markersSignature) {
+            const bounds = L.latLngBounds(markers.map(m => [m.lat, m.lng]))
+            map.fitBounds(bounds, {
+                padding: [50, 50],
+                maxZoom: 10
             })
-        })
-    }, [])
+            prevMarkersRef.current = markersSignature
+        }
+    }, [markers, map])
 
+    return null
+}
+
+export default function TripMap({ locations, selectedDay, className }: TripMapProps) {
     // Logic to determine what to show
     // If selectedDay is active and has valid coords/POIs, show those.
     // Otherwise show the overview of all locations.
@@ -78,8 +74,6 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
 
     // Custom Icon Creator
     const createCustomIcon = (type: 'main' | 'poi') => {
-        if (!L) return undefined;
-
         const colorClass = type === 'main' ? 'bg-violet-600' : 'bg-pink-500';
 
         return L.divIcon({
@@ -108,7 +102,7 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
 
     const markersToShow = showDayView ? dayMarkers : overviewMarkers
 
-    // Helper for center calculation (fallback)
+    // Helper for center calculation (initial view fallback)
     const getCenter = () => {
         if (markersToShow.length === 0) return [20, 0]
         const lat = markersToShow.reduce((sum, m) => sum + m.lat, 0) / markersToShow.length
@@ -133,13 +127,21 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
                 center={getCenter() as [number, number]}
                 zoom={2}
                 scrollWheelZoom={true}
+                zoomSnap={0.25}
+                zoomDelta={0.25}
+                wheelPxPerZoomLevel={30}
+                wheelDebounceTime={20}
                 className="w-full h-full z-0"
                 style={{ background: 'transparent' }}
             >
                 <TileLayer
-                    attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
-                    url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                    subdomains="abcd"
+                    maxZoom={19}
                 />
+
+                <MapController markers={markersToShow} />
 
                 {markersToShow.map((marker, idx) => (
                     <Marker

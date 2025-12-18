@@ -27,6 +27,8 @@ export interface DayBreakdown {
   points_of_interest?: Array<{
     name: string
     description: string
+    insight?: string
+    tags?: string[]
     coordinates: {
       lat: number
       lng: number

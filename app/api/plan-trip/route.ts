@@ -50,7 +50,9 @@ For each day, you MUST provide:
 5. "morning", "midday", "evening": { "activity": string, "description": string }
 6. "events": Array of special events/peculiarities (e.g., "Full Moon Party", "Night Market"). empty if none.
 7. "alerts": Array of { "type": "warning"|"info", "message": string } (e.g., "Rainy season", "Political unrest"). empty if none.
-8. "points_of_interest": Array of specific places to visit that day, with coordinates.
+8. "points_of_interest": Array of specific places to visit that day, with coordinates. Each POI MUST include:
+    - "insight": A detailed explanation of WHY this spot is relevant (e.g., historical significance, biggest waterfall, rare bird spotting chance). Do not just give generic comments.
+    - "tags": Array of 3 strings describing the vibe (e.g., "touristy", "culture", "quiet", "nature", "bustling").
 
 CRITICAL: Return ONLY a valid JSON array with no additional text, markdown, or explanation.
 
@@ -69,8 +71,20 @@ Example format:
          { "type": "info", "message": "Monkeys can be aggressive with food." }
     ],
     "points_of_interest": [
-        { "name": "Uluwatu Temple", "description": "Ancient sea temple.", "coordinates": { "lat": -8.8291, "lng": 115.0837 } },
-        { "name": "Padang Padang Beach", "description": "Beautiful beach cove.", "coordinates": { "lat": -8.8111, "lng": 115.1030 } }
+        { 
+            "name": "Uluwatu Temple", 
+            "description": "Ancient sea temple.", 
+            "insight": "One of Bali's nine key directional temples, perched on a steep cliff 70 meters above the roaring Indian Ocean. It is believed to guard the island from evil sea spirits.",
+            "tags": ["culture", "history", "views"],
+            "coordinates": { "lat": -8.8291, "lng": 115.0837 } 
+        },
+        { 
+            "name": "Padang Padang Beach", 
+            "description": "Beautiful beach cove.", 
+            "insight": "Famous as a filming location for 'Eat Pray Love', this beach is accessed through a narrow rock crevice, revealing a hidden paradise with world-class surf breaks.",
+            "tags": ["beach", "surf", "touristy"],
+            "coordinates": { "lat": -8.8111, "lng": 115.1030 } 
+        }
     ],
     "morning": {
       "activity": "Relax at Padang Padang Beach",
@@ -205,7 +219,7 @@ Return the itinerary as a JSON array.`
       why_its_nice: day.why_its_nice,
       events: day.events || [],
       alerts: day.alerts || [],
-      points_of_interest: day.points_of_interest || [],
+      points_of_interest: (day.points_of_interest || []).map(normalizePOI),
       morning: normalizeActivity(day.morning),
       midday: normalizeActivity(day.midday),
       evening: normalizeActivity(day.evening),
@@ -240,5 +254,15 @@ function normalizeActivity(activity: any): DayActivity {
   return {
     activity: activity.activity || 'Activity',
     description: activity.description || '',
+  }
+}
+
+function normalizePOI(poi: any) {
+  return {
+    name: poi.name || 'Unknown Spot',
+    description: poi.description || '',
+    insight: poi.insight || '',
+    tags: Array.isArray(poi.tags) ? poi.tags.slice(0, 3) : [],
+    coordinates: poi.coordinates || { lat: 0, lng: 0 }
   }
 }

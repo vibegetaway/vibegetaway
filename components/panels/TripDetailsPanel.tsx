@@ -111,8 +111,28 @@ export function TripDetailsPanel({ selectedDayData, className }: TripDetailsPane
                                 </h3>
                                 <div className="grid grid-cols-1 gap-3">
                                     {selectedDayData.points_of_interest.map((poi, idx) => (
-                                        <div key={idx} className="bg-violet-50/50 p-3 rounded-xl border border-violet-100">
-                                            <p className="font-semibold text-violet-800 text-sm">{poi.name}</p>
+                                        <div key={idx} className="bg-violet-50/50 p-4 rounded-xl border border-violet-100 shadow-sm hover:shadow-md transition-all">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h4 className="font-bold text-violet-900 text-sm">{poi.name}</h4>
+                                                {poi.tags && (
+                                                    <div className="flex gap-1 flex-wrap justify-end max-w-[50%]">
+                                                        {poi.tags.map((tag, tIdx) => (
+                                                            <span key={tIdx} className="text-[10px] font-medium px-2 py-0.5 bg-white border border-violet-200 text-violet-600 rounded-full capitalize">
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {poi.insight && (
+                                                <div className="mb-2 p-2 bg-white/60 rounded-lg border border-violet-100/50">
+                                                    <p className="text-xs text-violet-700 italic border-l-2 border-pink-400 pl-2">
+                                                        "{poi.insight}"
+                                                    </p>
+                                                </div>
+                                            )}
+
                                             <p className="text-xs text-violet-500 mt-1">{poi.description}</p>
                                         </div>
                                     ))}
