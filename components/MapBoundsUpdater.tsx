@@ -20,8 +20,8 @@ export default function MapBoundsUpdater({ locations }: { locations: Destination
             ])
         )
 
-        // Pad the bounds so markers aren't on the edge
-        map.fitBounds(bounds, { padding: [50, 50] })
+        // Pad the bounds so markers aren't on the edge (zoom out a bit)
+        map.fitBounds(bounds, { padding: [100, 100] })
     }, [map, locations])
 
     return null

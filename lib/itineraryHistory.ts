@@ -10,6 +10,28 @@ export interface DayActivity {
 export interface DayBreakdown {
   day: number
   location: string
+  coordinates?: {
+    lat: number
+    lng: number
+  }
+  best_time_to_visit?: string
+  why_its_nice?: string
+  events?: Array<{
+    name: string
+    description: string
+  }>
+  alerts?: Array<{
+    type: 'warning' | 'info'
+    message: string
+  }>
+  points_of_interest?: Array<{
+    name: string
+    description: string
+    coordinates: {
+      lat: number
+      lng: number
+    }
+  }>
   morning: DayActivity
   midday: DayActivity
   evening: DayActivity

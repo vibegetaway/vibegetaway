@@ -12,6 +12,7 @@ import { FilterBar } from '@/components/user-input/FilterBar'
 import { FilterSidePanel } from '@/components/panels/FilterSidePanel'
 import { cn } from '@/lib/utils'
 import dynamic from 'next/dynamic'
+import { TripDetailsPanel } from '@/components/panels/TripDetailsPanel'
 
 const TripMap = dynamic(() => import('@/components/TripMap'), { ssr: false, loading: () => <div className="w-full h-full bg-violet-50/50 animate-pulse rounded-2xl" /> })
 
@@ -99,6 +100,7 @@ export default function PlanPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([1]))
+  const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [isConfigOpen, setIsConfigOpen] = useState(true)
   const [month, setMonth] = useState('Anytime')
 
@@ -211,6 +213,7 @@ export default function PlanPage() {
       const data = await response.json()
       setGeneratedPlan(data.plan)
       setExpandedDays(new Set([1]))
+      setSelectedDay(1) // Auto-select day 1
       setIsConfigOpen(false)
 
       // We don't auto-save immediately here, letting user view it first? 
@@ -244,6 +247,11 @@ export default function PlanPage() {
 
   const { isSignedIn } = useUser()
 
+  // Calculate selected day logic for Map and Details Panel
+  const selectedDayData = selectedDay
+    ? generatedPlan.find(d => d.day === selectedDay) || null
+    : null
+
   return (
     <div className="h-screen overflow-hidden bg-gradient-to-br from-violet-100 via-pink-100 to-rose-100 flex flex-col relative">
       {/* Header */}
@@ -265,12 +273,12 @@ export default function PlanPage() {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden max-w-[1400px] mx-auto w-full px-6 py-6 gap-6">
+      <div className="flex-1 flex overflow-hidden max-w-[1400px] mx-auto w-full px-2 py-2 gap-2">
         {/* Left Column - Configuration & Itinerary */}
-        <div className="w-[45%] flex flex-col gap-6 overflow-y-auto pr-2 no-scrollbar">
+        <div className="w-[40%] flex flex-col gap-2 overflow-y-auto pr-1 no-scrollbar">
 
           {/* Configuration Card (Collapsable) */}
-          <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-white/50 shadow-lg p-6 transition-all duration-300">
+          <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-white/50 shadow-lg p-4 transition-all duration-300">
             {/* Header with Toggle */}
             <div
               className="flex items-center justify-between cursor-pointer"
@@ -295,7 +303,7 @@ export default function PlanPage() {
             </div>
 
             {/* Collapsable Content */}
-            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isConfigOpen ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isConfigOpen ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
 
               {/* Draggable List */}
               <div className="space-y-4">
@@ -328,7 +336,7 @@ export default function PlanPage() {
                       </div>
                     </SortableContext>
 
-                    <DragOverlay 
+                    <DragOverlay
                       dropAnimation={dropAnimation}
                       adjustScale={false}
                       modifiers={[snapCenterToCursor]}
@@ -403,7 +411,7 @@ export default function PlanPage() {
                       <span className="text-white font-semibold pr-2">Days</span>
                     </div>
                   </div>
-                  
+
                   <FilterBar
                     onFilterClick={(type) => openFilterPanel(type)}
                     filterCounts={filterCounts}
@@ -440,7 +448,7 @@ export default function PlanPage() {
 
           {/* Generated Itinerary Result */}
           {generatedPlan.length > 0 && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-violet-900">Your Daily Plan</h2>
                 <div className="flex gap-2">
@@ -451,21 +459,45 @@ export default function PlanPage() {
 
               {generatedPlan.map((day) => {
                 const isExpanded = expandedDays.has(day.day)
+                const isSelected = selectedDay === day.day
+
                 return (
-                  <div key={day.day} className="bg-white/80 backdrop-blur-sm border border-violet-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+                  <div
+                    key={day.day}
+                    className={cn(
+                      "bg-white/80 backdrop-blur-sm border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all",
+                      isSelected ? "border-violet-500 ring-2 ring-violet-200" : "border-violet-100"
+                    )}
+                  >
                     <button
-                      onClick={() => toggleDay(day.day)}
-                      className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-violet-50/50 to-pink-50/50 hover:from-violet-100/50 hover:to-pink-100/50 transition-colors"
+                      onClick={() => {
+                        setSelectedDay(day.day) // Click body to select
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-violet-50/50 to-pink-50/50 hover:from-violet-100/50 hover:to-pink-100/50 transition-colors text-left"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-violet-500 to-pink-500 text-white font-bold rounded-xl shadow-lg text-lg border-2 border-white">
+                        <span className={cn(
+                          "w-12 h-12 flex items-center justify-center font-bold rounded-xl shadow-lg text-lg border-2 border-white transition-all",
+                          isSelected ? "bg-violet-600 text-white scale-110" : "bg-gradient-to-br from-violet-500 to-pink-500 text-white"
+                        )}>
                           {day.day}
                         </span>
-                        <div className="text-left">
+                        <div className="text-left flex-1">
                           <p className="font-bold text-violet-900">{day.location}</p>
+                          <p className="text-xs text-violet-500 font-medium">Click to view map & details</p>
                         </div>
                       </div>
-                      {isExpanded ? <ChevronUp className="w-5 h-5 text-violet-400" /> : <ChevronDown className="w-5 h-5 text-violet-400" />}
+
+                      {/* Independent Expand Button */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleDay(day.day)
+                        }}
+                        className="p-2 hover:bg-violet-100 rounded-full text-violet-400 hover:text-violet-600 transition-colors"
+                      >
+                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                      </div>
                     </button>
 
                     {isExpanded && (
@@ -504,21 +536,16 @@ export default function PlanPage() {
 
         </div>
 
-        {/* Right Column - Placeholders */}
-        <div className="w-[55%] flex flex-col gap-6">
-          {/* Top Right: Map Placeholder - Takes more space now */}
-
-          {/* Top Right: Map Component */}
-          <div className="flex-[3] relative flex flex-col group overflow-hidden">
-            <TripMap locations={orderedLocations} className="h-full w-full" />
+        {/* Right Column - Map & Details */}
+        <div className="w-[60%] flex flex-col gap-2 h-full">
+          {/* Top: Map Component (35% height) */}
+          <div className="h-[35%] min-h-[250px] relative rounded-2xl overflow-hidden shadow-lg border border-violet-100 bg-violet-50">
+            <TripMap locations={orderedLocations} selectedDay={selectedDayData} className="h-full w-full" />
           </div>
 
-          {/* Bottom Right: Info Placeholder */}
-          <div className="flex-1 bg-white/60 backdrop-blur-md rounded-2xl border border-white/50 shadow-lg relative flex items-center justify-center flex-col gap-3 group">
-            <div className="p-4 bg-pink-100 rounded-full text-pink-500 group-hover:scale-110 transition-transform shadow-inner">
-              <Info className="w-8 h-8" />
-            </div>
-            <p className="font-bold text-pink-500">Trip Details</p>
+          {/* Bottom: Trip Details (Remaining height) */}
+          <div className="flex-1 overflow-hidden rounded-2xl shadow-lg border border-violet-100 bg-white/40 backdrop-blur-sm">
+            <TripDetailsPanel selectedDayData={selectedDayData} className="h-full" />
           </div>
         </div>
       </div>
@@ -546,7 +573,7 @@ export default function PlanPage() {
       {/* User profile button - bottom left */}
       <div className="fixed bottom-4 left-4 z-[70]">
         {isSignedIn ? (
-          <UserButton 
+          <UserButton
             appearance={{
               elements: {
                 avatarBox: "w-10 h-10 rounded-full ring-2 ring-violet-300 hover:ring-pink-400 transition-all",
@@ -562,12 +589,12 @@ export default function PlanPage() {
               aria-label="Sign In"
               title="Sign in with Google"
             >
-              <svg 
-                className="w-5 h-5 text-white" 
-                fill="currentColor" 
+              <svg
+                className="w-5 h-5 text-white"
+                fill="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
               </svg>
             </button>
           </SignInButton>

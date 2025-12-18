@@ -4,18 +4,7 @@ import { generateText } from 'ai'
 
 export const maxDuration = 60
 
-interface DayActivity {
-  activity: string
-  description: string
-}
-
-interface DayBreakdown {
-  day: number
-  location: string
-  morning: DayActivity
-  midday: DayActivity
-  evening: DayActivity
-}
+import { saveItineraryToHistory, type DayBreakdown, type DayActivity } from '@/lib/itineraryHistory'
 
 interface TripFilters {
   origin: string
@@ -45,12 +34,23 @@ const SYSTEM_PROMPT = `You are an expert travel itinerary planner. Create realis
 - Travel logistics between locations (include travel days when switching destinations)
 - Activity duration and realistic scheduling
 - Mix of main activities with exploration and rest
-- Local culture and dining experiences
+- Local culture and experiences
 - Weather and optimal times for activities
 
-For each day, provide ONE main activity/experience per time slot (morning, midday, evening).
-Keep descriptions concise (1-2 sentences max).
-Include travel days between destinations.
+CRITICAL INSTRUCTION ON STYLE:
+- Do NOT name specific restaurants, cafes, or bars unless they are major historic landmarks/attractions themselves (e.g., "Have tea at the Ritz" is okay, "Lunch at Burger King" is NOT).
+- Instead, describe the activity or region: e.g., "Enjoy fresh seafood by the harbor", "Street food tour in the Night Market", "Lunch in the historic Old Town".
+- Focus on WHAT to do and WHERE (region/area), not specific commercial establishments for meals.
+
+For each day, you MUST provide:
+1. "location": The general area name
+2. "coordinates": { "lat": number, "lng": number } - Center of activity for the day
+3. "best_time_to_visit": Best time of day for main activities
+4. "why_its_nice": Brief reasoning for this location/day
+5. "morning", "midday", "evening": { "activity": string, "description": string }
+6. "events": Array of special events/peculiarities (e.g., "Full Moon Party", "Night Market"). empty if none.
+7. "alerts": Array of { "type": "warning"|"info", "message": string } (e.g., "Rainy season", "Political unrest"). empty if none.
+8. "points_of_interest": Array of specific places to visit that day, with coordinates.
 
 CRITICAL: Return ONLY a valid JSON array with no additional text, markdown, or explanation.
 
@@ -58,18 +58,31 @@ Example format:
 [
   {
     "day": 1,
-    "location": "Bali, Indonesia",
+    "location": "Uluwatu, Bali",
+    "coordinates": { "lat": -8.8149, "lng": 115.0884 },
+    "best_time_to_visit": "Late Afternoon for Sunset",
+    "why_its_nice": "Stunning cliffside views and iconic temple.",
+    "events": [
+         { "name": "Kecak Fire Dance", "description": "Traditional dance performance at sunset." }
+    ],
+    "alerts": [
+         { "type": "info", "message": "Monkeys can be aggressive with food." }
+    ],
+    "points_of_interest": [
+        { "name": "Uluwatu Temple", "description": "Ancient sea temple.", "coordinates": { "lat": -8.8291, "lng": 115.0837 } },
+        { "name": "Padang Padang Beach", "description": "Beautiful beach cove.", "coordinates": { "lat": -8.8111, "lng": 115.1030 } }
+    ],
     "morning": {
-      "activity": "Arrive in Bali",
-      "description": "Land at Ngurah Rai Airport and transfer to your hotel in Canggu."
+      "activity": "Relax at Padang Padang Beach",
+      "description": "Swim in turquoise waters and explore the cove."
     },
     "midday": {
-      "activity": "Beach exploration",
-      "description": "Settle in and explore Canggu's famous surf beach."
+      "activity": "Lunch in the Uluwatu Area",
+      "description": "Enjoy local Indonesian cuisine at a cliffside warung."
     },
     "evening": {
-      "activity": "Local dinner",
-      "description": "Enjoy fresh seafood at a beachfront warung."
+      "activity": "Sunset at Uluwatu Temple",
+      "description": "Watch the sunset and traditional Kecak dance."
     }
   }
 ]`
@@ -149,6 +162,9 @@ Requirements:
 5. Keep it realistic - don't pack too many activities in one day
 6. Include local food/dining recommendations for evenings
 7. Tailor activities to the "Travel Styles" and preferences provided immediately above.
+8. Include specific coordinates for the day's main location and recommended points of interest.
+9. Suggest special events or peculiarities (e.g., night markets, festivals) if applicable.
+10. warn about any potential issues (alerts) for that location.
 
 Return the itinerary as a JSON array.`
 
@@ -184,6 +200,12 @@ Return the itinerary as a JSON array.`
     const normalizedPlan: DayBreakdown[] = generatedPlan.map((day, index) => ({
       day: day.day || index + 1,
       location: day.location || 'Unknown',
+      coordinates: day.coordinates,
+      best_time_to_visit: day.best_time_to_visit,
+      why_its_nice: day.why_its_nice,
+      events: day.events || [],
+      alerts: day.alerts || [],
+      points_of_interest: day.points_of_interest || [],
       morning: normalizeActivity(day.morning),
       midday: normalizeActivity(day.midday),
       evening: normalizeActivity(day.evening),
