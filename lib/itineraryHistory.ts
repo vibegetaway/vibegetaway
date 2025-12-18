@@ -29,6 +29,8 @@ export interface DayBreakdown {
     description: string
     insight?: string
     tags?: string[]
+    cost?: string
+    duration?: string
     coordinates: {
       lat: number
       lng: number

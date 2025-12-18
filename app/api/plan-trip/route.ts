@@ -51,8 +51,10 @@ For each day, you MUST provide:
 6. "events": Array of special events/peculiarities (e.g., "Full Moon Party", "Night Market"). empty if none.
 7. "alerts": Array of { "type": "warning"|"info", "message": string } (e.g., "Rainy season", "Political unrest"). empty if none.
 8. "points_of_interest": Array of specific places to visit that day, with coordinates. Each POI MUST include:
-    - "insight": A detailed explanation of WHY this spot is relevant (e.g., historical significance, biggest waterfall, rare bird spotting chance). Do not just give generic comments.
+    - "insight": A detailed explanation of WHY this spot is relevant and important for the user to visit. Focus on what makes it unique, special, or a "must-see". Do not just give generic comments.
     - "tags": Array of 3 strings describing the vibe (e.g., "touristy", "culture", "quiet", "nature", "bustling").
+    - "cost": Estimated cost string (e.g., "Free", "$", "$$", "$$$").
+    - "duration": Estimated duration string (e.g., "1 hour", "Half Day", "30 mins").
 
 CRITICAL: Return ONLY a valid JSON array with no additional text, markdown, or explanation.
 
@@ -76,6 +78,8 @@ Example format:
             "description": "Ancient sea temple.", 
             "insight": "One of Bali's nine key directional temples, perched on a steep cliff 70 meters above the roaring Indian Ocean. It is believed to guard the island from evil sea spirits.",
             "tags": ["culture", "history", "views"],
+            "cost": "$",
+            "duration": "1-2 hours",
             "coordinates": { "lat": -8.8291, "lng": 115.0837 } 
         },
         { 
@@ -83,6 +87,8 @@ Example format:
             "description": "Beautiful beach cove.", 
             "insight": "Famous as a filming location for 'Eat Pray Love', this beach is accessed through a narrow rock crevice, revealing a hidden paradise with world-class surf breaks.",
             "tags": ["beach", "surf", "touristy"],
+            "cost": "$",
+            "duration": "2-3 hours",
             "coordinates": { "lat": -8.8111, "lng": 115.1030 } 
         }
     ],
@@ -99,7 +105,8 @@ Example format:
       "description": "Watch the sunset and traditional Kecak dance."
     }
   }
-]`
+]
+`;
 
 export async function POST(req: Request) {
   try {
@@ -120,23 +127,12 @@ export async function POST(req: Request) {
       })
     }
 
-    // Use Groq with Llama in development, Gemini Flash in production
-    const isDevelopment = process.env.NODE_ENV === 'development'
-
-    let model: any
-    if (isDevelopment && process.env.GROQ_API_KEY) {
-      const groq = createGroq({
-        apiKey: process.env.GROQ_API_KEY,
-      })
-      model = groq('llama-3.3-70b-versatile')
-      console.log('[plan-trip] Using Groq (Llama 3.3 70B) in development')
-    } else {
-      const google = createGoogleGenerativeAI({
-        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-      })
-      model = google('gemini-2.0-flash-exp')
-      console.log('[plan-trip] Using Gemini Flash in production')
-    }
+    // Always use Gemini Flash Lite (2.5)
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    })
+    const model = google('gemini-2.5-flash-lite')
+    console.log('[plan-trip] Using Gemini 2.5 Flash Lite')
 
     const locationList = locations
       .map(l => l.region ? `${l.region}, ${l.country}` : l.country)
@@ -263,6 +259,8 @@ function normalizePOI(poi: any) {
     description: poi.description || '',
     insight: poi.insight || '',
     tags: Array.isArray(poi.tags) ? poi.tags.slice(0, 3) : [],
+    cost: poi.cost || '',
+    duration: poi.duration || '',
     coordinates: poi.coordinates || { lat: 0, lng: 0 }
   }
 }

@@ -111,13 +111,14 @@ export function TripDetailsPanel({ selectedDayData, className }: TripDetailsPane
                                 </h3>
                                 <div className="grid grid-cols-1 gap-3">
                                     {selectedDayData.points_of_interest.map((poi, idx) => (
-                                        <div key={idx} className="bg-violet-50/50 p-4 rounded-xl border border-violet-100 shadow-sm hover:shadow-md transition-all">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h4 className="font-bold text-violet-900 text-sm">{poi.name}</h4>
+                                        <div key={idx} className="bg-white/40 backdrop-blur-sm p-4 rounded-xl border border-violet-100 shadow-sm hover:shadow-md transition-all group">
+                                            {/* Header */}
+                                            <div className="flex justify-between items-start mb-3">
+                                                <h4 className="font-bold text-violet-900 text-sm leading-snug">{poi.name}</h4>
                                                 {poi.tags && (
                                                     <div className="flex gap-1 flex-wrap justify-end max-w-[50%]">
                                                         {poi.tags.map((tag, tIdx) => (
-                                                            <span key={tIdx} className="text-[10px] font-medium px-2 py-0.5 bg-white border border-violet-200 text-violet-600 rounded-full capitalize">
+                                                            <span key={tIdx} className="text-[10px] font-medium px-2 py-0.5 bg-violet-100/50 border border-violet-200 text-violet-700 rounded-full capitalize whitespace-nowrap">
                                                                 {tag}
                                                             </span>
                                                         ))}
@@ -125,15 +126,34 @@ export function TripDetailsPanel({ selectedDayData, className }: TripDetailsPane
                                                 )}
                                             </div>
 
+                                            {/* Body - Insight */}
                                             {poi.insight && (
-                                                <div className="mb-2 p-2 bg-white/60 rounded-lg border border-violet-100/50">
-                                                    <p className="text-xs text-violet-700 italic border-l-2 border-pink-400 pl-2">
-                                                        "{poi.insight}"
+                                                <div className="mb-4">
+                                                    <p className="text-sm text-violet-700/90 leading-relaxed font-normal">
+                                                        {poi.insight}
                                                     </p>
                                                 </div>
                                             )}
 
-                                            <p className="text-xs text-violet-500 mt-1">{poi.description}</p>
+                                            {/* Footer - Metadata */}
+                                            <div className="flex items-center gap-4 text-xs text-violet-500 font-medium pt-3 border-t border-violet-100/50">
+                                                {poi.cost && (
+                                                    <div className="flex items-center gap-1.5" title="Estimated Cost">
+                                                        <div className="p-1 rounded-md bg-emerald-50 text-emerald-600">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2.5V5z" /><path d="M3 10v4" /><path d="M21 5v9" /></svg>
+                                                        </div>
+                                                        <span>{poi.cost}</span>
+                                                    </div>
+                                                )}
+                                                {poi.duration && (
+                                                    <div className="flex items-center gap-1.5" title="Suggested Duration">
+                                                        <div className="p-1 rounded-md bg-blue-50 text-blue-600">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                                        </div>
+                                                        <span>{poi.duration}</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
