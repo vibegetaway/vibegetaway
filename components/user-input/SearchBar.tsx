@@ -12,22 +12,32 @@ interface SearchBarProps {
 
 export function SearchBar({ vibe, setVibe, onSearch }: SearchBarProps) {
     const [currentInput, setCurrentInput] = useState("")
+    const [isFocused, setIsFocused] = useState(false)
+    const tags = vibe ? vibe.split(',').map(v => v.trim()).filter(Boolean) : []
+
+    const handleEnter = () => {
+        setIsFocused(false)
+        onSearch()
+    }
 
     return (
-        <div className="relative z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2.5 px-3">
+        <div className="relative z-50 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg py-2 px-3">
             {/* Single row: Vibe input, date selector, and search button */}
-            <div className="flex items-center gap-3">
-                <h1 className="text-lg font-bold leading-tight flex items-center gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-2.5">
+                <h1 className="text-base font-bold leading-tight flex items-center gap-2 whitespace-nowrap">
                     <span className="text-foreground">I want to</span>
-                    {/* Fixed-width container with horizontal scroll for tags */}
-                    <span className="inline-block align-middle w-[280px] max-w-[280px]">
+                    {/* Expandable container for tags */}
+                    <span className="inline-block align-middle relative w-[320px] max-w-[320px]">
                         <SmartTagInput
-                            value={vibe ? vibe.split(',').map(v => v.trim()).filter(Boolean) : []}
+                            value={tags}
                             onChange={(tags) => setVibe(tags.join(', '))}
                             suggestionType="vibe"
-                            className="border-none bg-transparent p-0 focus-within:ring-0 focus-within:border-none max-h-[36px] rounded-none"
-                            onEnter={onSearch}
+                            className="border-none bg-transparent p-0 focus-within:ring-0 focus-within:border-none rounded-none"
+                            isFocused={isFocused}
+                            onEnter={handleEnter}
                             onInputChange={setCurrentInput}
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
                         />
                     </span>
                 </h1>
@@ -35,15 +45,10 @@ export function SearchBar({ vibe, setVibe, onSearch }: SearchBarProps) {
                     type="button"
                     onClick={onSearch}
                     disabled={!vibe.trim() && !currentInput.trim()}
-                    className="relative flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-pink-400 disabled:hover:to-rose-500 shadow-sm hover:shadow-md shrink-0 group text-xs"
+                    className="relative flex items-center justify-center w-8 h-8 bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white rounded-xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-pink-400 disabled:hover:to-rose-500 shadow-sm hover:shadow-md shrink-0"
                     title="Search (Enter)"
                 >
                     <Search className="w-3.5 h-3.5" />
-                    <span>Find destinations</span>
-                    {/* Keyboard shortcut hint */}
-                    <span className="ml-0.5 text-[10px] opacity-70 border border-white/30 px-1 py-0.5 rounded">
-                        ↵
-                    </span>
                 </button>
             </div>
         </div>

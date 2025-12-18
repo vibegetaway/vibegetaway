@@ -13,6 +13,9 @@ interface SmartTagInputProps {
     autoFocus?: boolean
     onEnter?: () => void
     onInputChange?: (value: string) => void
+    onFocus?: () => void
+    onBlur?: () => void
+    isFocused?: boolean
 }
 
 // Example placeholders for cycling animation
@@ -36,7 +39,10 @@ export function SmartTagInput({
     className,
     autoFocus,
     onEnter,
-    onInputChange
+    onInputChange,
+    onFocus,
+    onBlur,
+    isFocused = false
 }: SmartTagInputProps) {
     const [inputValue, setInputValue] = useState("")
     const [suggestion, setSuggestion] = useState("")
@@ -170,6 +176,9 @@ export function SmartTagInput({
             if (onEnter) {
                 onEnter()
             }
+            
+            // Blur to collapse
+            inputRef.current?.blur()
         } else if (e.key === "Backspace" && !inputValue && value.length > 0) {
             onChange(value.slice(0, -1))
         }
@@ -180,15 +189,22 @@ export function SmartTagInput({
         inputRef.current?.focus()
     }
 
+    const visibleTagsCount = isFocused ? value.length : Math.min(2, value.length)
+    const hiddenTagsCount = value.length - visibleTagsCount
+    const visibleTags = value.slice(0, visibleTagsCount)
+
     return (
         <div
             className={cn(
-                "relative flex flex-nowrap items-center gap-2 p-2 bg-white border border-violet-200 rounded-lg focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-100 transition-all cursor-text overflow-x-auto",
+                "relative flex gap-2 p-2 bg-white border border-violet-200 rounded-lg focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-100 transition-all duration-300 ease-in-out cursor-text",
+                isFocused 
+                    ? "flex-wrap items-start max-h-none" 
+                    : "flex-nowrap items-center max-h-[32px]",
                 className
             )}
             onClick={() => inputRef.current?.focus()}
         >
-            {value.map((tag, index) => (
+            {visibleTags.map((tag, index) => (
                 <span
                     key={index}
                     className="flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded-md text-sm animate-in fade-in zoom-in duration-200 whitespace-nowrap shrink-0"
@@ -199,6 +215,29 @@ export function SmartTagInput({
                         onClick={(e) => {
                             e.stopPropagation()
                             removeTag(index)
+                        }}
+                        className="hover:text-violet-900 focus:outline-none"
+                    >
+                        <X className="h-3 w-3" />
+                    </button>
+                </span>
+            ))}
+            {!isFocused && hiddenTagsCount > 0 && (
+                <span className="flex items-center px-2 py-1 bg-violet-50 text-violet-600 rounded-md text-sm whitespace-nowrap shrink-0 font-medium">
+                    +{hiddenTagsCount} more
+                </span>
+            )}
+            {isFocused && value.slice(visibleTagsCount).map((tag, index) => (
+                <span
+                    key={visibleTagsCount + index}
+                    className="flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded-md text-sm animate-in fade-in zoom-in duration-200 whitespace-nowrap shrink-0"
+                >
+                    {tag}
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            removeTag(visibleTagsCount + index)
                         }}
                         className="hover:text-violet-900 focus:outline-none"
                     >
@@ -218,6 +257,8 @@ export function SmartTagInput({
                         onInputChange?.(e.target.value)
                     }}
                     onKeyDown={handleKeyDown}
+                    onFocus={() => onFocus?.()}
+                    onBlur={() => onBlur?.()}
                     className="w-full bg-transparent outline-none text-stone-800"
                     placeholder=""
                     autoFocus={autoFocus}
