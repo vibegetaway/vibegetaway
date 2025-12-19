@@ -72,6 +72,12 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
         }))
     ] : []
 
+    // Filter out markers with invalid coordinates to prevent Leaflet crashes
+    const validDayMarkers = dayMarkers.filter(m =>
+        typeof m.lat === 'number' && !isNaN(m.lat) &&
+        typeof m.lng === 'number' && !isNaN(m.lng)
+    )
+
     // Custom Icon Creator
     const createCustomIcon = (type: 'main' | 'poi') => {
         const colorClass = type === 'main' ? 'bg-violet-600' : 'bg-pink-500';
@@ -91,7 +97,11 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
     }
 
     // Prepare markers for Overview View (existing logic)
-    const validLocations = locations.filter(l => l.coordinates?.lat && l.coordinates?.lng)
+    const validLocations = locations.filter(l =>
+        l.coordinates &&
+        typeof l.coordinates.lat === 'number' && !isNaN(l.coordinates.lat) &&
+        typeof l.coordinates.lng === 'number' && !isNaN(l.coordinates.lng)
+    )
     const overviewMarkers = validLocations.map(loc => ({
         lat: loc.coordinates!.lat,
         lng: loc.coordinates!.lng,
@@ -100,7 +110,7 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
         isMain: true
     }))
 
-    const markersToShow = showDayView ? dayMarkers : overviewMarkers
+    const markersToShow = showDayView ? validDayMarkers : overviewMarkers
 
     // Helper for center calculation (initial view fallback)
     const getCenter = () => {

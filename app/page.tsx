@@ -92,7 +92,13 @@ export default function Home() {
               return
             }
 
-            setDestinations(destinations)
+            // Attach search vibe to destinations
+            const destinationsWithVibe = destinations.map(d => ({
+              ...d,
+              searchVibe: v
+            }))
+
+            setDestinations(destinationsWithVibe)
             setLoading(false)
           },
           onBatchComplete: (updatedDestinations) => {
@@ -101,7 +107,18 @@ export default function Home() {
               return
             }
 
-            setDestinations(updatedDestinations)
+            // Attach search vibe to updated destinations
+            // Note: updatedDestinations come from fetchDestinationsWithDetails which merges
+            // details into the existing objects. We need to ensure the vibe persists or is re-applied.
+            // Since fetchDestinationsWithDetails returns enriched objects based on input, 
+            // and we pass destinations (which will have vibe if we do onInitialDestinations correctly),
+            // we might already have it. But let's be safe.
+            const destinationsWithVibe = updatedDestinations.map(d => ({
+              ...d,
+              searchVibe: v
+            }))
+
+            setDestinations(destinationsWithVibe)
           },
           onComplete: () => {
             console.log('[INFO] All destination details loaded')

@@ -192,6 +192,7 @@ export default function PlanPage() {
             region: loc.region,
             country: loc.country,
             recommendedDuration: loc.recommendedDuration,
+            searchVibe: loc.searchVibe,
           })),
           tripDuration,
           // Pass filters to the API

@@ -18,6 +18,7 @@ interface PlanTripRequest {
     region?: string
     country: string
     recommendedDuration?: string
+    searchVibe?: string
   }>
   tripDuration: number
   filters?: TripFilters
@@ -135,7 +136,10 @@ export async function POST(req: Request) {
     console.log('[plan-trip] Using Gemini 2.5 Flash Lite')
 
     const locationList = locations
-      .map(l => l.region ? `${l.region}, ${l.country}` : l.country)
+      .map(l => {
+        const name = l.region ? `${l.region}, ${l.country}` : l.country
+        return l.searchVibe ? `${name} (User Interest: ${l.searchVibe})` : name
+      })
       .join(', ')
 
     const recommendedDurations = locations
@@ -172,6 +176,7 @@ Requirements:
 5. Keep it realistic - don't pack too many activities in one day
 6. Include local food/dining recommendations for evenings
 7. Tailor activities to the "Travel Styles" and preferences provided immediately above.
+    - IMPORTANT: If a location has a specific "User Interest" listed (e.g., "Bali (User Interest: surfing)"), you MUST prioritize activities related to that interest for that specific location.
 8. Include specific coordinates for the day's main location and recommended points of interest.
 9. Suggest special events or peculiarities (e.g., night markets, festivals) if applicable.
 10. warn about any potential issues (alerts) for that location.
