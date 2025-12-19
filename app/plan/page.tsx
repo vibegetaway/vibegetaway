@@ -61,7 +61,7 @@ function SortableLocationItem({ location, id, index }: { location: Destination, 
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group relative flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm rounded-xl border transition-all hover:shadow-md",
+        "group relative flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm rounded-xl border transition-all hover:shadow-md hover:z-[60]",
         isDragging ? "opacity-50 border-violet-400 z-50 ring-2 ring-violet-400" : "border-violet-100/50 hover:border-violet-300",
       )}
     >
@@ -77,8 +77,8 @@ function SortableLocationItem({ location, id, index }: { location: Destination, 
         <GripVertical className="w-5 h-5" />
       </div>
 
-      <div className="flex-1 min-w-0">
-        <h3 className="font-bold text-violet-900 truncate pr-2">
+      <div className="flex-1 min-w-0 pr-2">
+        <h3 className="font-bold text-violet-900 truncate">
           {location.region || location.country}
         </h3>
         <div className="flex items-center gap-2 text-xs text-violet-500 truncate">
@@ -86,6 +86,32 @@ function SortableLocationItem({ location, id, index }: { location: Destination, 
           {location.country}
         </div>
       </div>
+
+      {/* Vibe Tags - Right Side */}
+      {location.searchVibe && (
+        <div className="shrink-0 relative group/vibes">
+          {/* Default View (Right Side Pill) */}
+          <div className="px-2 py-1 bg-violet-100 text-violet-700 rounded-lg text-[10px] font-medium border border-violet-200 cursor-help flex items-center gap-1">
+            <span className="max-w-[60px] truncate block">
+              {location.searchVibe.split(',')[0].trim()}
+            </span>
+            {location.searchVibe.split(',').length > 1 && (
+              <span className="opacity-70">
+                +{location.searchVibe.split(',').length - 1}
+              </span>
+            )}
+          </div>
+
+          {/* Hover Tooltip - Shows All */}
+          <div className="absolute right-0 top-full mt-2 w-48 p-2 bg-gray-900/95 backdrop-blur-sm text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/vibes:opacity-100 group-hover/vibes:visible transition-all z-[100] flex flex-wrap gap-1 pointer-events-none">
+            {location.searchVibe.split(',').map((v, i) => (
+              <span key={i} className="px-1.5 py-0.5 bg-white/20 rounded capitalize">
+                {v.trim()}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -354,14 +380,29 @@ export default function PlanPage() {
                             <div className="cursor-grabbing text-violet-600 p-1 pointer-events-none">
                               <GripVertical className="w-5 h-5" />
                             </div>
-                            <div className="flex-1 min-w-0">
+                            <div className="flex-1 min-w-0 pr-2">
                               <h3 className="font-bold text-violet-900 truncate pr-2">
                                 {draggedLocation.region || draggedLocation.country}
                               </h3>
-                              <div className="flex items-center gap-2 text-xs text-violet-500 truncate">
+                              <div className="flex items-center gap-2 text-xs text-violet-500 truncate mb-1.5">
                                 <MapPin className="w-3 h-3" />
                                 {draggedLocation.country}
                               </div>
+                              {/* Vibe Tags - Drag View (Simplified) */}
+                              {draggedLocation.searchVibe && (
+                                <div className="shrink-0">
+                                  <div className="px-2 py-1 bg-violet-100 text-violet-700 rounded-lg text-[10px] font-medium border border-violet-200 flex items-center gap-1">
+                                    <span className="max-w-[60px] truncate block">
+                                      {draggedLocation.searchVibe.split(',')[0].trim()}
+                                    </span>
+                                    {draggedLocation.searchVibe.split(',').length > 1 && (
+                                      <span className="opacity-70">
+                                        +{draggedLocation.searchVibe.split(',').length - 1}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                         )
