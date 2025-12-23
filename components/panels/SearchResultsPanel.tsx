@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Destination } from '@/lib/generateDestinationInfo'
-import { MapPin, X, Loader2, CalendarPlus, CalendarCheck } from 'lucide-react'
+import { MapPin, X, Loader2, CalendarPlus, CalendarCheck, ChevronRight } from 'lucide-react'
 import { addToSavedLocations, removeFromSavedLocations, isDestinationSaved } from '@/lib/itinerary'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -148,7 +148,7 @@ export function SearchResultsPanel({
                     : 'hover:shadow-lg hover:shadow-violet-200/50 border-violet-200/60 hover:border-violet-300 hover:border-pink-300 hover:bg-violet-50/30 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5'
                     }`}
                 >
-                  <div className="p-4">
+                  <div className="p-4 pr-12">
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h3 className="text-lg font-bold text-violet-900 leading-tight">
@@ -211,6 +211,9 @@ export function SearchResultsPanel({
                         </div>
                       </div>
                     )}
+                  </div>
+                  <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-violet-300 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-violet-600">
+                    <ChevronRight className="w-5 h-5" />
                   </div>
                 </div>
               )
