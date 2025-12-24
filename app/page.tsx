@@ -351,14 +351,14 @@ export default function Home() {
 
       {/* UI elements overlay on top of map */}
       <LeftSidebar
+        onRecentClick={() => handlePanelToggle('recent')}
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
-        onSearchHistoryClick={() => handlePanelToggle('recent')}
       />
       <MobileBottomNav
+        onRecentClick={() => handlePanelToggle('recent')}
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
-        onSearchHistoryClick={() => handlePanelToggle('recent')}
       />
       <RecentSearchPanel
         isOpen={activePanel === 'recent'}
