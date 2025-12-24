@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Clock, Calendar } from 'lucide-react'
+import { Search, Calendar } from 'lucide-react'
 import { getSavedLocationsCount } from '@/lib/itinerary'
+import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 interface MobileBottomNavProps {
     onSearchClick?: () => void
@@ -10,6 +12,7 @@ interface MobileBottomNavProps {
 }
 
 export function MobileBottomNav({ onSearchClick, onItineraryClick }: MobileBottomNavProps) {
+    const router = useRouter()
     const [savedCount, setSavedCount] = useState(0)
 
     useEffect(() => {
@@ -39,22 +42,27 @@ export function MobileBottomNav({ onSearchClick, onItineraryClick }: MobileBotto
                 <span className="text-[10px] mt-1">Search</span>
             </button>
 
-            {/* Itinerary icon */}
+            {/* Plan Trip button */}
             <button
                 type="button"
-                className="relative flex flex-col items-center justify-center p-2 text-gray-500 hover:text-pink-500"
-                onClick={onItineraryClick}
-                aria-label="Itinerary"
+                onClick={() => router.push('/plan')}
+                className={cn(
+                    "relative flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all duration-200",
+                    savedCount > 0
+                        ? "bg-violet-50 text-violet-600 border border-violet-200"
+                        : "text-violet-600 hover:bg-violet-50/50 border border-transparent hover:border-violet-200"
+                )}
+                aria-label="Plan Trip"
             >
                 <div className="relative">
                     <Calendar className="w-6 h-6" strokeWidth={2} />
                     {savedCount > 0 && (
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-violet-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                             {savedCount > 9 ? '9+' : savedCount}
                         </span>
                     )}
                 </div>
-                <span className="text-[10px] mt-1">Plan</span>
+                <span className="text-[10px] mt-1 font-medium">Plan Trip</span>
             </button>
         </div>
     )
