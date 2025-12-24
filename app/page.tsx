@@ -351,14 +351,14 @@ export default function Home() {
 
       {/* UI elements overlay on top of map */}
       <LeftSidebar
-        onRecentClick={() => handlePanelToggle('recent')}
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
+        onSearchHistoryClick={() => handlePanelToggle('recent')}
       />
       <MobileBottomNav
-        onRecentClick={() => handlePanelToggle('recent')}
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
+        onSearchHistoryClick={() => handlePanelToggle('recent')}
       />
       <RecentSearchPanel
         isOpen={activePanel === 'recent'}
@@ -428,13 +428,13 @@ export default function Home() {
 
         {/* Mobile InspirationChips and Filter Tags - below search bar */}
         <div className={cn(
-          "transition-all duration-300 ease-in-out",
+          "transition-all duration-300 ease-in-out w-full",
           activePanel === 'none' && !isFilterPanelOpen
             ? "opacity-100 translate-y-0"
             : "opacity-0 -translate-y-2 pointer-events-none"
         )}>
           {/* Mobile InspirationChips */}
-          <div className="md:hidden">
+          <div className="md:hidden w-full">
             <InspirationChips
               onChipClick={handleInspirationChipClick}
               isVisible={activePanel === 'none' && !isFilterPanelOpen}
