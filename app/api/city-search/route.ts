@@ -40,22 +40,26 @@ export async function GET(request: Request) {
     const suggestions = data.map((place: any) => {
       const nameParts = place.display_name?.split(',') || []
       const cityName = nameParts[0]?.trim() || ''
+      const regionName = nameParts[1]?.trim() || place.address?.state || ''
+      const countryName = place.address?.country || ''
       
-      let countryName = place.address?.country || ''
-      
-      if (!countryName && place.display_name) {
+      let finalCountryName = countryName
+      if (!finalCountryName && place.display_name) {
         const parts = place.display_name.split(',').map((p: string) => p.trim())
-        countryName = parts[parts.length - 1] || ''
+        finalCountryName = parts[parts.length - 1] || ''
       }
       
-      if (!countryName) {
-        countryName = place.address?.country_code || ''
+      if (!finalCountryName) {
+        finalCountryName = place.address?.country_code || ''
       }
+      
+      const firstThreeParts = nameParts.slice(0, 3).map((p: string) => p.trim()).join(', ')
       
       return {
         name: cityName,
-        country: countryName,
-        region: place.display_name || cityName,
+        country: finalCountryName,
+        region: firstThreeParts || cityName,
+        regionName: regionName,
         coordinates: place.lat && place.lon ? {
           lat: parseFloat(place.lat),
           lng: parseFloat(place.lon)

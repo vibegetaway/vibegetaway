@@ -154,29 +154,18 @@ function SortableLocationItem({
                 onRemove(location)
                 setShowRemoveOption(false)
               }}
-              className="w-full text-left px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 transition-colors flex items-center gap-2"
+              className="w-full flex items-center justify-center p-2 text-violet-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              aria-label="Remove destination"
             >
-              <Trash2 className="w-4 h-4" />
-              Remove
+              <Trash2 className="w-5 h-5" />
             </button>
-            <div className="border-t border-violet-100">
-              <div
-                {...attributes}
-                {...listeners}
-                className="w-full text-left px-3 py-2 text-sm text-violet-600 hover:bg-violet-50 transition-colors flex items-center gap-2 cursor-grab active:cursor-grabbing"
-                onClick={() => setShowRemoveOption(false)}
-              >
-                <GripVertical className="w-4 h-4" />
-                Drag to reorder
-              </div>
-            </div>
           </div>
         )}
       </div>
 
       <div className="flex-1 min-w-0 pr-3">
         <h3 className="font-bold text-violet-900 truncate">
-          {location.region || location.country}
+          {location.region ? location.region.split(',').slice(0, 3).join(', ') : location.country}
         </h3>
         <div className="flex items-center gap-2 text-xs text-violet-500 truncate">
           <MapPin className="w-3 h-3 shrink-0" />
@@ -699,22 +688,15 @@ export default function PlanPage() {
                                 className="w-full text-left px-4 py-2.5 hover:bg-violet-50 transition-colors border-b border-violet-100 last:border-b-0"
                               >
                                 <div className="font-medium text-violet-900">{suggestion.name}</div>
-                                <div className="text-xs text-violet-500">{suggestion.country}</div>
+                                <div className="text-xs text-violet-500">
+                                  {suggestion.regionName ? `${suggestion.regionName}, ${suggestion.country}` : suggestion.country}
+                                </div>
                               </button>
                             ))
                           ) : null}
                         </div>
                       )}
                       
-                      {/* Manual Add Button */}
-                      {cityInput.trim() && cityInput.length >= 2 && (
-                        <button
-                          onClick={handleManualCityAdd}
-                          className="w-full mt-3 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-pink-600 text-white font-medium rounded-lg hover:from-violet-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg"
-                        >
-                          Add "{cityInput}"
-                        </button>
-                      )}
                     </div>
                   </div>
                 ) : (
@@ -813,22 +795,15 @@ export default function PlanPage() {
                                   className="w-full text-left px-4 py-2.5 hover:bg-violet-50 transition-colors border-b border-violet-100 last:border-b-0"
                                 >
                                   <div className="font-medium text-violet-900">{suggestion.name}</div>
-                                  <div className="text-xs text-violet-500">{suggestion.country}</div>
+                                  <div className="text-xs text-violet-500">
+                                    {suggestion.regionName ? `${suggestion.regionName}, ${suggestion.country}` : suggestion.country}
+                                  </div>
                                 </button>
                               ))
                             ) : null}
                           </div>
                         )}
                         
-                        {/* Manual Add Button */}
-                        {cityInput.trim() && cityInput.length >= 2 && (
-                          <button
-                            onClick={handleManualCityAdd}
-                            className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-pink-600 text-white font-medium rounded-lg hover:from-violet-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg text-sm"
-                          >
-                            Add "{cityInput}"
-                          </button>
-                        )}
                       </div>
                     </div>
 
@@ -924,7 +899,7 @@ export default function PlanPage() {
                   </div>
 
                   {/* Filter Bar - Now visible with all props */}
-                  <div className="pt-4 border-t border-violet-200">
+                  <div className="pt-4">
                     <div className="flex justify-center items-center">
                       <FilterBar
                         onFilterClick={(type) => openFilterPanel(type)}
@@ -1088,10 +1063,10 @@ export default function PlanPage() {
 
         </div>
 
-        {/* Right Column - Map & Details - Hidden on mobile when showing config */}
+        {/* Right Column - Map & Details - Always shown on desktop, hidden on mobile when showing itinerary */}
         <div className={cn(
           "w-[60%] flex-col gap-2 h-full",
-          mobileView === 'itinerary' ? "flex" : "hidden md:flex"
+          mobileView === 'itinerary' ? "hidden" : "hidden md:flex"
         )}>
           {/* Top: Map Component (35% height) */}
           <div className="h-[35%] min-h-[250px] relative rounded-2xl overflow-hidden shadow-lg border border-violet-100 bg-violet-50">
