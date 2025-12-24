@@ -27,7 +27,7 @@ export function SearchBar({ vibe, setVibe, onSearch }: SearchBarProps) {
                 <h1 className="text-base font-bold leading-tight flex items-center gap-2 whitespace-nowrap">
                     <span className="text-foreground">I want to</span>
                     {/* Expandable container for tags */}
-                    <span className="inline-block align-middle relative w-[320px] max-w-[320px]">
+                    <span className="inline-block align-middle relative w-[180px] md:w-[320px] max-w-[320px]">
                         <SmartTagInput
                             value={tags}
                             onChange={(tags) => setVibe(tags.join(', '))}

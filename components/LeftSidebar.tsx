@@ -31,7 +31,7 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
   }, [])
 
   return (
-    <div className="fixed left-0 top-0 w-16 h-screen bg-violet-50 border-r border-violet-200/50 flex flex-col items-center py-4 gap-6 z-[60]">
+    <div className="hidden md:flex fixed left-0 top-0 w-16 h-screen bg-violet-50 border-r border-violet-200/50 flex-col items-center py-4 gap-6 z-[60]">
       <div className="mb-2">
         <Image
           src="/assets/icon.png"
@@ -82,7 +82,7 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
       {/* User authentication at bottom */}
       <div className="mt-auto">
         {isSignedIn ? (
-          <UserButton 
+          <UserButton
             appearance={{
               elements: {
                 avatarBox: "w-10 h-10 rounded-full ring-2 ring-violet-300 hover:ring-pink-400 transition-all",
@@ -98,12 +98,12 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
               aria-label="Sign In"
               title="Sign in with Google"
             >
-              <svg 
-                className="w-5 h-5 text-white" 
-                fill="currentColor" 
+              <svg
+                className="w-5 h-5 text-white"
+                fill="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
               </svg>
             </button>
           </SignInButton>

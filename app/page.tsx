@@ -3,6 +3,7 @@
 import { SearchBar } from '@/components/user-input/SearchBar'
 import { InspirationChips } from '@/components/user-input/InspirationChips'
 import { LeftSidebar } from '@/components/LeftSidebar'
+import { MobileBottomNav } from '@/components/MobileBottomNav'
 import { RecentSearchPanel } from '@/components/panels/RecentSearchPanel'
 import { SearchResultsPanel } from '@/components/panels/SearchResultsPanel'
 import { ItineraryPanel } from '@/components/panels/ItineraryPanel'
@@ -14,7 +15,6 @@ import { fetchDestinationsWithDetails } from '@/lib/fetchDestinations'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { saveSearchToHistory, type SearchHistoryItem } from '@/lib/searchHistory'
 import { cn } from '@/lib/utils'
-import mockDestinations from '@/data/mock-gemini-response.json'
 import { usePostHog } from 'posthog-js/react'
 import type { InspirationChip } from '@/data/inspirationChips'
 import { getUserLocation, formatLocationString } from '@/lib/geolocation'
@@ -22,11 +22,10 @@ import { useTripFilters } from '@/hooks/useTripFilters'
 import { getSavedLocationsCount } from '@/lib/itinerary'
 import { useRouter } from 'next/navigation'
 import { Calendar } from 'lucide-react'
+import Image from 'next/image'
 
 // Dynamic import to avoid SSR issues with Leaflet
 const WorldMap = dynamic(() => import('@/components/map/WorldMap'), { ssr: false })
-
-const isDev = process.env.NEXT_PUBLIC_ENVIRONMENT === 'dev-local'
 
 // Number of destinations to fetch in parallel per batch
 const BATCH_SIZE = 5
@@ -36,8 +35,8 @@ export default function Home() {
   const router = useRouter()
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [loading, setLoading] = useState(false)
-  const [vibe, setVibe] = useState(isDev ? 'climb' : '')
-  const [month, setMonth] = useState(isDev ? 'November' : 'Anytime')
+  const [vibe, setVibe] = useState('')
+  const [month, setMonth] = useState('Anytime')
   const [activePanel, setActivePanel] = useState<'none' | 'search' | 'recent' | 'itinerary'>('none')
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
   const [savedCount, setSavedCount] = useState(0)
@@ -196,16 +195,6 @@ export default function Home() {
       shouldSaveToHistory.current = true
     }, 100)
   }
-
-  // Load mock data in dev mode on initial mount
-  useEffect(() => {
-    if (isDev) {
-      console.log('[DEV MODE] Loading pre-loaded mock data:', mockDestinations)
-      setDestinations(mockDestinations as Destination[])
-      setLoading(false)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   // Auto-detect user location on mount
   useEffect(() => {
@@ -366,6 +355,11 @@ export default function Home() {
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
       />
+      <MobileBottomNav
+        onRecentClick={() => handlePanelToggle('recent')}
+        onSearchClick={() => handlePanelToggle('search')}
+        onItineraryClick={() => handlePanelToggle('itinerary')}
+      />
       <RecentSearchPanel
         isOpen={activePanel === 'recent'}
         onClose={() => setActivePanel('none')}
@@ -408,13 +402,25 @@ export default function Home() {
 
       {/* Search bar and filter tags overlay on top of map */}
       <div className={cn(
-        "absolute top-4 flex flex-col gap-2 transition-all duration-300 ease-in-out",
-        // Shift right when side panels are open, otherwise stay at left-24
-        activePanel !== 'none' ? "left-[540px]" : "left-24",
+        "absolute flex flex-col gap-2 transition-all duration-300 ease-in-out",
+        // Mobile: fixed top, full width, padded
+        "fixed md:absolute top-0 md:top-4 left-0 w-full md:w-auto px-4 pt-4 md:px-0 md:pt-0 items-center md:items-start",
+        // Desktop positioning
+        activePanel !== 'none' ? "md:left-[540px]" : "md:left-24",
         // Lower z-index when FilterSidePanel is open so it appears above search bar
         isFilterPanelOpen ? "z-50" : "z-[70]"
       )}>
-        <div className="relative">
+        <div className="relative flex flex-row items-center gap-2 max-w-full">
+          {/* Mobile Logo */}
+          <div className="md:hidden flex-shrink-0">
+            <Image
+              src="/assets/icon.png"
+              width={40}
+              height={40}
+              alt="VibeGetaway"
+              className="rounded-lg shadow-sm"
+            />
+          </div>
           <SearchBar
             vibe={vibe}
             setVibe={setVibe}

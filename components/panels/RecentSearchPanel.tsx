@@ -81,7 +81,7 @@ export function RecentSearchPanel({ isOpen, onClose, onSearchSelect }: RecentSea
     <>
       {/* Panel - positioned next to LeftSidebar (left-16), same width as DestinationInfoPanel */}
       <div
-        className={`fixed left-16 top-0 h-screen w-[28rem] bg-violet-50 border-r border-violet-200/50 shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed left-0 md:left-16 top-0 h-screen w-[28rem] bg-violet-50 border-r border-violet-200/50 shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
       >
         {/* Spacer for text input */}
@@ -103,22 +103,20 @@ export function RecentSearchPanel({ isOpen, onClose, onSearchSelect }: RecentSea
           <div className="mb-6 flex gap-2 p-1 bg-violet-100 rounded-lg">
             <button
               onClick={() => setActiveTab('searches')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md font-semibold text-sm transition-all ${
-                activeTab === 'searches'
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md font-semibold text-sm transition-all ${activeTab === 'searches'
                   ? 'bg-white text-violet-900 shadow-sm'
                   : 'text-violet-600 hover:text-violet-900'
-              }`}
+                }`}
             >
               <Clock className="w-4 h-4" />
               Searches
             </button>
             <button
               onClick={() => setActiveTab('itineraries')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md font-semibold text-sm transition-all ${
-                activeTab === 'itineraries'
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md font-semibold text-sm transition-all ${activeTab === 'itineraries'
                   ? 'bg-white text-violet-900 shadow-sm'
                   : 'text-violet-600 hover:text-violet-900'
-              }`}
+                }`}
             >
               <MapPin className="w-4 h-4" />
               Itineraries

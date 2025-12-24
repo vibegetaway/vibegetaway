@@ -70,7 +70,7 @@ export function SearchResultsPanel({
 
   return (
     <div
-      className={`fixed left-16 top-0 h-screen w-[28rem] bg-white/95 backdrop-blur-md border-r border-violet-200 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
+      className={`fixed left-0 md:left-16 top-0 h-screen w-[28rem] bg-white/95 backdrop-blur-md border-r border-violet-200 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
     >
       {/* Spacer for text input */}
@@ -170,11 +170,10 @@ export function SearchResultsPanel({
                               addToSavedLocations(destination)
                             }
                           }}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all whitespace-nowrap ${
-                            isSaved
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all whitespace-nowrap ${isSaved
                               ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
                               : 'bg-violet-100 text-violet-700 hover:bg-violet-200'
-                          }`}
+                            }`}
                           title={isSaved ? 'Remove from plan' : 'Add to plan'}
                         >
                           {isSaved ? (

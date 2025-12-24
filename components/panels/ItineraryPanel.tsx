@@ -49,9 +49,8 @@ export function ItineraryPanel({
 
   return (
     <div
-      className={`fixed left-16 top-0 h-screen w-[28rem] bg-white/95 backdrop-blur-md border-r border-violet-200 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}
+      className={`fixed left-0 md:left-16 top-0 h-screen w-[28rem] bg-white/95 backdrop-blur-md border-r border-violet-200 shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
     >
       <div className="p-6">
         {/* Header */}
@@ -95,11 +94,10 @@ export function ItineraryPanel({
                 return (
                   <div
                     key={index}
-                    className={`relative group bg-white rounded-xl transition-all duration-300 shadow-sm border-2 ${
-                      isSelected
+                    className={`relative group bg-white rounded-xl transition-all duration-300 shadow-sm border-2 ${isSelected
                         ? 'ring-2 ring-pink-400 shadow-md shadow-pink-100 border-pink-200'
                         : 'hover:shadow-lg hover:shadow-violet-200/50 border-violet-200/60 hover:border-violet-300'
-                    }`}
+                      }`}
                   >
                     <div
                       onClick={() => onDestinationClick?.(destination)}
