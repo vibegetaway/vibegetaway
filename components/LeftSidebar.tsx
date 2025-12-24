@@ -2,17 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { Search, Clock, Calendar } from 'lucide-react'
+import { Search, Clock, Calendar, History } from 'lucide-react'
 import { getSavedLocationsCount } from '@/lib/itinerary'
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 
 interface LeftSidebarProps {
-  onRecentClick?: () => void
   onSearchClick?: () => void
   onItineraryClick?: () => void
 }
 
-export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: LeftSidebarProps) {
+export function LeftSidebar({ onSearchClick, onItineraryClick }: LeftSidebarProps) {
   const { isSignedIn } = useUser()
   const [savedCount, setSavedCount] = useState(0)
 
@@ -67,16 +66,6 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
         )}
       </button>
 
-      {/* Recent icon */}
-      <button
-        type="button"
-        className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-pink-100/60 transition-colors cursor-pointer"
-        onClick={onRecentClick}
-        aria-label="Recent"
-      >
-        <Clock className="w-5 h-5 text-pink-500" strokeWidth={2} />
-      </button>
-
       <div className="flex-grow" />
 
       {/* User authentication at bottom */}
@@ -89,7 +78,17 @@ export function LeftSidebar({ onRecentClick, onSearchClick, onItineraryClick }: 
                 userButtonPopoverCard: "shadow-xl border border-violet-200",
               }
             }}
-          />
+          >
+            <UserButton.MenuItems>
+              <UserButton.Action
+                label="Recent"
+                labelIcon={<History className="w-4 h-4" />}
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('openRecentPanel'))
+                }}
+              />
+            </UserButton.MenuItems>
+          </UserButton>
         ) : (
           <SignInButton mode="modal">
             <button

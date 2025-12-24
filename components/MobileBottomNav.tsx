@@ -5,12 +5,11 @@ import { Search, Clock, Calendar } from 'lucide-react'
 import { getSavedLocationsCount } from '@/lib/itinerary'
 
 interface MobileBottomNavProps {
-    onRecentClick?: () => void
     onSearchClick?: () => void
     onItineraryClick?: () => void
 }
 
-export function MobileBottomNav({ onRecentClick, onSearchClick, onItineraryClick }: MobileBottomNavProps) {
+export function MobileBottomNav({ onSearchClick, onItineraryClick }: MobileBottomNavProps) {
     const [savedCount, setSavedCount] = useState(0)
 
     useEffect(() => {
@@ -56,17 +55,6 @@ export function MobileBottomNav({ onRecentClick, onSearchClick, onItineraryClick
                     )}
                 </div>
                 <span className="text-[10px] mt-1">Plan</span>
-            </button>
-
-            {/* Recent icon */}
-            <button
-                type="button"
-                className="flex flex-col items-center justify-center p-2 text-gray-500 hover:text-pink-500"
-                onClick={onRecentClick}
-                aria-label="Recent"
-            >
-                <Clock className="w-6 h-6" strokeWidth={2} />
-                <span className="text-[10px] mt-1">Recent</span>
             </button>
         </div>
     )

@@ -245,6 +245,13 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vibe, month, loading])
 
+  // Listen for custom event to open Recent panel from UserButton
+  useEffect(() => {
+    const handleOpenRecent = () => handlePanelToggle('recent')
+    window.addEventListener('openRecentPanel', handleOpenRecent)
+    return () => window.removeEventListener('openRecentPanel', handleOpenRecent)
+  }, [activePanel])
+
   // Auto-open search panel when destinations are loaded
   useEffect(() => {
     if (destinations.length > 0) {
@@ -351,12 +358,10 @@ export default function Home() {
 
       {/* UI elements overlay on top of map */}
       <LeftSidebar
-        onRecentClick={() => handlePanelToggle('recent')}
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
       />
       <MobileBottomNav
-        onRecentClick={() => handlePanelToggle('recent')}
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
       />

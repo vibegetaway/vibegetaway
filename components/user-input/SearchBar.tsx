@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { SmartTagInput } from './SmartTagInput'
 import { Search, SlidersHorizontal, User } from 'lucide-react'
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
+import { History } from 'lucide-react'
 
 interface SearchBarProps {
     vibe: string
@@ -86,7 +87,17 @@ export function SearchBar({ vibe, setVibe, onSearch, onSettingsClick }: SearchBa
                                         userButtonPopoverCard: "shadow-xl border border-violet-200 bottom-16",
                                     }
                                 }}
-                            />
+                            >
+                                <UserButton.MenuItems>
+                                    <UserButton.Action
+                                        label="Recent"
+                                        labelIcon={<History className="w-4 h-4" />}
+                                        onClick={() => {
+                                            window.dispatchEvent(new CustomEvent('openRecentPanel'))
+                                        }}
+                                    />
+                                </UserButton.MenuItems>
+                            </UserButton>
                         ) : (
                             <SignInButton mode="modal">
                                 <button
