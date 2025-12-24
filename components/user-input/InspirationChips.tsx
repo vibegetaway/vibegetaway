@@ -12,12 +12,13 @@ export function InspirationChips({ onChipClick, isVisible }: InspirationChipsPro
   return (
     <div 
       className={cn(
-        "flex gap-2 overflow-x-auto scroll-smooth items-center",
+        "flex gap-2 overflow-x-auto overflow-y-visible scroll-smooth items-center",
         "md:absolute md:top-1/2 md:-translate-y-1/2 md:left-[calc(100%+16px)] md:overflow-visible",
         "transition-all duration-300",
         "scrollbar-hide",
         "w-full md:w-auto",
         "pl-2 md:pl-0",
+        "py-2 md:py-0",
         "justify-start",
         isVisible ? "opacity-100 translate-y-0 md:translate-x-0" : "opacity-0 -translate-y-2 md:translate-x-4 pointer-events-none"
       )}

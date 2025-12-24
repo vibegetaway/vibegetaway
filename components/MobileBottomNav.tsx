@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Clock, Calendar, User } from 'lucide-react'
+import { Search, Clock, Calendar } from 'lucide-react'
 import { getSavedLocationsCount } from '@/lib/itinerary'
-import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 
 interface MobileBottomNavProps {
     onRecentClick?: () => void
@@ -12,7 +11,6 @@ interface MobileBottomNavProps {
 }
 
 export function MobileBottomNav({ onRecentClick, onSearchClick, onItineraryClick }: MobileBottomNavProps) {
-    const { isSignedIn } = useUser()
     const [savedCount, setSavedCount] = useState(0)
 
     useEffect(() => {
@@ -70,33 +68,6 @@ export function MobileBottomNav({ onRecentClick, onSearchClick, onItineraryClick
                 <Clock className="w-6 h-6" strokeWidth={2} />
                 <span className="text-[10px] mt-1">Recent</span>
             </button>
-
-            {/* User authentication */}
-            <div className="flex flex-col items-center justify-center p-2">
-                {isSignedIn ? (
-                    <UserButton
-                        appearance={{
-                            elements: {
-                                avatarBox: "w-8 h-8 rounded-full ring-2 ring-violet-300",
-                                userButtonPopoverCard: "shadow-xl border border-violet-200 bottom-16",
-                            }
-                        }}
-                    />
-                ) : (
-                    <SignInButton mode="modal">
-                        <button
-                            type="button"
-                            className="flex flex-col items-center justify-center text-gray-500 hover:text-pink-500"
-                            aria-label="Sign In"
-                        >
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-violet-500 flex items-center justify-center">
-                                <User className="w-4 h-4 text-white" />
-                            </div>
-                            <span className="text-[10px] mt-1">Login</span>
-                        </button>
-                    </SignInButton>
-                )}
-            </div>
         </div>
     )
 }

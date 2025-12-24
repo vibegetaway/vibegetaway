@@ -434,7 +434,7 @@ export default function Home() {
             : "opacity-0 -translate-y-2 pointer-events-none"
         )}>
           {/* Mobile InspirationChips */}
-          <div className="md:hidden w-full">
+          <div className="md:hidden w-full overflow-visible">
             <InspirationChips
               onChipClick={handleInspirationChipClick}
               isVisible={activePanel === 'none' && !isFilterPanelOpen}
