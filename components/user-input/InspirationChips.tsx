@@ -12,10 +12,17 @@ export function InspirationChips({ onChipClick, isVisible }: InspirationChipsPro
   return (
     <div 
       className={cn(
-        "absolute top-1/2 -translate-y-1/2 left-[calc(100%+16px)] flex gap-2",
+        "flex gap-2 overflow-x-auto scroll-smooth",
+        "md:absolute md:top-1/2 md:-translate-y-1/2 md:left-[calc(100%+16px)] md:overflow-visible",
         "transition-all duration-300",
-        isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none"
+        "scrollbar-hide",
+        isVisible ? "opacity-100 translate-y-0 md:translate-x-0" : "opacity-0 -translate-y-2 md:translate-x-4 pointer-events-none"
       )}
+      style={{
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+        WebkitOverflowScrolling: 'touch'
+      }}
     >
       {inspirationChips.slice(0, 3).map((chip) => {
         const Icon = chip.icon
@@ -29,7 +36,7 @@ export function InspirationChips({ onChipClick, isVisible }: InspirationChipsPro
               "transition-all duration-300 hover:scale-105",
               "text-sm font-medium text-gray-700 hover:text-rose-600",
               "border border-gray-200 hover:border-rose-300",
-              "whitespace-nowrap",
+              "whitespace-nowrap flex-shrink-0",
               "hover:shadow-[0_0_20px_rgba(251,113,133,0.4)]"
             )}
           >

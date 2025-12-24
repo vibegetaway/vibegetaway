@@ -86,7 +86,7 @@ export function FilterBar({
     }, [isDateOpen, editingFilter])
 
     return (
-        <div className={cn("flex items-center gap-2 flex-wrap", className)}>
+        <div className={cn("hidden md:flex items-center gap-2 flex-wrap", className)}>
             {filters.map((filter) => {
                 const count = filterCounts[filter.id] || 0
                 const hasFilter = filter.id === 'date' 

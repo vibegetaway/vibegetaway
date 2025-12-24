@@ -139,3 +139,13 @@
 .leaflet-bottom {
   z-index: 1000 !important;
 }
+
+/* Hide scrollbar for horizontal scrolling inspiration chips */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

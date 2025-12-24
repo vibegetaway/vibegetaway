@@ -323,7 +323,7 @@ export default function Home() {
 
       {/* Itinerary Planner Button - top right, aligned with search bar */}
       <div className={cn(
-        "absolute flex items-center transition-all duration-300 ease-in-out z-[70] right-4",
+        "hidden md:flex absolute items-center transition-all duration-300 ease-in-out z-[70] right-4",
         // Align with search bar visual center
         // Search bar container: top-4 (16px)
         // Search bar has p-2.5 (10px top padding) and content height ~38px
@@ -403,42 +403,44 @@ export default function Home() {
       {/* Search bar and filter tags overlay on top of map */}
       <div className={cn(
         "absolute flex flex-col gap-2 transition-all duration-300 ease-in-out",
-        // Mobile: fixed top, full width, padded
-        "fixed md:absolute top-0 md:top-4 left-0 w-full md:w-auto px-4 pt-4 md:px-0 md:pt-0 items-center md:items-start",
+        // Mobile: fixed top, full width, smaller margins
+        "fixed md:absolute top-0 md:top-4 left-0 w-full md:w-auto px-2 pt-4 md:px-0 md:pt-0 items-center md:items-start",
         // Desktop positioning
         activePanel !== 'none' ? "md:left-[540px]" : "md:left-24",
         // Lower z-index when FilterSidePanel is open so it appears above search bar
         isFilterPanelOpen ? "z-50" : "z-[70]"
       )}>
-        <div className="relative flex flex-row items-center gap-2 max-w-full">
-          {/* Mobile Logo */}
-          <div className="md:hidden flex-shrink-0">
-            <Image
-              src="/assets/icon.png"
-              width={40}
-              height={40}
-              alt="VibeGetaway"
-              className="rounded-lg shadow-sm"
-            />
-          </div>
+        <div className="relative flex flex-row items-center gap-2 w-full max-w-full">
           <SearchBar
             vibe={vibe}
             setVibe={setVibe}
             onSearch={() => handleFindDestinations(vibe, month)}
+            onSettingsClick={openFilterPanel}
           />
-          <InspirationChips
-            onChipClick={handleInspirationChipClick}
-            isVisible={activePanel === 'none' && !isFilterPanelOpen}
-          />
+          {/* Desktop InspirationChips - positioned next to search bar */}
+          <div className="hidden md:block">
+            <InspirationChips
+              onChipClick={handleInspirationChipClick}
+              isVisible={activePanel === 'none' && !isFilterPanelOpen}
+            />
+          </div>
         </div>
 
-        {/* Filter Tags - floating individual pills */}
+        {/* Mobile InspirationChips and Filter Tags - below search bar */}
         <div className={cn(
           "transition-all duration-300 ease-in-out",
           activePanel === 'none' && !isFilterPanelOpen
             ? "opacity-100 translate-y-0"
             : "opacity-0 -translate-y-2 pointer-events-none"
         )}>
+          {/* Mobile InspirationChips */}
+          <div className="md:hidden">
+            <InspirationChips
+              onChipClick={handleInspirationChipClick}
+              isVisible={activePanel === 'none' && !isFilterPanelOpen}
+            />
+          </div>
+          {/* Filter Tags - floating individual pills (desktop only) */}
           <FilterBar
             onFilterClick={handleFilterClick}
             filterCounts={filterCounts}
