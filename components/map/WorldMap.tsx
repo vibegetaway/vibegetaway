@@ -25,11 +25,19 @@ interface WorldMapProps {
   isSidebarOpen?: boolean
 }
 
-// Create custom purple marker icons
+// Icon cache to prevent recreating icons on every render
+const ICON_CACHE = new Map<string, L.DivIcon>()
+
+// Create custom purple marker icons with memoization
 const createPurpleIcon = (isSelected: boolean, hasDetails: boolean) => {
+  const key = `${isSelected}-${hasDetails}`
+  if (ICON_CACHE.has(key)) {
+    return ICON_CACHE.get(key)!
+  }
+
   const color = isSelected ? '#6366f1' : hasDetails ? '#8b5cf6' : '#a78bfa'
 
-  return L.divIcon({
+  const icon = L.divIcon({
     className: 'custom-marker',
     html: `
       <div style="
@@ -45,6 +53,9 @@ const createPurpleIcon = (isSelected: boolean, hasDetails: boolean) => {
     iconSize: [20, 20],
     iconAnchor: [10, 10],
   })
+
+  ICON_CACHE.set(key, icon)
+  return icon
 }
 
 // Component to handle map events and hide overlay on interaction

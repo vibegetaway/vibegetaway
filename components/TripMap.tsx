@@ -1,10 +1,34 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { MapPin } from 'lucide-react'
+
+// Custom Icon Cache
+const CUSTOM_ICONS = new Map<string, L.DivIcon>();
+
+// Custom Icon Creator (Memoized outside component)
+const createCustomIcon = (type: 'main' | 'poi') => {
+    if (!CUSTOM_ICONS.has(type)) {
+        const colorClass = type === 'main' ? 'bg-violet-600' : 'bg-pink-500';
+
+        CUSTOM_ICONS.set(type, L.divIcon({
+            className: 'custom-pin',
+            html: `
+                <div class="relative w-8 h-8 flex items-center justify-center">
+                    <div class="w-4 h-4 ${colorClass} rounded-full border-2 border-white shadow-lg relative z-10"></div>
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 ${colorClass} opacity-20 rounded-full animate-ping"></div>
+                </div>
+            `,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+        }));
+    }
+    return CUSTOM_ICONS.get(type)!;
+}
 import type { Destination } from '@/lib/generateDestinationInfo'
 import type { DayBreakdown } from '@/lib/itineraryHistory'
 
@@ -55,7 +79,7 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
     const showDayView = selectedDay && (selectedDay.coordinates || (selectedDay.points_of_interest && selectedDay.points_of_interest.length > 0))
 
     // Prepare markers for Day View
-    const dayMarkers = showDayView ? [
+    const dayMarkers = useMemo(() => showDayView ? [
         ...(selectedDay?.coordinates ? [{
             lat: selectedDay.coordinates.lat,
             lng: selectedDay.coordinates.lng,
@@ -70,45 +94,29 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
             subtitle: poi.description,
             isMain: false
         }))
-    ] : []
+    ] : [], [showDayView, selectedDay])
 
     // Filter out markers with invalid coordinates to prevent Leaflet crashes
-    const validDayMarkers = dayMarkers.filter(m =>
+    const validDayMarkers = useMemo(() => dayMarkers.filter(m =>
         typeof m.lat === 'number' && !isNaN(m.lat) &&
         typeof m.lng === 'number' && !isNaN(m.lng)
-    )
-
-    // Custom Icon Creator
-    const createCustomIcon = (type: 'main' | 'poi') => {
-        const colorClass = type === 'main' ? 'bg-violet-600' : 'bg-pink-500';
-
-        return L.divIcon({
-            className: 'custom-pin',
-            html: `
-                <div class="relative w-8 h-8 flex items-center justify-center">
-                    <div class="w-4 h-4 ${colorClass} rounded-full border-2 border-white shadow-lg relative z-10"></div>
-                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 ${colorClass} opacity-20 rounded-full animate-ping"></div>
-                </div>
-            `,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            popupAnchor: [0, -16]
-        });
-    }
+    ), [dayMarkers])
 
     // Prepare markers for Overview View (existing logic)
-    const validLocations = locations.filter(l =>
-        l.coordinates &&
-        typeof l.coordinates.lat === 'number' && !isNaN(l.coordinates.lat) &&
-        typeof l.coordinates.lng === 'number' && !isNaN(l.coordinates.lng)
-    )
-    const overviewMarkers = validLocations.map(loc => ({
-        lat: loc.coordinates!.lat,
-        lng: loc.coordinates!.lng,
-        title: loc.region || loc.country,
-        subtitle: loc.country,
-        isMain: true
-    }))
+    const overviewMarkers = useMemo(() => {
+        const validLocations = locations.filter(l =>
+            l.coordinates &&
+            typeof l.coordinates.lat === 'number' && !isNaN(l.coordinates.lat) &&
+            typeof l.coordinates.lng === 'number' && !isNaN(l.coordinates.lng)
+        )
+        return validLocations.map(loc => ({
+            lat: loc.coordinates!.lat,
+            lng: loc.coordinates!.lng,
+            title: loc.region || loc.country,
+            subtitle: loc.country,
+            isMain: true
+        }))
+    }, [locations])
 
     const markersToShow = showDayView ? validDayMarkers : overviewMarkers
 
