@@ -263,7 +263,7 @@ export default function PlanPage() {
   const [month, setMonth] = useState('Anytime')
   const [mobileView, setMobileView] = useState<'config' | 'itinerary'>('config')
   const [cityInput, setCityInput] = useState('')
-  const [citySuggestions, setCitySuggestions] = useState<Array<{ name: string; country: string; region?: string; coordinates?: { lat: number; lng: number } }>>([])
+  const [citySuggestions, setCitySuggestions] = useState<Array<{ name: string; country: string; region?: string; regionName?: string; coordinates?: { lat: number; lng: number } }>>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [searchingCities, setSearchingCities] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
@@ -330,7 +330,7 @@ export default function PlanPage() {
     return () => clearTimeout(timeoutId)
   }, [cityInput])
 
-  const searchCities = async (query: string): Promise<Array<{ name: string; country: string; region?: string; coordinates?: { lat: number; lng: number } }>> => {
+  const searchCities = async (query: string): Promise<Array<{ name: string; country: string; region?: string; regionName?: string; coordinates?: { lat: number; lng: number } }>> => {
     if (!query.trim() || query.length < 2) {
       return []
     }
@@ -357,7 +357,7 @@ export default function PlanPage() {
     }
   }
 
-  const handleCitySelect = (suggestion: { name: string; country: string; region?: string; coordinates?: { lat: number; lng: number } }) => {
+  const handleCitySelect = (suggestion: { name: string; country: string; region?: string; regionName?: string; coordinates?: { lat: number; lng: number } }) => {
     // Clear any pending blur timeout
     if (blurTimeoutRef.current) {
       clearTimeout(blurTimeoutRef.current)
@@ -734,6 +734,11 @@ export default function PlanPage() {
                             value={cityInput}
                             onChange={(e) => setCityInput(e.target.value)}
                             onFocus={() => {
+                              // Clear any pending blur timeout
+                              if (blurTimeoutRef.current) {
+                                clearTimeout(blurTimeoutRef.current)
+                                blurTimeoutRef.current = null
+                              }
                               if (cityInput.length >= 2) {
                                 setShowSuggestions(true)
                               }
@@ -743,16 +748,6 @@ export default function PlanPage() {
                               blurTimeoutRef.current = setTimeout(() => {
                                 setShowSuggestions(false)
                               }, 200)
-                            }}
-                            onFocus={() => {
-                              // Clear any pending blur timeout
-                              if (blurTimeoutRef.current) {
-                                clearTimeout(blurTimeoutRef.current)
-                                blurTimeoutRef.current = null
-                              }
-                              if (cityInput.length >= 2) {
-                                setShowSuggestions(true)
-                              }
                             }}
                             placeholder="Add another city..."
                             className="w-full pl-10 pr-10 py-2 bg-white border border-violet-200 rounded-lg text-sm text-violet-900 placeholder-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
