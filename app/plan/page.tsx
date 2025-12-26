@@ -41,13 +41,13 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 
 // Sortable Item Component
-function SortableLocationItem({ 
-  location, 
-  id, 
-  index, 
+function SortableLocationItem({
+  location,
+  id,
+  index,
   onUpdateVibes,
   onRemove
-}: { 
+}: {
   location: Destination
   id: string
   index: number
@@ -141,10 +141,10 @@ function SortableLocationItem({
         >
           <GripVertical className="w-5 h-5" />
         </button>
-        
+
         {/* Remove option dropdown */}
         {showRemoveOption && (
-          <div 
+          <div
             ref={removeOptionRef}
             className="absolute left-0 top-full mt-1 bg-white border border-violet-200 rounded-lg shadow-lg z-[100] min-w-[120px]"
           >
@@ -195,7 +195,7 @@ function SortableLocationItem({
                 </button>
               </div>
             ))}
-            
+
             {isEditing ? (
               <div className="shrink-0 flex items-center gap-1">
                 <input
@@ -229,7 +229,7 @@ function SortableLocationItem({
             )}
           </div>
         )}
-        
+
         {/* Show Add button when no vibes exist */}
         {vibes.length === 0 && !isEditing && (
           <button
@@ -363,7 +363,7 @@ export default function PlanPage() {
       clearTimeout(blurTimeoutRef.current)
       blurTimeoutRef.current = null
     }
-    
+
     const destination: Destination = {
       country: suggestion.country,
       region: suggestion.region || suggestion.name,
@@ -371,7 +371,7 @@ export default function PlanPage() {
       recommendedDuration: '3',
       searchVibe: 'holiday' // Default tag
     }
-    
+
     addToSavedLocations(destination)
     // Reload from saved locations to ensure consistency
     const updatedLocations = getSavedLocations()
@@ -384,19 +384,19 @@ export default function PlanPage() {
 
   const handleManualCityAdd = () => {
     if (!cityInput.trim()) return
-    
+
     // Parse city input - assume format: "City, Country" or just "City"
     const parts = cityInput.split(',').map(s => s.trim())
     const cityName = parts[0]
     const country = parts[1] || cityName // If no country, use city name as fallback
-    
+
     const destination: Destination = {
       country: country,
       region: cityName,
       recommendedDuration: '3',
       searchVibe: 'holiday' // Default tag
     }
-    
+
     addToSavedLocations(destination)
     // Reload from saved locations to ensure consistency
     const updatedLocations = getSavedLocations()
@@ -407,13 +407,13 @@ export default function PlanPage() {
 
   const updateDestinationVibes = (destination: Destination, newVibes: string) => {
     const updatedDestination = { ...destination, searchVibe: newVibes || undefined }
-    
+
     // Update in saved locations
     const locations = getSavedLocations()
     const index = locations.findIndex(
       loc => loc.region === destination.region && loc.country === destination.country
     )
-    
+
     if (index !== -1) {
       locations[index] = updatedDestination
       // Save back to localStorage using the same method as the library
@@ -426,10 +426,10 @@ export default function PlanPage() {
         }
       }
     }
-    
+
     // Update in ordered locations state
-    setOrderedLocations(prev => 
-      prev.map(loc => 
+    setOrderedLocations(prev =>
+      prev.map(loc =>
         loc.region === destination.region && loc.country === destination.country
           ? updatedDestination
           : loc
@@ -440,10 +440,10 @@ export default function PlanPage() {
   const handleRemoveDestination = (destination: Destination) => {
     // Remove from saved locations
     removeFromSavedLocations(destination)
-    
+
     // Update ordered locations state
-    setOrderedLocations(prev => 
-      prev.filter(loc => 
+    setOrderedLocations(prev =>
+      prev.filter(loc =>
         !(loc.region === destination.region && loc.country === destination.country)
       )
     )
@@ -581,12 +581,12 @@ export default function PlanPage() {
           >
             <Home className="w-5 h-5" />
           </button>
-          
+
           {/* Title - centered */}
           <h1 className="absolute left-1/2 -translate-x-1/2 text-2xl font-bold bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent whitespace-nowrap">
             Itinerary Planner
           </h1>
-          
+
           {/* Spacer - right (same width as home button for balance) */}
           <div className="w-10 h-10" />
         </div>
@@ -637,7 +637,7 @@ export default function PlanPage() {
                       <p className="text-sm text-violet-600 font-medium mb-1">No destinations added yet</p>
                       <p className="text-xs text-violet-500 mb-4">Add a destination to start planning your trip</p>
                     </div>
-                    
+
                     {/* City Input with Autocomplete */}
                     <div className="relative">
                       <div className="relative flex items-center">
@@ -664,10 +664,10 @@ export default function PlanPage() {
                           </button>
                         )}
                       </div>
-                      
+
                       {/* Suggestions Dropdown */}
                       {showSuggestions && cityInput.length >= 2 && (
-                        <div 
+                        <div
                           className="absolute z-50 w-full mt-1 bg-white border border-violet-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
                           onMouseDown={(e) => e.preventDefault()}
                         >
@@ -689,14 +689,14 @@ export default function PlanPage() {
                               >
                                 <div className="font-medium text-violet-900">{suggestion.name}</div>
                                 <div className="text-xs text-violet-500">
-                                  {suggestion.regionName ? `${suggestion.regionName}, ${suggestion.country}` : suggestion.country}
+                                  {suggestion.region ? `${suggestion.region}, ${suggestion.country}` : suggestion.country}
                                 </div>
                               </button>
                             ))
                           ) : null}
                         </div>
                       )}
-                      
+
                     </div>
                   </div>
                 ) : (
@@ -734,6 +734,11 @@ export default function PlanPage() {
                             value={cityInput}
                             onChange={(e) => setCityInput(e.target.value)}
                             onFocus={() => {
+                              // Clear any pending blur timeout
+                              if (blurTimeoutRef.current) {
+                                clearTimeout(blurTimeoutRef.current)
+                                blurTimeoutRef.current = null
+                              }
                               if (cityInput.length >= 2) {
                                 setShowSuggestions(true)
                               }
@@ -743,16 +748,6 @@ export default function PlanPage() {
                               blurTimeoutRef.current = setTimeout(() => {
                                 setShowSuggestions(false)
                               }, 200)
-                            }}
-                            onFocus={() => {
-                              // Clear any pending blur timeout
-                              if (blurTimeoutRef.current) {
-                                clearTimeout(blurTimeoutRef.current)
-                                blurTimeoutRef.current = null
-                              }
-                              if (cityInput.length >= 2) {
-                                setShowSuggestions(true)
-                              }
                             }}
                             placeholder="Add another city..."
                             className="w-full pl-10 pr-10 py-2 bg-white border border-violet-200 rounded-lg text-sm text-violet-900 placeholder-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
@@ -771,10 +766,10 @@ export default function PlanPage() {
                             </button>
                           )}
                         </div>
-                        
+
                         {/* Suggestions Dropdown */}
                         {showSuggestions && cityInput.length >= 2 && (
-                          <div 
+                          <div
                             className="absolute z-50 w-full mt-1 bg-white border border-violet-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
                             onMouseDown={(e) => e.preventDefault()}
                           >
@@ -796,14 +791,14 @@ export default function PlanPage() {
                                 >
                                   <div className="font-medium text-violet-900">{suggestion.name}</div>
                                   <div className="text-xs text-violet-500">
-                                    {suggestion.regionName ? `${suggestion.regionName}, ${suggestion.country}` : suggestion.country}
+                                    {suggestion.region ? `${suggestion.region}, ${suggestion.country}` : suggestion.country}
                                   </div>
                                 </button>
                               ))
                             ) : null}
                           </div>
                         )}
-                        
+
                       </div>
                     </div>
 
