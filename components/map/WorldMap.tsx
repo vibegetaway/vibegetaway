@@ -25,27 +25,18 @@ interface WorldMapProps {
   isSidebarOpen?: boolean
 }
 
-// Create custom purple marker icons
-const createPurpleIcon = (isSelected: boolean, hasDetails: boolean) => {
-  const color = isSelected ? '#6366f1' : hasDetails ? '#8b5cf6' : '#a78bfa'
-
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `
-      <div style="
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: ${color};
-        border: 3px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.25);
-        transform: translate(-50%, -50%);
-      "></div>
-    `,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-  })
-}
+// Helper to create the HTML string for the icon
+const createIconHtml = (color: string) => `
+  <div style="
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: ${color};
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    transform: translate(-50%, -50%);
+  "></div>
+`
 
 // Component to handle map events and hide overlay on interaction
 function MapEventHandler({ onMapInteraction }: { onMapInteraction: () => void }) {
@@ -104,6 +95,23 @@ function DestinationMarkers({
   const map = useMap()
   const hasFitBoundsRef = useRef(false)
 
+  // Memoize icons to prevent recreating them on every render
+  // This is a significant performance optimization for maps with many markers
+  const icons = useMemo(() => {
+    const createIcon = (color: string) => L.divIcon({
+      className: 'custom-marker',
+      html: createIconHtml(color),
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    })
+
+    return {
+      selected: createIcon('#6366f1'),
+      details: createIcon('#8b5cf6'),
+      default: createIcon('#a78bfa')
+    }
+  }, [])
+
   useEffect(() => {
     if (destinations.length > 0 && !hasFitBoundsRef.current) {
       // Fit bounds to show all markers - only do this once on initial load with coordinates
@@ -129,11 +137,14 @@ function DestinationMarkers({
           selectedDestination?.country === dest.country
         const hasDetails = !!(dest.description && dest.pricing)
 
+        // Select the appropriate cached icon
+        const icon = isSelected ? icons.selected : (hasDetails ? icons.details : icons.default)
+
         return (
           <Marker
             key={`${dest.country}-${dest.region}-${index}`}
             position={position}
-            icon={createPurpleIcon(isSelected, hasDetails)}
+            icon={icon}
             eventHandlers={{
               click: (e) => {
                 // Stop event propagation to prevent map click handler from interfering
