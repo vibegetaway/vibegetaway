@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Destination } from '@/lib/generateDestinationInfo'
 import { MapPin, X, Loader2, CalendarPlus, CalendarCheck, ChevronRight } from 'lucide-react'
 import { addToSavedLocations, removeFromSavedLocations, isDestinationSaved } from '@/lib/itinerary'
+import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -156,7 +157,7 @@ export function SearchResultsPanel({
                         </h3>
                         <div className="flex items-center gap-1 text-violet-500 mt-0.5">
                           <MapPin className="w-3 h-3" />
-                          <span className="text-xs font-medium tracking-wide uppercase">{destination.country}</span>
+                          <span className="text-xs font-medium tracking-wide uppercase">{getCountryName(destination.country)}</span>
                         </div>
                       </div>
 
