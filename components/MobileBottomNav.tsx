@@ -20,6 +20,8 @@ interface MobileBottomNavProps {
   activeItem?: MobileBottomNavActiveItem
   /** Override the badge count shown on the Trip button. If omitted, uses saved locations count. */
   tripCount?: number
+  /** Controls the inactive color of the Trip item (active state still uses the selected styling). */
+  tripInactiveTone?: 'violet' | 'gray'
 }
 
 export function MobileBottomNav({
@@ -29,6 +31,7 @@ export function MobileBottomNav({
   onItinerariesClick,
   activeItem = null,
   tripCount,
+  tripInactiveTone = 'violet',
 }: MobileBottomNavProps) {
   const router = useRouter()
   const [savedCount, setSavedCount] = useState(0)
@@ -63,6 +66,11 @@ export function MobileBottomNav({
     if (handler) return handler()
   }
 
+  const tripInactiveClassName =
+    tripInactiveTone === 'gray'
+      ? "text-gray-500 hover:text-pink-500 border border-transparent"
+      : "text-violet-600 hover:bg-violet-50/50 border border-transparent hover:border-violet-200"
+
   return (
     <div className="fixed bottom-0 left-0 w-full h-16 bg-white border-t border-violet-200/50 flex flex-row justify-around items-center z-[60] md:hidden px-2 pb-safe">
       {/* Search */}
@@ -87,9 +95,9 @@ export function MobileBottomNav({
         onClick={handleTripClick}
         className={cn(
           "relative flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all duration-200",
-          activeItem === 'trip' || effectiveTripCount > 0
+          activeItem === 'trip'
             ? "bg-violet-50 text-violet-600 border border-violet-200"
-            : "text-violet-600 hover:bg-violet-50/50 border border-transparent hover:border-violet-200"
+            : tripInactiveClassName
         )}
         aria-label="Trip"
       >
