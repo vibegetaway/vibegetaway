@@ -10,6 +10,7 @@ import { saveItineraryToHistory, type DayBreakdown } from '@/lib/itineraryHistor
 import { useTripFilters } from '@/hooks/useTripFilters'
 import { FilterBar } from '@/components/user-input/FilterBar'
 import { FilterSidePanel } from '@/components/panels/FilterSidePanel'
+import { MobileBottomNav } from '@/components/MobileBottomNav'
 import { cn } from '@/lib/utils'
 import dynamic from 'next/dynamic'
 import { TripDetailsPanel } from '@/components/panels/TripDetailsPanel'
@@ -1127,39 +1128,13 @@ export default function PlanPage() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 w-full h-16 bg-white border-t border-violet-200/50 flex flex-row justify-around items-center z-[60] md:hidden px-2 pb-safe">
-        {/* Trip button - shows current configurations */}
-        <button
-          type="button"
-          className={cn(
-            "relative flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all duration-200",
-            orderedLocations.length > 0
-              ? "bg-violet-50 text-violet-600 border border-violet-200"
-              : "text-violet-600 hover:bg-violet-50/50 border border-transparent hover:border-violet-200"
-          )}
-          aria-label="Trip Configuration"
-        >
-          <div className="relative">
-            <Calendar className="w-6 h-6" strokeWidth={2} />
-            {orderedLocations.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-violet-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                {orderedLocations.length > 9 ? '9+' : orderedLocations.length}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] mt-1 font-medium">Trip</span>
-        </button>
-
-        {/* Past Itineraries button */}
-        <button
-          type="button"
-          className="flex flex-col items-center justify-center p-2 text-gray-500 hover:text-pink-500"
-          aria-label="Past Itineraries"
-        >
-          <BookOpen className="w-6 h-6" strokeWidth={2} />
-          <span className="text-[10px] mt-1">Itineraries</span>
-        </button>
-      </div>
+      <MobileBottomNav
+        onSearchClick={() => router.push('/')}
+        onTripClick={() => setMobileView('config')}
+        onItinerariesClick={() => setMobileView('itinerary')}
+        activeItem={mobileView === 'config' ? 'trip' : 'itineraries'}
+        tripCount={orderedLocations.length}
+      />
     </div>
   )
 }

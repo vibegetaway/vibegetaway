@@ -363,7 +363,14 @@ export default function Home() {
       />
       <MobileBottomNav
         onSearchClick={() => handlePanelToggle('search')}
-        onItineraryClick={() => handlePanelToggle('itinerary')}
+        onItinerariesClick={() => handlePanelToggle('itinerary')}
+        activeItem={
+          activePanel === 'search'
+            ? 'search'
+            : activePanel === 'itinerary'
+              ? 'itineraries'
+              : null
+        }
       />
       <RecentSearchPanel
         isOpen={activePanel === 'recent'}
