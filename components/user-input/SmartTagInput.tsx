@@ -217,6 +217,7 @@ export function SmartTagInput({
                             removeTag(index)
                         }}
                         className="hover:text-violet-900 focus:outline-none"
+                        aria-label={`Remove ${tag}`}
                     >
                         <X className="h-3 w-3" />
                     </button>
@@ -240,6 +241,7 @@ export function SmartTagInput({
                             removeTag(visibleTagsCount + index)
                         }}
                         className="hover:text-violet-900 focus:outline-none"
+                        aria-label={`Remove ${tag}`}
                     >
                         <X className="h-3 w-3" />
                     </button>
@@ -262,6 +264,7 @@ export function SmartTagInput({
                     className="w-full bg-transparent outline-none text-stone-800"
                     placeholder=""
                     autoFocus={autoFocus}
+                    aria-label="Add tags"
                 />
                 {/* Animated typing placeholder */}
                 {value.length === 0 && !inputValue && displayedPlaceholder && (
