@@ -259,6 +259,13 @@ export default function Home() {
     }
   }, [destinations])
 
+  // If we end up with no results, ensure the search panel isn't "open" (avoids blank sidebar/layout shift).
+  useEffect(() => {
+    if (activePanel === 'search' && !loading && destinations.length === 0) {
+      setActivePanel('none')
+    }
+  }, [activePanel, loading, destinations.length])
+
   // Shared filter logic
   const {
     filters,
@@ -282,6 +289,14 @@ export default function Home() {
   }
 
   const handlePanelToggle = (panel: 'none' | 'search' | 'recent' | 'itinerary') => {
+    const canShowSearchPanel = loading || destinations.length > 0
+
+    // Don't open the search results panel when there's nothing to show.
+    // Allow closing if it's already the active panel.
+    if (panel === 'search' && !canShowSearchPanel && activePanel !== 'search') {
+      return
+    }
+
     // Calculate next state
     const nextState = activePanel === panel ? 'none' : panel
 
@@ -325,7 +340,7 @@ export default function Home() {
         destinations={destinations}
         selectedDestination={selectedDestination}
         onDestinationSelect={setSelectedDestination}
-        isSidebarOpen={activePanel !== 'none'}
+        isSidebarOpen={activePanel !== 'none' && !(activePanel === 'search' && !loading && destinations.length === 0)}
       />
 
       {/* Itinerary Planner Button - top right, aligned with search bar */}
@@ -377,7 +392,7 @@ export default function Home() {
         loading={loading}
         onDestinationClick={handleDestinationSelect}
         selectedDestination={selectedDestination}
-        isOpen={activePanel === 'search'}
+        isOpen={activePanel === 'search' && (loading || destinations.length > 0)}
         onClose={() => setActivePanel('none')}
       />
       <ItineraryPanel
@@ -413,7 +428,7 @@ export default function Home() {
         // Mobile: fixed top, full width, smaller margins
         "fixed md:absolute top-0 md:top-4 left-0 w-full md:w-auto px-2 pt-4 md:px-0 md:pt-0 items-center md:items-start",
         // Desktop positioning
-        activePanel !== 'none' ? "md:left-[540px]" : "md:left-24",
+        (activePanel !== 'none' && !(activePanel === 'search' && !loading && destinations.length === 0)) ? "md:left-[540px]" : "md:left-24",
         // Lower z-index when FilterSidePanel is open so it appears above search bar
         isFilterPanelOpen ? "z-50" : "z-[70]"
       )}>
