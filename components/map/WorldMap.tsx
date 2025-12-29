@@ -47,7 +47,7 @@ const createPurpleIcon = (isSelected: boolean, hasDetails: boolean) => {
   })
 }
 
-// Component to handle map events and hide overlay on interaction
+// Handles map events and hides overlay on interaction
 function MapEventHandler({ onMapInteraction }: { onMapInteraction: () => void }) {
   const map = useMap()
 
@@ -56,20 +56,16 @@ function MapEventHandler({ onMapInteraction }: { onMapInteraction: () => void })
       onMapInteraction()
     }
 
-    // Hide overlay when user interacts with map
     map.on('movestart', handleInteraction)
     map.on('zoomstart', handleInteraction)
     
-    // Only hide overlay on map clicks, not marker clicks
     const handleMapClick = (e: L.LeafletMouseEvent) => {
-      // Check if click was on a marker by checking the target
       const target = e.originalEvent.target as HTMLElement
       // Check for both default Leaflet markers and custom markers
       const isMarkerClick = target.closest('.leaflet-marker-icon') !== null ||
                             target.closest('.custom-marker') !== null ||
                             target.closest('.leaflet-marker-pane') !== null
       
-      // Only hide overlay if it's not a marker click
       if (!isMarkerClick) {
         handleInteraction()
       }
@@ -106,7 +102,6 @@ function DestinationMarkers({
 
   useEffect(() => {
     if (destinations.length > 0 && !hasFitBoundsRef.current) {
-      // Fit bounds to show all markers - only do this once on initial load with coordinates
       const bounds = destinations
         .filter(d => d.coordinates)
         .map(d => [d.coordinates!.lat, d.coordinates!.lng] as [number, number])

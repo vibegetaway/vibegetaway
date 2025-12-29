@@ -53,7 +53,6 @@ export interface GenerateDestinationParams {
   styles?: string[]
 }
 
-// Helper function to strip markdown code fences from JSON responses (```json, ```JSON, or just ```)
 function stripMarkdownFences(text: string): string {
   let cleaned = text.trim()
   cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
@@ -201,7 +200,6 @@ export async function generateDestinationNames(
       prompt: prompt,
     })
 
-    // Strip markdown fences if present, then parse the JSON response
     const cleanedText = stripMarkdownFences(text)
     const destinations: Destination[] = JSON.parse(cleanedText)
 
@@ -216,9 +214,6 @@ export async function generateDestinationNames(
   }
 }
 
-/**
- * Generate detailed information for MULTIPLE destinations in a single LLM call
- */
 export async function generateDestinationInfo(
   destinations: Array<{ country: string; region: string }>,
   params: GenerateDestinationParams
@@ -271,14 +266,11 @@ export async function generateDestinationInfo(
       prompt: prompt,
     })
 
-    // Strip markdown fences if present, then parse the JSON response
     const cleanedText = stripMarkdownFences(text)
     const detailedDestinations: Destination[] = JSON.parse(cleanedText)
 
     console.log(`[SERVER] LLM returned ${detailedDestinations.length} destinations`)
 
-    // Note: Coordinates are now fetched upfront in fetchDestinations.ts
-    // No need to enrich with coordinates here anymore
     return detailedDestinations
   } catch (error) {
     console.error('Error generating destination info:', error)
@@ -290,9 +282,9 @@ export async function generateDestinationInfo(
   }
 }
 
-// Rate limiting state for LocationIQ API (2 requests/second on free tier)
+// Rate limiting for LocationIQ (2 requests/sec)
 let lastRequestTime = 0
-const MIN_REQUEST_INTERVAL = 600 // 600ms between requests = ~1.67 req/sec (safely under 2 req/sec limit)
+const MIN_REQUEST_INTERVAL = 600
 
 async function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -308,7 +300,6 @@ export async function getCoordinates(location: string): Promise<{ lat: number; l
       return null
     }
 
-    // Rate limiting: ensure we don't exceed 2 requests per second
     const now = Date.now()
     const timeSinceLastRequest = now - lastRequestTime
     if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
