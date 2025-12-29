@@ -3,6 +3,8 @@ import { createGroq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
 
 export const maxDuration = 60
+const maxLocations = 10
+const maxStringLength = 500
 
 import { saveItineraryToHistory, type DayBreakdown, type DayActivity } from '@/lib/itineraryHistory'
 
@@ -114,18 +116,47 @@ export async function POST(req: Request) {
     const body: PlanTripRequest = await req.json()
     const { locations, tripDuration, filters } = body
 
-    if (!locations || locations.length === 0) {
+    if (!locations || !Array.isArray(locations) || locations.length === 0) {
       return new Response(JSON.stringify({ error: 'No locations provided' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       })
     }
 
-    if (!tripDuration || tripDuration < 1) {
-      return new Response(JSON.stringify({ error: 'Invalid trip duration' }), {
+    if (locations.length > maxLocations) {
+      return new Response(JSON.stringify({ error: `Too many locations. Max ${maxLocations} allowed.` }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       })
+    }
+
+    if (!tripDuration || tripDuration < 1 || tripDuration > maxDuration) {
+      return new Response(JSON.stringify({ error: `Trip duration must be between 1 and ${maxDuration} days` }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (filters && typeof filters === 'object') {
+        if (filters.origin && typeof filters.origin === 'string' && filters.origin.length > maxStringLength) {
+             return new Response(JSON.stringify({ error: 'Origin input too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+        }
+        if (filters.exclusions) {
+             if (!Array.isArray(filters.exclusions)) {
+                 return new Response(JSON.stringify({ error: 'Exclusions must be an array' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+             }
+             if (filters.exclusions.some(s => typeof s === 'string' && s.length > maxStringLength)) {
+                 return new Response(JSON.stringify({ error: 'Exclusion input too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+             }
+        }
+        if (filters.styles) {
+             if (!Array.isArray(filters.styles)) {
+                 return new Response(JSON.stringify({ error: 'Styles must be an array' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+             }
+             if (filters.styles.some(s => typeof s === 'string' && s.length > maxStringLength)) {
+                 return new Response(JSON.stringify({ error: 'Style input too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+             }
+        }
     }
 
     // Always use Gemini Flash Lite (2.5)
@@ -155,8 +186,8 @@ export async function POST(req: Request) {
       const parts = []
       if (filters.origin) parts.push(`Starting Point: ${filters.origin}`)
       if (filters.budget) parts.push(`Budget: Approx $${filters.budget} total`)
-      if (filters.styles && filters.styles.length > 0) parts.push(`Travel Styles: ${filters.styles.join(', ')}`)
-      if (filters.exclusions && filters.exclusions.length > 0) parts.push(`Avoid: ${filters.exclusions.join(', ')}`)
+      if (filters.styles && Array.isArray(filters.styles) && filters.styles.length > 0) parts.push(`Travel Styles: ${filters.styles.join(', ')}`)
+      if (filters.exclusions && Array.isArray(filters.exclusions) && filters.exclusions.length > 0) parts.push(`Avoid: ${filters.exclusions.join(', ')}`)
 
       if (parts.length > 0) {
         filterContext = `\nAdditional Constraints & Preferences:\n${parts.join('\n')}\n`
