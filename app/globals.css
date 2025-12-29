@@ -83,14 +83,14 @@
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
-    overflow: hidden;
+    min-height: 100%;
   }
 
   body {
-    @apply text-foreground;
-    /* Use same background as map to avoid visible gap */
-    background-color: #f8f9fa;
+    @apply text-foreground bg-background;
+    background-image: 
+      radial-gradient(circle at 25px 25px, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
   }
 }
 

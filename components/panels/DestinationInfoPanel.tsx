@@ -1,9 +1,9 @@
 'use client'
 
 import { X, ArrowRight, CalendarPlus, CalendarCheck } from 'lucide-react'
-import type { Destination, UnsplashImage } from '@/lib/generateDestinationInfo'
-import { fetchUnsplashImages } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
+import type { UnsplashImage } from '@/app/api/unsplash-images/types'
 import type { SimplifiedFlight } from '@/lib/getRapidApiFlights'
 import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
@@ -54,8 +54,11 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
       if (destination?.imagesKeywords?.gallery) {
         setLoadingImages(true)
         try {
-          const fetchedImages = await fetchUnsplashImages(destination.imagesKeywords.gallery, 10)
-          setImages(fetchedImages)
+          const response = await fetch(
+            `/api/unsplash-images?keywords=${encodeURIComponent(destination.imagesKeywords.gallery)}&limit=10`
+          )
+          const data = await response.json()
+          setImages(data.images || [])
         } catch (error) {
           console.error('Error loading images:', error)
           setImages([])
@@ -71,8 +74,11 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
       if (destination?.imagesKeywords?.cover) {
         setLoadingCover(true)
         try {
-          const fetchedImages = await fetchUnsplashImages(destination.imagesKeywords.cover, 1)
-          setCoverImage(fetchedImages[0] || null)
+          const response = await fetch(
+            `/api/unsplash-images?keywords=${encodeURIComponent(destination.imagesKeywords.cover)}&limit=1`
+          )
+          const data = await response.json()
+          setCoverImage(data.images?.[0] || null)
         } catch (error) {
           console.error('Error loading cover image:', error)
           setCoverImage(null)

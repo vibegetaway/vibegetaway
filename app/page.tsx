@@ -1,480 +1,413 @@
-'use client'
+"use client"
 
-import { SearchBar } from '@/components/user-input/SearchBar'
-import { InspirationChips } from '@/components/user-input/InspirationChips'
-import { LeftSidebar } from '@/components/LeftSidebar'
-import { MobileBottomNav } from '@/components/MobileBottomNav'
-import { RecentSearchPanel } from '@/components/panels/RecentSearchPanel'
-import { SearchResultsPanel } from '@/components/panels/SearchResultsPanel'
-import { ItineraryPanel } from '@/components/panels/ItineraryPanel'
-import { FilterBar } from '@/components/user-input/FilterBar'
-import { FilterSidePanel } from '@/components/panels/FilterSidePanel'
-import dynamic from 'next/dynamic'
-import { useState, useEffect, useRef } from 'react'
-import { fetchDestinationsWithDetails } from '@/lib/fetchDestinations'
-import type { Destination } from '@/lib/generateDestinationInfo'
-import { saveSearchToHistory, type SearchHistoryItem } from '@/lib/searchHistory'
-import { cn } from '@/lib/utils'
-import { usePostHog } from 'posthog-js/react'
-import type { InspirationChip } from '@/data/inspirationChips'
-import { getUserLocation, formatLocationString } from '@/lib/geolocation'
-import { useTripFilters } from '@/hooks/useTripFilters'
-import { getSavedLocationsCount } from '@/lib/itinerary'
-import { useRouter } from 'next/navigation'
-import { Calendar } from 'lucide-react'
-import Image from 'next/image'
+import type React from "react"
+import { useRouter } from "next/navigation"
+import { Map, Calendar, CalendarDays, Users, Sparkles, Home as HomeIcon, Plus, BookOpen } from "lucide-react"
+import { LockedBanner } from "@/components/LockedBanner"
+import { usePostHog } from "posthog-js/react"
+import Image from "next/image"
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
+import { useEffect, useState } from "react"
 
-// Dynamic import to avoid SSR issues with Leaflet
-const WorldMap = dynamic(() => import('@/components/map/WorldMap'), { ssr: false })
+interface OptionCardProps {
+  title: string
+  description: string
+  icon: React.ReactNode
+  href: string
+  locked?: boolean
+  accentColor?: 'primary' | 'secondary' | 'chart-3'
+}
 
-// Number of destinations to fetch in parallel per batch
-const BATCH_SIZE = 5
-
-export default function Home() {
-  const posthog = usePostHog()
+function OptionCard({ title, description, icon, href, locked = false, accentColor = 'primary' }: OptionCardProps) {
   const router = useRouter()
-  const [destinations, setDestinations] = useState<Destination[]>([])
-  const [loading, setLoading] = useState(false)
-  const [vibe, setVibe] = useState('')
-  const [month, setMonth] = useState('Anytime')
-  const [activePanel, setActivePanel] = useState<'none' | 'search' | 'recent' | 'itinerary'>('none')
-  const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
-  const [savedCount, setSavedCount] = useState(0)
+  const posthog = usePostHog()
 
-  // Ensure only the latest async call updates state
-  const callIdRef = useRef(0)
-
-  // Track if we should save to history (don't save when loading from history)
-  const shouldSaveToHistory = useRef(true)
-
-  const handleFindDestinations = async (v: string, m: string) => {
-    if (!v.trim()) {
-      return
-    }
-
-    // Track search submission
-    posthog?.capture('search_submitted', {
-      vibe: v,
-      month: m,
-      filters: {
-        origin: filters.origin,
-        destinations: filters.locations,
-        duration: filters.duration,
-        budget: filters.budget,
-        exclusions: filters.exclusions,
-        styles: filters.styles,
-      }
-    })
-
-    const callId = ++callIdRef.current
-    setLoading(true)
-    setDestinations([])
-    setActivePanel('search') // Open panel immediately to show loading state
-
-    try {
-      await fetchDestinationsWithDetails({
-        batchSize: BATCH_SIZE,
-        params: {
-          vibe: v,
-          timePeriod: m,
-          from: filters.origin,
-          destinations: filters.locations,
-          duration: filters.duration,
-          budget: filters.budget,
-          exclusions: filters.exclusions,
-          styles: filters.styles,
-        },
-        callbacks: {
-          onInitialDestinations: (destinations) => {
-            // Ignore if a newer call started
-            if (callId !== callIdRef.current) {
-              return
-            }
-
-            // Attach search vibe to destinations
-            const destinationsWithVibe = destinations.map(d => ({
-              ...d,
-              searchVibe: v
-            }))
-
-            setDestinations(destinationsWithVibe)
-            setLoading(false)
-          },
-          onBatchComplete: (updatedDestinations) => {
-            // Ignore if a newer call started
-            if (callId !== callIdRef.current) {
-              return
-            }
-
-            // Attach search vibe to updated destinations
-            // Note: updatedDestinations come from fetchDestinationsWithDetails which merges
-            // details into the existing objects. We need to ensure the vibe persists or is re-applied.
-            // Since fetchDestinationsWithDetails returns enriched objects based on input, 
-            // and we pass destinations (which will have vibe if we do onInitialDestinations correctly),
-            // we might already have it. But let's be safe.
-            const destinationsWithVibe = updatedDestinations.map(d => ({
-              ...d,
-              searchVibe: v
-            }))
-
-            setDestinations(destinationsWithVibe)
-          },
-          onComplete: () => {
-            console.log('[INFO] All destination details loaded')
-
-            // Save to history if enabled
-            if (shouldSaveToHistory.current) {
-              // Get the final destinations state
-              setDestinations(prev => {
-                saveSearchToHistory(v, m, prev, {
-                  origin: filters.origin,
-                  destinations: filters.locations,
-                  duration: filters.duration,
-                  budget: filters.budget,
-                  exclusions: filters.exclusions,
-                  styles: filters.styles
-                })
-                return prev
-              })
-            }
-          },
-          onError: (error) => {
-            console.error('[ERROR] Callback onError:', error.message)
-            if (callId === callIdRef.current) setLoading(false)
-          },
-        },
-      })
-    } catch (err) {
-      console.error('[ERROR] handleFindDestinations catch:', err instanceof Error ? err.message : 'An error occurred')
-      if (callId === callIdRef.current) setLoading(false)
-    }
+  const handleClick = () => {
+    if (locked) return
+    posthog?.capture("landing_option_clicked", { option: title, href })
+    router.push(href)
   }
 
-  // Handler for loading a search from history
-  const handleSearchFromHistory = (item: SearchHistoryItem) => {
-    console.log('[INFO] Loading search from history:', item)
-
-    // Don't save this back to history
-    shouldSaveToHistory.current = false
-
-    // Set the search params
-    setVibe(item.vibe)
-    setMonth(item.timePeriod)
-
-    // Restore filters if present
-    if (item.filters) {
-      setOrigin(item.filters.origin || "")
-      setLocations(item.filters.destinations || [])
-      setDuration(item.filters.duration || [3, 14])
-      setBudget(item.filters.budget || 2000)
-      setExclusions(item.filters.exclusions || [])
-      setStyles(item.filters.styles || [])
-    } else {
-      // Reset filters if not present in history
-      setOrigin("")
-      setLocations([])
-      setDuration([3, 14])
-      setBudget(2000)
-      setExclusions([])
-      setStyles([])
-    }
-
-    // If we have cached destinations, use them immediately
-    if (item.destinations && item.destinations.length > 0) {
-      console.log('[INFO] Using cached destinations from history:', item.destinations.length)
-      setDestinations(item.destinations)
-      setLoading(false)
-    } else {
-      // Otherwise fetch fresh data
-      console.log('[INFO] No cached destinations, fetching fresh data')
-      handleFindDestinations(item.vibe, item.timePeriod)
-    }
-
-    // Re-enable saving for future searches
-    setTimeout(() => {
-      shouldSaveToHistory.current = true
-    }, 100)
+  const colorClasses = {
+    primary: {
+      bg: 'bg-gradient-to-br from-primary/20 to-primary/30 group-hover:from-primary/30 group-hover:to-primary/40',
+      text: 'text-primary',
+      border: 'border-primary/20',
+    },
+    secondary: {
+      bg: 'bg-gradient-to-br from-secondary/25 to-secondary/35 group-hover:from-secondary/35 group-hover:to-secondary/45',
+      text: 'text-secondary-foreground',
+      border: 'border-secondary/20',
+    },
+    'chart-3': {
+      bg: 'bg-gradient-to-br from-chart-3/25 to-chart-3/35 group-hover:from-chart-3/35 group-hover:to-chart-3/45',
+      text: 'text-chart-3',
+      border: 'border-chart-3/20',
+    },
   }
 
-  // Auto-detect user location on mount
-  useEffect(() => {
-    const detectLocation = async () => {
-      if (!filters.origin) {
-        const location = await getUserLocation()
-        if (location) {
-          const locationString = formatLocationString(location)
-          setOrigin(locationString)
-          console.log('[INFO] User location detected:', locationString)
-        }
-      }
-    }
-
-    detectLocation()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Track saved locations count
-  useEffect(() => {
-    setSavedCount(getSavedLocationsCount())
-
-    const handleLocationsUpdate = () => {
-      setSavedCount(getSavedLocationsCount())
-    }
-
-    window.addEventListener('locationsUpdated', handleLocationsUpdate)
-
-    return () => {
-      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
-    }
-  }, [])
-
-  // Handle keyboard shortcut (Enter) to trigger search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && !e.metaKey && !e.ctrlKey) {
-        e.preventDefault()
-        if (vibe.trim() && !loading) {
-          console.log('[INFO] Enter key triggered search')
-          handleFindDestinations(vibe, month)
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vibe, month, loading])
-
-  // Listen for custom event to open Recent panel from UserButton
-  useEffect(() => {
-    const handleOpenRecent = () => handlePanelToggle('recent')
-    window.addEventListener('openRecentPanel', handleOpenRecent)
-    return () => window.removeEventListener('openRecentPanel', handleOpenRecent)
-  }, [activePanel])
-
-  // Auto-open search panel when destinations are loaded
-  useEffect(() => {
-    if (destinations.length > 0) {
-      setActivePanel('search')
-    }
-  }, [destinations])
-
-  // If we end up with no results, ensure the search panel isn't "open" (avoids blank sidebar/layout shift).
-  useEffect(() => {
-    if (activePanel === 'search' && !loading && destinations.length === 0) {
-      setActivePanel('none')
-    }
-  }, [activePanel, loading, destinations.length])
-
-  // Shared filter logic
-  const {
-    filters,
-    isFilterPanelOpen,
-    activeFilterType,
-    setOrigin,
-    setLocations,
-    setDuration,
-    setBudget,
-    setExclusions,
-    setStyles,
-    openFilterPanel,
-    closeFilterPanel,
-    filterCounts
-  } = useTripFilters()
-
-  const handleFilterClick = (filterType: string) => {
-    if (filterType === 'all-filters') {
-      openFilterPanel()
-    }
-  }
-
-  const handlePanelToggle = (panel: 'none' | 'search' | 'recent' | 'itinerary') => {
-    const canShowSearchPanel = loading || destinations.length > 0
-
-    // Don't open the search results panel when there's nothing to show.
-    // Allow closing if it's already the active panel.
-    if (panel === 'search' && !canShowSearchPanel && activePanel !== 'search') {
-      return
-    }
-
-    // Calculate next state
-    const nextState = activePanel === panel ? 'none' : panel
-
-    // Track event
-    if (nextState !== 'none') {
-      posthog?.capture('panel_toggled', { panel: nextState, action: 'open' })
-    } else {
-      posthog?.capture('panel_toggled', { panel: activePanel, action: 'close' })
-    }
-
-    // Update state
-    setActivePanel(nextState)
-  }
-
-  const handleDestinationSelect = (destination: Destination | null) => {
-    if (destination) {
-      posthog?.capture('destination_selected', {
-        region: destination.region,
-        country: destination.country,
-      })
-    }
-    setSelectedDestination(destination)
-  }
-
-  const handleInspirationChipClick = (chip: InspirationChip) => {
-    posthog?.capture('inspiration_chip_clicked', { chip_id: chip.id })
-
-    setVibe(chip.vibes.join(', '))
-    setLocations(chip.destinations)
-  }
-
-  // Update handleFindDestinations and handleSearchFromHistory to use the new filters object
-  // NOTE: We need to update the references inside these functions too.
-  // Since replace_file_content works on chunks, let's just do the whole bottom part of the component.
+  const colors = colorClasses[accentColor]
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden">
-      {/* Map fills entire screen - lowest z-index */}
-      <WorldMap
-        loading={loading}
-        destinations={destinations}
-        selectedDestination={selectedDestination}
-        onDestinationSelect={setSelectedDestination}
-        isSidebarOpen={activePanel !== 'none' && !(activePanel === 'search' && !loading && destinations.length === 0)}
-      />
+    <div
+      onClick={handleClick}
+      className={`
+        group relative ${locked ? "overflow-visible" : "overflow-hidden"}
+        rounded-2xl bg-card backdrop-blur-sm
+        transition-all duration-300
+        ${
+          locked
+            ? "cursor-not-allowed opacity-60"
+            : "cursor-pointer hover:shadow-2xl hover:-translate-y-2 active:scale-98"
+        }
+        border ${colors.border}
+        p-6 sm:p-8
+      `}
+    >
+      {locked && <LockedBanner />}
 
-      {/* Itinerary Planner Button - top right, aligned with search bar */}
-      <div className={cn(
-        "hidden md:flex absolute items-center transition-all duration-300 ease-in-out z-[70] right-4",
-        // Align with search bar visual center
-        // Search bar container: top-4 (16px)
-        // Search bar has p-2.5 (10px top padding) and content height ~38px
-        // Center = 16px + 10px + 19px = 45px, but we want to align button center
-        "top-[calc(1rem+0.625rem+19px)]"
-      )}>
-        <button
-          onClick={() => router.push('/plan')}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 shadow-sm -translate-y-1/2",
-            savedCount > 0
-              ? "bg-gradient-to-r from-violet-600 to-pink-600 text-white hover:from-violet-700 hover:to-pink-700 shadow-md hover:shadow-lg"
-              : "bg-white/90 backdrop-blur-md border border-violet-200 text-violet-600 hover:bg-violet-50 hover:border-violet-300"
-          )}
+      <div className="relative z-10 flex flex-col space-y-4">
+        <div
+          className={`
+          inline-flex items-center justify-center
+          w-12 h-12 sm:w-14 sm:h-14 rounded-xl 
+          ${colors.bg}
+          transition-all duration-300
+          ${!locked && "group-hover:scale-110"}
+        `}
         >
-          <Calendar className="w-4 h-4" />
-          <span>Plan Trip</span>
-          {savedCount > 0 && (
-            <span className="flex items-center justify-center min-w-[20px] h-[20px] px-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-bold rounded-full">
-              {savedCount > 9 ? '9+' : savedCount}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* UI elements overlay on top of map */}
-      <LeftSidebar
-        onSearchClick={() => handlePanelToggle('search')}
-        onItineraryClick={() => handlePanelToggle('itinerary')}
-      />
-      <MobileBottomNav
-        onSearchClick={() => handlePanelToggle('search')}
-        onItinerariesClick={() => handlePanelToggle('itinerary')}
-        activeItem={activePanel === 'itinerary' ? 'itineraries' : 'search'}
-        tripInactiveTone="gray"
-      />
-      <RecentSearchPanel
-        isOpen={activePanel === 'recent'}
-        onClose={() => setActivePanel('none')}
-        onSearchSelect={handleSearchFromHistory}
-      />
-      <SearchResultsPanel
-        destinations={destinations}
-        loading={loading}
-        onDestinationClick={handleDestinationSelect}
-        selectedDestination={selectedDestination}
-        isOpen={activePanel === 'search' && (loading || destinations.length > 0)}
-        onClose={() => setActivePanel('none')}
-      />
-      <ItineraryPanel
-        isOpen={activePanel === 'itinerary'}
-        onClose={() => setActivePanel('none')}
-        onDestinationClick={handleDestinationSelect}
-        selectedDestination={selectedDestination}
-      />
-
-      <FilterSidePanel
-        isOpen={isFilterPanelOpen}
-        onClose={closeFilterPanel}
-        activeFilter={activeFilterType}
-        origin={filters.origin}
-        setOrigin={setOrigin}
-        locations={filters.locations}
-        setLocations={setLocations}
-        duration={filters.duration}
-        setDuration={setDuration}
-        budget={filters.budget}
-        setBudget={setBudget}
-        exclusions={filters.exclusions}
-        setExclusions={setExclusions}
-        styles={filters.styles}
-        setStyles={setStyles}
-        month={month}
-        setMonth={setMonth}
-      />
-
-      {/* Search bar and filter tags overlay on top of map */}
-      <div className={cn(
-        "absolute flex flex-col gap-2 transition-all duration-300 ease-in-out",
-        // Mobile: fixed top, full width, smaller margins
-        "fixed md:absolute top-0 md:top-4 left-0 w-full md:w-auto px-2 pt-4 md:px-0 md:pt-0 items-center md:items-start",
-        // Desktop positioning
-        (activePanel !== 'none' && !(activePanel === 'search' && !loading && destinations.length === 0)) ? "md:left-[540px]" : "md:left-24",
-        // Lower z-index when FilterSidePanel is open so it appears above search bar
-        isFilterPanelOpen ? "z-50" : "z-[70]"
-      )}>
-        <div className="relative flex flex-row items-center gap-2 w-full max-w-full">
-          <SearchBar
-            vibe={vibe}
-            setVibe={setVibe}
-            onSearch={() => handleFindDestinations(vibe, month)}
-            onSettingsClick={openFilterPanel}
-          />
-          {/* Desktop InspirationChips - positioned next to search bar */}
-          <div className="hidden md:block">
-            <InspirationChips
-              onChipClick={handleInspirationChipClick}
-              isVisible={activePanel === 'none' && !isFilterPanelOpen}
-            />
-          </div>
+          <div className={`w-6 h-6 sm:w-7 sm:h-7 ${colors.text}`}>{icon}</div>
         </div>
 
-        {/* Mobile InspirationChips and Filter Tags - below search bar */}
-        <div className={cn(
-          "transition-all duration-300 ease-in-out w-full",
-          activePanel === 'none' && !isFilterPanelOpen
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 -translate-y-2 pointer-events-none"
-        )}>
-          {/* Mobile InspirationChips */}
-          <div className="md:hidden w-full overflow-visible">
-            <InspirationChips
-              onChipClick={handleInspirationChipClick}
-              isVisible={activePanel === 'none' && !isFilterPanelOpen}
+        <div>
+          <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1">{title}</h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+        </div>
+
+        {!locked && (
+          <div className="flex items-center justify-end">
+            <svg
+              className={`w-5 h-5 ${colors.text} transition-transform group-hover:translate-x-1`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </div>
+        )}
+
+        {locked && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Coming soon</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+interface ItineraryCardProps {
+  destination: string
+  date: string
+  image: string
+  type: string
+  keywords?: string
+}
+
+function ItineraryCard({ destination, date, image, type, keywords }: ItineraryCardProps) {
+  const [imageUrl, setImageUrl] = useState<string>(image)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (keywords) {
+      setLoading(true)
+      fetch(`/api/unsplash-images?keywords=${encodeURIComponent(keywords)}&single=true&size=regular`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.url) {
+            setImageUrl(data.url)
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching image:', err)
+        })
+        .finally(() => {
+          setLoading(false)
+        })
+    }
+  }, [keywords])
+
+  // Extract destination name without emoji for fallback
+  const destinationName = destination.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim()
+
+  return (
+    <div className="group cursor-pointer bg-card backdrop-blur-sm rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 border border-border/50">
+      <div className="relative h-48 sm:h-56 overflow-hidden bg-muted">
+        {loading ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <Image
+            src={imageUrl}
+            alt={destination}
+            width={400}
+            height={224}
+            className="object-cover w-full h-full group-hover:scale-105 transition-all duration-500"
+            onError={() => {
+              // Fallback to placeholder if image fails to load
+              setImageUrl("/assets/branding/banner.png")
+            }}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/95 via-foreground/30 to-transparent" />
+        <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-card/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-border/50 shadow-sm">
+          <span className="text-xs font-semibold text-card-foreground">{type}</span>
+        </div>
+        <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+          <h3 className="text-lg sm:text-xl font-bold text-background mb-1 text-balance drop-shadow-lg">{destination}</h3>
+          <p className="text-sm text-background/90 drop-shadow">{date}</p>
+        </div>
+      </div>
+      <div className="p-4 sm:p-5">
+        <button className="w-full bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground text-sm font-semibold py-2.5 sm:py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow">
+          View Itinerary
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default function Home() {
+  const router = useRouter()
+  const { isSignedIn } = useUser()
+
+  const previousItineraries = [
+    {
+      id: 1,
+      destination: "Paris, France 🇫🇷",
+      date: "December 15-18, 2024",
+      image: "/assets/branding/banner.png",
+      type: "3 Days",
+      keywords: "paris france eiffel tower",
+    },
+    {
+      id: 2,
+      destination: "Tokyo, Japan 🇯🇵",
+      date: "November 28 - Dec 5, 2024",
+      image: "/assets/branding/banner.png",
+      type: "7 Days",
+      keywords: "tokyo japan shibuya",
+    },
+    {
+      id: 3,
+      destination: "Barcelona, Spain 🇪🇸",
+      date: "October 10, 2024",
+      image: "/assets/branding/banner.png",
+      type: "1 Day",
+      keywords: "barcelona spain sagrada familia",
+    },
+  ]
+
+  return (
+    <main className="min-h-screen bg-background relative overflow-hidden">
+      {/* Subtle decorative background elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-20 right-20 w-72 h-72 bg-secondary/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-40 left-20 w-96 h-96 bg-chart-3/15 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-3xl" />
+      </div>
+
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-sm">
+        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-chart-3/30 via-secondary/30 via-primary/30 to-transparent" />
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 relative">
+            <button onClick={() => router.push("/")} className="flex items-center gap-2 group">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+                <Image
+                  src="/assets/icon.png"
+                  alt="VibeGetaway"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-lg sm:text-xl font-bold text-foreground hidden sm:inline">VibeGetaway</span>
+            </button>
+
+            <div className="hidden md:flex items-center gap-3">
+              {isSignedIn ? (
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10 rounded-full ring-2 ring-border/50 hover:ring-primary/50 transition-all shadow-sm",
+                      userButtonPopoverCard: "shadow-2xl border border-border rounded-xl",
+                    }
+                  }}
+                />
+              ) : (
+                <SignInButton mode="modal">
+                  <button className="px-4 sm:px-5 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95">
+                    Sign In
+                  </button>
+                </SignInButton>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 space-y-12 sm:space-y-16 lg:space-y-20 pb-24 md:pb-16 relative z-10">
+        {/* Hero Section */}
+        <section className="text-center py-8 sm:py-12 lg:py-16 space-y-6">
+          <div className="space-y-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+              <span className="text-foreground">Plan your perfect</span>
+              <br />
+              <span className="bg-gradient-to-r from-primary via-secondary to-chart-3 bg-clip-text text-transparent">
+                getaway
+              </span>
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
+              Create memorable experiences with AI-powered itineraries tailored to your travel style
+            </p>
+          </div>
+        </section>
+
+        <section className="space-y-8 sm:space-y-10 relative">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
+            <OptionCard
+              title="Inspire"
+              description="Find your next adventure with AI-powered destination recommendations"
+              icon={<Map className="w-full h-full" />}
+              href="/inspire"
+              accentColor="chart-3"
+            />
+
+            <OptionCard
+              title="Day Trip"
+              description="Perfect for single day adventures"
+              icon={<Calendar className="w-full h-full" />}
+              href="/plan"
+              accentColor="secondary"
+            />
+
+            <OptionCard
+              title="Multi-Day"
+              description="Extended journeys and vacations"
+              icon={<CalendarDays className="w-full h-full" />}
+              href="/plan-multiday"
+              locked={true}
+              accentColor="primary"
+            />
+
+            <OptionCard
+              title="Group Trip"
+              description="Coordinate with friends and family"
+              icon={<Users className="w-full h-full" />}
+              href="/plan-group"
+              locked={true}
+              accentColor="chart-3"
             />
           </div>
-          {/* Filter Tags - floating individual pills (desktop only) */}
-          <FilterBar
-            onFilterClick={handleFilterClick}
-            filterCounts={filterCounts}
-            month={month}
-            setMonth={setMonth}
-            origin={filters.origin}
-            setOrigin={setOrigin}
-            locations={filters.locations}
-            setLocations={setLocations}
-            exclusions={filters.exclusions}
-            setExclusions={setExclusions}
-          />
+        </section>
+
+        <section className="space-y-8 sm:space-y-10 relative">
+          <div className="px-4 sm:px-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-2">
+              <div className="inline-block">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Recent Trips</h2>
+                  <button className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 hover:gap-3">
+                    View All
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-transparent rounded-full mt-2" />
+              </div>
+            </div>
+            <p className="text-sm sm:text-base text-muted-foreground">Your latest adventures</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto">
+            {previousItineraries.map((itinerary) => (
+              <ItineraryCard key={itinerary.id} {...itinerary} />
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50 safe-area-inset-bottom shadow-lg">
+        <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-chart-3/40 via-secondary/40 to-primary/40" />
+        <div className="flex items-end justify-around px-2 py-3 relative">
+          {/* Home */}
+          <button
+            onClick={() => router.push("/")}
+            className="group flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-chart-3/15 active:bg-chart-3/20 active:scale-95 transition-all duration-200 flex-1"
+          >
+            <HomeIcon className="w-5 h-5 text-chart-3 transition-transform group-hover:scale-110" />
+            <span className="text-xs text-muted-foreground">Home</span>
+          </button>
+
+          {/* Inspire */}
+          <button
+            onClick={() => router.push("/inspire")}
+            className="group flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-secondary/15 active:bg-secondary/20 active:scale-95 transition-all duration-200 flex-1"
+          >
+            <Sparkles className="w-5 h-5 text-secondary transition-transform group-hover:scale-110" />
+            <span className="text-xs text-muted-foreground">Inspire</span>
+          </button>
+
+          {/* Create Day Trip - Elevated Center Button */}
+          <button
+            onClick={() => router.push("/plan")}
+            className="flex flex-col items-center -mt-6 flex-1"
+          >
+            <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-primary via-secondary to-chart-3 shadow-2xl flex items-center justify-center border-2 border-primary/40 active:scale-95 transition-transform hover:shadow-[0_0_30px_rgba(120,119,198,0.6)] hover:scale-105 ring-4 ring-primary/20">
+              <Plus className="w-7 h-7 text-primary-foreground relative z-10 drop-shadow-lg" strokeWidth={2.5} />
+            </div>
+            <span className="text-xs text-muted-foreground mt-1">Plan</span>
+          </button>
+
+          {/* Itineraries History */}
+          <button
+            onClick={() => router.push("/itineraries")}
+            className="group flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-primary/15 active:bg-primary/20 active:scale-95 transition-all duration-200 flex-1"
+          >
+            <BookOpen className="w-5 h-5 text-primary transition-transform group-hover:scale-110" />
+            <span className="text-xs text-muted-foreground">Trips</span>
+          </button>
+
+          {/* Account */}
+          <div className="flex flex-col items-center flex-1">
+            {isSignedIn ? (
+              <div className="flex flex-col items-center gap-1">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10 rounded-full ring-2 ring-border/50 transition-all shadow-sm hover:ring-secondary/50 hover:scale-110 active:scale-95",
+                      userButtonPopoverCard: "shadow-2xl border border-border rounded-xl mb-16",
+                    }
+                  }}
+                />
+                <span className="text-xs text-muted-foreground">Account</span>
+              </div>
+            ) : (
+              <SignInButton mode="modal">
+                <button className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-secondary/15 active:bg-secondary/20 active:scale-95 transition-all duration-200">
+                  <div className="w-10 h-10 bg-secondary/20 rounded-full flex items-center justify-center shadow-sm hover:bg-secondary/30 transition-colors">
+                    <svg className="w-5 h-5 text-secondary-foreground" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                    </svg>
+                  </div>
+                  <span className="text-xs text-muted-foreground">Account</span>
+                </button>
+              </SignInButton>
+            )}
+          </div>
         </div>
       </div>
     </main>

@@ -11,16 +11,6 @@ export interface DestinationPricing {
   activities: string
 }
 
-export interface UnsplashImage {
-  id: string
-  urls: {
-    small: string
-    regular: string
-    full: string
-  }
-  altDescription: string
-}
-
 export interface ImageKeywords {
   cover?: string
   gallery?: string
@@ -340,49 +330,4 @@ export async function getCoordinates(location: string): Promise<{ lat: number; l
 
 
 
-export async function fetchUnsplashImages(
-  keywords: string,
-  limit: number = 10
-): Promise<UnsplashImage[]> {
-  try {
-    const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY
-
-    if (!UNSPLASH_ACCESS_KEY) {
-      console.error('UNSPLASH_ACCESS_KEY environment variable is not set')
-      return []
-    }
-
-    if (!keywords || keywords.trim().length === 0) {
-      console.warn('No keywords provided for Unsplash search')
-      return []
-    }
-
-    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(keywords)}&per_page=${limit}`
-
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`Unsplash API error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    return data.results.map((photo: any) => ({
-      id: photo.id,
-      urls: {
-        small: photo.urls.small,
-        regular: photo.urls.regular,
-        full: photo.urls.full
-      },
-      altDescription: photo.alt_description || 'Destination image'
-    }))
-  } catch (error) {
-    console.error('Error fetching Unsplash images:', error)
-    return []
-  }
-}
 
