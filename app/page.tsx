@@ -123,7 +123,12 @@ function ItineraryCard({ destination, date, image, type, keywords }: ItineraryCa
     if (keywords) {
       setLoading(true)
       fetch(`/api/unsplash-images?keywords=${encodeURIComponent(keywords)}&single=true&size=regular`)
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`)
+          }
+          return res.json()
+        })
         .then(data => {
           if (data.url) {
             setImageUrl(data.url)

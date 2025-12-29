@@ -57,6 +57,9 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
           const response = await fetch(
             `/api/unsplash-images?keywords=${encodeURIComponent(destination.imagesKeywords.gallery)}&limit=10`
           )
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+          }
           const data = await response.json()
           setImages(data.images || [])
         } catch (error) {
@@ -77,6 +80,9 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
           const response = await fetch(
             `/api/unsplash-images?keywords=${encodeURIComponent(destination.imagesKeywords.cover)}&limit=1`
           )
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+          }
           const data = await response.json()
           setCoverImage(data.images?.[0] || null)
         } catch (error) {
