@@ -3,12 +3,12 @@
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Calendar, MapPin } from "lucide-react"
 import { useEffect, useState } from "react"
-import { getItineraryHistory, type ItineraryHistoryItem } from "@/lib/itineraryHistory"
+import { getItineraryHistory, type SavedItinerary } from "@/lib/itineraryHistory"
 import Image from "next/image"
 
 export default function ItinerariesPage() {
   const router = useRouter()
-  const [itineraries, setItineraries] = useState<ItineraryHistoryItem[]>([])
+  const [itineraries, setItineraries] = useState<SavedItinerary[]>([])
 
   useEffect(() => {
     const history = getItineraryHistory()
@@ -79,7 +79,7 @@ export default function ItinerariesPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-foreground/95 via-foreground/30 to-transparent" />
                     <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
                       <h3 className="text-lg sm:text-xl font-bold text-background mb-1 text-balance drop-shadow-lg">
-                        {itinerary.itineraryName || "Untitled Trip"}
+                        {itinerary.name || "Untitled Trip"}
                       </h3>
                       <div className="flex items-center gap-2 text-sm text-background/90 drop-shadow">
                         <Calendar className="w-4 h-4" />
