@@ -9,6 +9,7 @@ import { usePostHog } from "posthog-js/react"
 import Image from "next/image"
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 import { useEffect, useState } from "react"
+import { Download } from "lucide-react"
 
 interface OptionCardProps {
   title: string
@@ -212,6 +213,44 @@ function ItineraryCard({ destination, date, image, type, keywords }: ItineraryCa
 export default function Home() {
   const router = useRouter()
   const { isSignedIn } = useUser()
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [showInstallButton, setShowInstallButton] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      console.log('beforeinstallprompt event fired - PWA is installable!')
+      e.preventDefault()
+      setDeferredPrompt(e)
+      setShowInstallButton(true)
+    }
+
+    window.addEventListener('beforeinstallprompt', handler)
+
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      console.log('PWA is already installed')
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler)
+    }
+  }, [])
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return
+
+    console.log('Prompting user to install PWA...')
+    deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
+    
+    console.log(`User ${outcome} the install prompt`)
+    
+    if (outcome === 'accepted') {
+      setShowInstallButton(false)
+    }
+    
+    setDeferredPrompt(null)
+  }
 
   const previousItineraries = [
     {
@@ -301,6 +340,15 @@ export default function Home() {
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
               Create memorable experiences with AI-powered itineraries tailored to your travel style
             </p>
+            {showInstallButton && (
+              <button
+                onClick={handleInstallClick}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary via-secondary to-chart-3 hover:opacity-90 text-primary-foreground text-sm font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl mx-auto"
+              >
+                <Download className="w-4 h-4" />
+                Install App
+              </button>
+            )}
           </div>
         </section>
 
