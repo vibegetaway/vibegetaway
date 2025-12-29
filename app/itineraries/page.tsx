@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Calendar, MapPin } from "lucide-react"
 import { useEffect, useState } from "react"
 import { getItineraryHistory, type SavedItinerary } from "@/lib/itineraryHistory"
+import { MobileNav } from "@/components/MobileNav"
 import Image from "next/image"
 
 export default function ItinerariesPage() {
@@ -115,6 +116,7 @@ export default function ItinerariesPage() {
           )}
         </div>
       </div>
+      <MobileNav activePage="itineraries" />
     </main>
   )
 }

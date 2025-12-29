@@ -10,7 +10,7 @@ import { saveItineraryToHistory, type DayBreakdown } from '@/lib/itineraryHistor
 import { useTripFilters } from '@/hooks/useTripFilters'
 import { FilterBar } from '@/components/user-input/FilterBar'
 import { FilterSidePanel } from '@/components/panels/FilterSidePanel'
-import { MobileBottomNav } from '@/components/MobileBottomNav'
+import { MobileNav } from '@/components/MobileNav'
 import { cn } from '@/lib/utils'
 import dynamic from 'next/dynamic'
 import { TripDetailsPanel } from '@/components/panels/TripDetailsPanel'
@@ -1128,13 +1128,7 @@ export default function PlanPage() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav
-        onSearchClick={() => router.push('/')}
-        onTripClick={() => setMobileView('config')}
-        onItinerariesClick={() => setMobileView('itinerary')}
-        activeItem={mobileView === 'config' ? 'trip' : 'itineraries'}
-        tripCount={orderedLocations.length}
-      />
+      <MobileNav activePage="plan" hidePlanButton />
     </div>
   )
 }

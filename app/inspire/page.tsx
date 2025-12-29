@@ -3,7 +3,7 @@
 import { SearchBar } from '@/components/user-input/SearchBar'
 import { InspirationChips } from '@/components/user-input/InspirationChips'
 import { LeftSidebar } from '@/components/LeftSidebar'
-import { MobileBottomNav } from '@/components/MobileBottomNav'
+import { MobileNav } from '@/components/MobileNav'
 import { RecentSearchPanel } from '@/components/panels/RecentSearchPanel'
 import { SearchResultsPanel } from '@/components/panels/SearchResultsPanel'
 import { ItineraryPanel } from '@/components/panels/ItineraryPanel'
@@ -376,12 +376,7 @@ export default function Home() {
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
       />
-      <MobileBottomNav
-        onSearchClick={() => handlePanelToggle('search')}
-        onItinerariesClick={() => handlePanelToggle('itinerary')}
-        activeItem={activePanel === 'itinerary' ? 'itineraries' : 'search'}
-        tripInactiveTone="gray"
-      />
+      <MobileNav activePage="inspire" hidePlanButton />
       <RecentSearchPanel
         isOpen={activePanel === 'recent'}
         onClose={() => setActivePanel('none')}

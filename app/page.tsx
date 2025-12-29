@@ -2,8 +2,9 @@
 
 import type React from "react"
 import { useRouter } from "next/navigation"
-import { Map, Calendar, CalendarDays, Users, Sparkles, Home as HomeIcon, Plus, BookOpen } from "lucide-react"
+import { Map, Calendar, CalendarDays, Users, Sparkles, ArrowRight } from "lucide-react"
 import { LockedBanner } from "@/components/LockedBanner"
+import { MobileNav } from "@/components/MobileNav"
 import { usePostHog } from "posthog-js/react"
 import Image from "next/image"
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
@@ -16,9 +17,10 @@ interface OptionCardProps {
   href: string
   locked?: boolean
   accentColor?: 'primary' | 'secondary' | 'chart-3'
+  backgroundPattern?: 'world-map' | 'sun-route' | 'calendar' | 'group'
 }
 
-function OptionCard({ title, description, icon, href, locked = false, accentColor = 'primary' }: OptionCardProps) {
+function OptionCard({ title, description, icon, href, locked = false, accentColor = 'primary', backgroundPattern = 'world-map' }: OptionCardProps) {
   const router = useRouter()
   const posthog = usePostHog()
 
@@ -46,7 +48,15 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
     },
   }
 
+  const backgroundPatterns = {
+    'world-map': '/assets/homepage/world-map-simple.png',
+    'sun-route': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='currentColor' stroke-width='1.5' opacity='0.6'%3E%3Ccircle cx='100' cy='50' r='15'/%3E%3Cline x1='100' y1='25' x2='100' y2='10'/%3E%3Cline x1='100' y1='75' x2='100' y2='90'/%3E%3Cline x1='75' y1='50' x2='60' y2='50'/%3E%3Cline x1='125' y1='50' x2='140' y2='50'/%3E%3Cline x1='82' y1='32' x2='71' y2='21'/%3E%3Cline x1='118' y1='32' x2='129' y2='21'/%3E%3Cline x1='82' y1='68' x2='71' y2='79'/%3E%3Cline x1='118' y1='68' x2='129' y2='79'/%3E%3Cpath d='M30,120 Q50,110 70,120 T110,120 T150,120' stroke-dasharray='3,3'/%3E%3Ccircle cx='30' cy='120' r='3' fill='currentColor'/%3E%3Ccircle cx='70' cy='120' r='3' fill='currentColor'/%3E%3Ccircle cx='110' cy='120' r='3' fill='currentColor'/%3E%3Ccircle cx='150' cy='120' r='3' fill='currentColor'/%3E%3Cpath d='M40,160 L50,150 L55,155 L45,165 Z' fill='currentColor' opacity='0.4'/%3E%3Cpath d='M90,165 L100,155 L105,160 L95,170 Z' fill='currentColor' opacity='0.4'/%3E%3Cpath d='M140,155 L150,145 L155,150 L145,160 Z' fill='currentColor' opacity='0.4'/%3E%3C/g%3E%3C/svg%3E")`,
+    'calendar': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='currentColor' stroke-width='1.5'%3E%3Crect x='30' y='40' width='60' height='60' rx='4'/%3E%3Cline x1='35' y1='35' x2='35' y2='45'/%3E%3Cline x1='85' y1='35' x2='85' y2='45'/%3E%3Cline x1='30' y1='55' x2='90' y2='55'/%3E%3Crect x='110' y='40' width='60' height='60' rx='4'/%3E%3Cline x1='115' y1='35' x2='115' y2='45'/%3E%3Cline x1='165' y1='35' x2='165' y2='45'/%3E%3Cline x1='110' y1='55' x2='170' y2='55'/%3E%3Crect x='30' y='120' width='60' height='60' rx='4'/%3E%3Cline x1='35' y1='115' x2='35' y2='125'/%3E%3Cline x1='85' y1='115' x2='85' y2='125'/%3E%3Cline x1='30' y1='135' x2='90' y2='135'/%3E%3Cpath d='M45,70 L50,75 L65,60' stroke-width='2' fill='none'/%3E%3Ccircle cx='140' cy='75' r='8' fill='currentColor' opacity='0.3'/%3E%3Ccircle cx='60' cy='155' r='8' fill='currentColor' opacity='0.3'/%3E%3C/g%3E%3C/svg%3E")`,
+    'group': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='currentColor' opacity='0.5'%3E%3Ccircle cx='60' cy='50' r='12'/%3E%3Cpath d='M40,90 Q60,75 80,90 L80,95 L40,95 Z'/%3E%3Ccircle cx='140' cy='50' r='12'/%3E%3Cpath d='M120,90 Q140,75 160,90 L160,95 L120,95 Z'/%3E%3Ccircle cx='100' cy='75' r='15'/%3E%3Cpath d='M75,125 Q100,105 125,125 L125,130 L75,130 Z'/%3E%3Ccircle cx='60' cy='140' r='10'/%3E%3Cpath d='M45,175 Q60,163 75,175 L75,180 L45,180 Z'/%3E%3Ccircle cx='140' cy='140' r='10'/%3E%3Cpath d='M125,175 Q140,163 155,175 L155,180 L125,180 Z'/%3E%3C/g%3E%3C/svg%3E")`
+  }
+
   const colors = colorClasses[accentColor]
+  const bgPattern = backgroundPatterns[backgroundPattern]
 
   return (
     <div
@@ -64,6 +74,21 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
         p-6 sm:p-8
       `}
     >
+      {/* Background pattern */}
+      <div 
+        className={`absolute inset-0 pointer-events-none ${
+          backgroundPattern === 'world-map' ? 'opacity-[0.15]' : 'opacity-[0.04]'
+        }`}
+        style={{
+          backgroundImage: typeof bgPattern === 'string' && bgPattern.startsWith('/') 
+            ? `url(${bgPattern})` 
+            : bgPattern,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      
       {locked && <LockedBanner />}
 
       <div className="relative z-10 flex flex-col space-y-4">
@@ -229,16 +254,15 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 relative">
             <button onClick={() => router.push("/")} className="flex items-center gap-2 group">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+              <div className="h-8 sm:h-10 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <Image
-                  src="/assets/icon.png"
+                  src="/assets/branding/banner.png"
                   alt="VibeGetaway"
-                  width={40}
-                  height={40}
-                  className="w-full h-full object-contain"
+                  width={200}
+                  height={50}
+                  className="h-full w-auto object-contain"
                 />
               </div>
-              <span className="text-lg sm:text-xl font-bold text-foreground hidden sm:inline">VibeGetaway</span>
             </button>
 
             <div className="hidden md:flex items-center gap-3">
@@ -288,6 +312,7 @@ export default function Home() {
               icon={<Map className="w-full h-full" />}
               href="/inspire"
               accentColor="chart-3"
+              backgroundPattern="world-map"
             />
 
             <OptionCard
@@ -296,6 +321,7 @@ export default function Home() {
               icon={<Calendar className="w-full h-full" />}
               href="/plan"
               accentColor="secondary"
+              backgroundPattern="sun-route"
             />
 
             <OptionCard
@@ -305,6 +331,7 @@ export default function Home() {
               href="/plan-multiday"
               locked={true}
               accentColor="primary"
+              backgroundPattern="calendar"
             />
 
             <OptionCard
@@ -314,6 +341,7 @@ export default function Home() {
               href="/plan-group"
               locked={true}
               accentColor="chart-3"
+              backgroundPattern="group"
             />
           </div>
         </section>
@@ -323,7 +351,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-2">
               <div className="inline-block">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Recent Trips</h2>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Travel Plans</h2>
                   <button className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 hover:gap-3">
                     View All
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -334,7 +362,7 @@ export default function Home() {
                 <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-transparent rounded-full mt-2" />
               </div>
             </div>
-            <p className="text-sm sm:text-base text-muted-foreground">Your latest adventures</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Your recently planned adventures</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto">
@@ -345,76 +373,7 @@ export default function Home() {
         </section>
       </div>
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50 safe-area-inset-bottom shadow-lg">
-        <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-chart-3/40 via-secondary/40 to-primary/40" />
-        <div className="flex items-end justify-around px-2 py-3 relative">
-          {/* Home */}
-          <button
-            onClick={() => router.push("/")}
-            className="group flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-chart-3/15 active:bg-chart-3/20 active:scale-95 transition-all duration-200 flex-1"
-          >
-            <HomeIcon className="w-5 h-5 text-chart-3 transition-transform group-hover:scale-110" />
-            <span className="text-xs text-muted-foreground">Home</span>
-          </button>
-
-          {/* Inspire */}
-          <button
-            onClick={() => router.push("/inspire")}
-            className="group flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-secondary/15 active:bg-secondary/20 active:scale-95 transition-all duration-200 flex-1"
-          >
-            <Sparkles className="w-5 h-5 text-secondary transition-transform group-hover:scale-110" />
-            <span className="text-xs text-muted-foreground">Inspire</span>
-          </button>
-
-          {/* Create Day Trip - Elevated Center Button */}
-          <button
-            onClick={() => router.push("/plan")}
-            className="flex flex-col items-center -mt-6 flex-1"
-          >
-            <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-primary via-secondary to-chart-3 shadow-2xl flex items-center justify-center border-2 border-primary/40 active:scale-95 transition-transform hover:shadow-[0_0_30px_rgba(120,119,198,0.6)] hover:scale-105 ring-4 ring-primary/20">
-              <Plus className="w-7 h-7 text-primary-foreground relative z-10 drop-shadow-lg" strokeWidth={2.5} />
-            </div>
-            <span className="text-xs text-muted-foreground mt-1">Plan</span>
-          </button>
-
-          {/* Itineraries History */}
-          <button
-            onClick={() => router.push("/itineraries")}
-            className="group flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-primary/15 active:bg-primary/20 active:scale-95 transition-all duration-200 flex-1"
-          >
-            <BookOpen className="w-5 h-5 text-primary transition-transform group-hover:scale-110" />
-            <span className="text-xs text-muted-foreground">Trips</span>
-          </button>
-
-          {/* Account */}
-          <div className="flex flex-col items-center flex-1">
-            {isSignedIn ? (
-              <div className="flex flex-col items-center gap-1">
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-10 h-10 rounded-full ring-2 ring-border/50 transition-all shadow-sm hover:ring-secondary/50 hover:scale-110 active:scale-95",
-                      userButtonPopoverCard: "shadow-2xl border border-border rounded-xl mb-16",
-                    }
-                  }}
-                />
-                <span className="text-xs text-muted-foreground">Account</span>
-              </div>
-            ) : (
-              <SignInButton mode="modal">
-                <button className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-secondary/15 active:bg-secondary/20 active:scale-95 transition-all duration-200">
-                  <div className="w-10 h-10 bg-secondary/20 rounded-full flex items-center justify-center shadow-sm hover:bg-secondary/30 transition-colors">
-                    <svg className="w-5 h-5 text-secondary-foreground" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-                    </svg>
-                  </div>
-                  <span className="text-xs text-muted-foreground">Account</span>
-                </button>
-              </SignInButton>
-            )}
-          </div>
-        </div>
-      </div>
+      <MobileNav activePage="home" />
     </main>
   )
 }
