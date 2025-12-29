@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, KeyboardEvent } from "react"
+import { useState, useEffect, useRef, KeyboardEvent, useId } from "react"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -51,6 +51,7 @@ export function SmartTagInput({
     const [displayedPlaceholder, setDisplayedPlaceholder] = useState("")
     const [isTyping, setIsTyping] = useState(true)
     const inputRef = useRef<HTMLInputElement>(null)
+    const descriptionId = useId()
 
     // Typing animation for placeholder
     useEffect(() => {
@@ -217,6 +218,7 @@ export function SmartTagInput({
                             removeTag(index)
                         }}
                         className="hover:text-violet-900 focus:outline-none"
+                        aria-label={`Remove ${tag}`}
                     >
                         <X className="h-3 w-3" />
                     </button>
@@ -240,6 +242,7 @@ export function SmartTagInput({
                             removeTag(visibleTagsCount + index)
                         }}
                         className="hover:text-violet-900 focus:outline-none"
+                        aria-label={`Remove ${tag}`}
                     >
                         <X className="h-3 w-3" />
                     </button>
@@ -247,6 +250,9 @@ export function SmartTagInput({
             ))}
 
             <div className="relative flex-1 min-w-[120px]">
+                <div id={descriptionId} className="sr-only">
+                    Press Enter to add tag, Right Arrow to accept suggestion, Backspace to delete last tag
+                </div>
                 <input
                     ref={inputRef}
                     type="text"
@@ -262,6 +268,8 @@ export function SmartTagInput({
                     className="w-full bg-transparent outline-none text-stone-800"
                     placeholder=""
                     autoFocus={autoFocus}
+                    aria-label={`Add a ${suggestionType}`}
+                    aria-describedby={descriptionId}
                 />
                 {/* Animated typing placeholder */}
                 {value.length === 0 && !inputValue && displayedPlaceholder && (

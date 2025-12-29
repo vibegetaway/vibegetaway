@@ -63,6 +63,7 @@ export function SearchBar({ vibe, setVibe, onSearch, onSettingsClick }: SearchBa
                         disabled={!vibe.trim() && !currentInput.trim()}
                         className="hidden md:flex relative items-center justify-center w-8 h-8 bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white rounded-xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-pink-400 disabled:hover:to-rose-500 shadow-sm hover:shadow-md shrink-0"
                         title="Search (Enter)"
+                        aria-label="Search"
                     >
                         <Search className="w-3.5 h-3.5" />
                     </button>
@@ -72,6 +73,7 @@ export function SearchBar({ vibe, setVibe, onSearch, onSettingsClick }: SearchBa
                             onClick={onSettingsClick}
                             className="md:hidden relative flex items-center justify-center w-8 h-8 bg-white/90 backdrop-blur-md border border-violet-200 hover:bg-pink-50 hover:border-pink-300 text-violet-600 hover:text-pink-700 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md shrink-0"
                             title="Filter Settings"
+                            aria-label="Filter settings"
                         >
                             <SlidersHorizontal className="w-4 h-4" />
                         </button>
