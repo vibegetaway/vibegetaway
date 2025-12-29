@@ -12,6 +12,10 @@ export async function POST(req: Request) {
         return new Response('Input is required', { status: 400 });
     }
 
+    if (input.length > 100) {
+        return new Response('Input too long', { status: 400 });
+    }
+
     // Prioritize Groq for speed, fallback to Gemini
     const groq = createGroq({
         apiKey: process.env.GROQ_API_KEY,

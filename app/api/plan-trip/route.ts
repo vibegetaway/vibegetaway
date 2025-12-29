@@ -121,11 +121,45 @@ export async function POST(req: Request) {
       })
     }
 
+    // Security: Limit number of locations to prevent excessive token usage
+    if (locations.length > 10) {
+      return new Response(JSON.stringify({ error: 'Too many locations (max 10)' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     if (!tripDuration || tripDuration < 1) {
       return new Response(JSON.stringify({ error: 'Invalid trip duration' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       })
+    }
+
+    // Security: Enforce max duration limit
+    if (tripDuration > maxDuration) {
+      return new Response(JSON.stringify({ error: `Trip duration too long (max ${maxDuration} days)` }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Security: Input string validation
+    if (filters) {
+      if (filters.origin && typeof filters.origin === 'string' && filters.origin.length > 100) {
+        return new Response(JSON.stringify({ error: 'Origin location name too long' }), { status: 400 })
+      }
+      if (Array.isArray(filters.exclusions) && filters.exclusions.some(e => typeof e === 'string' && e.length > 100)) {
+        return new Response(JSON.stringify({ error: 'Exclusion text too long' }), { status: 400 })
+      }
+      if (Array.isArray(filters.styles)) {
+        if (filters.styles.length > 20) {
+          return new Response(JSON.stringify({ error: 'Too many styles selected' }), { status: 400 })
+        }
+        if (filters.styles.some(s => typeof s === 'string' && s.length > 100)) {
+          return new Response(JSON.stringify({ error: 'Style text too long' }), { status: 400 })
+        }
+      }
     }
 
     // Always use Gemini Flash Lite (2.5)
@@ -234,7 +268,7 @@ Return the itinerary as a JSON array.`
   } catch (error) {
     console.error('[plan-trip] Error:', error)
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to generate itinerary' }),
+      JSON.stringify({ error: 'Failed to generate itinerary' }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
