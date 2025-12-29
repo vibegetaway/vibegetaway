@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
@@ -78,23 +78,30 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
         typeof m.lng === 'number' && !isNaN(m.lng)
     )
 
-    // Custom Icon Creator
-    const createCustomIcon = (type: 'main' | 'poi') => {
-        const colorClass = type === 'main' ? 'bg-violet-600' : 'bg-pink-500';
+    // Memoize custom icons to prevent re-creation on every render
+    const icons = useMemo(() => {
+        const createIcon = (type: 'main' | 'poi') => {
+            const colorClass = type === 'main' ? 'bg-violet-600' : 'bg-pink-500';
 
-        return L.divIcon({
-            className: 'custom-pin',
-            html: `
-                <div class="relative w-8 h-8 flex items-center justify-center">
-                    <div class="w-4 h-4 ${colorClass} rounded-full border-2 border-white shadow-lg relative z-10"></div>
-                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 ${colorClass} opacity-20 rounded-full animate-ping"></div>
-                </div>
-            `,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            popupAnchor: [0, -16]
-        });
-    }
+            return L.divIcon({
+                className: 'custom-pin',
+                html: `
+                    <div class="relative w-8 h-8 flex items-center justify-center">
+                        <div class="w-4 h-4 ${colorClass} rounded-full border-2 border-white shadow-lg relative z-10"></div>
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 ${colorClass} opacity-20 rounded-full animate-ping"></div>
+                    </div>
+                `,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16],
+                popupAnchor: [0, -16]
+            });
+        }
+
+        return {
+            main: createIcon('main'),
+            poi: createIcon('poi')
+        }
+    }, [])
 
     // Prepare markers for Overview View (existing logic)
     const validLocations = locations.filter(l =>
@@ -157,7 +164,7 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
                     <Marker
                         key={`${marker.title}-${idx}`}
                         position={[marker.lat, marker.lng]}
-                        icon={createCustomIcon(marker.isMain ? 'main' : 'poi')}
+                        icon={icons[marker.isMain ? 'main' : 'poi']}
                     >
                         <Popup>
                             <div className="font-sans">
