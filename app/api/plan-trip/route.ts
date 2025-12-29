@@ -6,7 +6,9 @@ export const maxDuration = 60
 const maxLocations = 10
 const maxStringLength = 500
 
-import { saveItineraryToHistory, type DayBreakdown, type DayActivity } from '@/lib/itineraryHistory'
+import { saveItineraryToHistory } from '@/lib/itineraryHistory'
+import type { DayBreakdown, DayActivity } from '@/types/itinerary'
+import { stripMarkdownFences } from '@/lib/utils'
 
 interface TripFilters {
   origin: string
@@ -24,13 +26,6 @@ interface PlanTripRequest {
   }>
   tripDuration: number
   filters?: TripFilters
-}
-
-function stripMarkdownFences(text: string): string {
-  let cleaned = text.trim()
-  cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  cleaned = cleaned.replace(/\n?```$/, '')
-  return cleaned.trim()
 }
 
 const SYSTEM_PROMPT = `You are an expert travel itinerary planner. Create realistic day-by-day trip plans that account for:

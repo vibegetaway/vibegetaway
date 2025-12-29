@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { UnsplashImage } from './types'
+import type { UnsplashImage } from '@/types/image'
 
 async function fetchUnsplashImages(
   keywords: string | string[],

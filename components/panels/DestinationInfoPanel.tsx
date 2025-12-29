@@ -1,10 +1,10 @@
 'use client'
 
 import { X, ArrowRight, CalendarPlus, CalendarCheck } from 'lucide-react'
-import type { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/types/destination'
 import { getCountryName } from '@/lib/countryCodeMapping'
-import type { UnsplashImage } from '@/app/api/unsplash-images/types'
-import type { SimplifiedFlight } from '@/lib/getRapidApiFlights'
+import type { UnsplashImage } from '@/types/image'
+import type { SimplifiedFlight } from '@/types/flight'
 import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
