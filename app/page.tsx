@@ -222,9 +222,9 @@ export default function Home() {
   const [isStandalone, setIsStandalone] = useState(false)
   const [platform, setPlatform] = useState<'ios' | 'android' | 'desktop'>('desktop')
   const [showIOSInstructions, setShowIOSInstructions] = useState(false)
+  const [showAndroidInstructions, setShowAndroidInstructions] = useState(false)
 
   useEffect(() => {
-    // Detect platform
     const userAgent = window.navigator.userAgent.toLowerCase()
     const isIOS = /iphone|ipad|ipod/.test(userAgent)
     const isAndroid = /android/.test(userAgent)
@@ -238,22 +238,15 @@ export default function Home() {
     }
 
     const handler = (e: Event) => {
-      console.log('✅ beforeinstallprompt event fired - PWA is installable!')
       e.preventDefault()
       setDeferredPrompt(e)
     }
 
     window.addEventListener('beforeinstallprompt', handler)
 
-    // Check if already installed
-    const standalone = window.matchMedia('(display-mode: standalone)').matches
+    const standalone = window.matchMedia('(display-mode: standalone)').matches ||
+                       (window.navigator as any).standalone === true
     setIsStandalone(standalone)
-    
-    if (standalone) {
-      console.log('✅ PWA is already installed and running in standalone mode')
-    } else {
-      console.log('ℹ️ PWA not yet installed. Platform:', isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop')
-    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler)
@@ -261,27 +254,25 @@ export default function Home() {
   }, [])
 
   const handleInstallClick = async () => {
-    // If already installed, do nothing
     if (isStandalone) {
       return
     }
 
-    // iOS: Show instructions modal
     if (platform === 'ios') {
       setShowIOSInstructions(true)
       return
     }
 
-    // Android/Desktop: Try PWA install
     if (deferredPrompt) {
-      console.log('Prompting user to install PWA...')
-      deferredPrompt.prompt()
-      const { outcome } = await deferredPrompt.userChoice
-      console.log(`User ${outcome} the install prompt`)
-      setDeferredPrompt(null)
+      try {
+        deferredPrompt.prompt()
+        const { outcome } = await deferredPrompt.userChoice
+        setDeferredPrompt(null)
+      } catch (error) {
+        setShowAndroidInstructions(true)
+      }
     } else {
-      // Fallback: Show instructions
-      alert('To install this app:\n\n• Chrome/Edge: Look for the install icon (⊕) in the address bar\n• Or use your browser menu to "Install app"')
+      setShowAndroidInstructions(true)
     }
   }
 
@@ -407,20 +398,57 @@ export default function Home() {
                 </button>
               </div>
               <div className="space-y-4 text-sm text-muted-foreground">
-                <p className="text-foreground font-medium">To install this app on your iPhone or iPad:</p>
+                <p className="text-foreground font-medium">To install this app on iOS:</p>
                 <ol className="space-y-3 list-decimal list-inside">
                   <li>Tap the <span className="inline-flex items-center mx-1 px-2 py-0.5 bg-primary/10 text-primary rounded">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z"/>
                     </svg>
-                  </span> Share button at the bottom of Safari</li>
+                  </span> Share button in your browser</li>
                   <li>Scroll down and tap <span className="font-semibold text-foreground">"Add to Home Screen"</span></li>
-                  <li>Tap <span className="font-semibold text-foreground">"Add"</span> in the top right</li>
-                  <li>The app will appear on your home screen!</li>
+                  <li>Tap <span className="font-semibold text-foreground">"Add"</span> to confirm</li>
                 </ol>
                 <div className="mt-6 p-4 bg-muted rounded-lg">
                   <p className="text-xs text-muted-foreground">
-                    💡 Tip: Once installed, the app opens in fullscreen mode without browser controls for a native app experience.
+                    The app will open in fullscreen mode for a native app experience.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Android Installation Instructions Modal */}
+        {showAndroidInstructions && (
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowAndroidInstructions(false)}
+          >
+            <div 
+              className="bg-card border border-border rounded-2xl p-6 max-w-md w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-foreground">Install VibeGetaway</h3>
+                <button 
+                  onClick={() => setShowAndroidInstructions(false)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="space-y-4 text-sm text-muted-foreground">
+                <p className="text-foreground font-medium">To install this app on Android:</p>
+                <ol className="space-y-3 list-decimal list-inside">
+                  <li>Tap the <span className="font-semibold text-foreground">menu button</span> in your browser</li>
+                  <li>Select <span className="font-semibold text-foreground">"Add to Home screen"</span> or <span className="font-semibold text-foreground">"Install app"</span></li>
+                  <li>Tap <span className="font-semibold text-foreground">"Install"</span> to confirm</li>
+                </ol>
+                <div className="mt-6 p-4 bg-muted rounded-lg">
+                  <p className="text-xs text-muted-foreground">
+                    The app will open in fullscreen mode and receive updates automatically.
                   </p>
                 </div>
               </div>
