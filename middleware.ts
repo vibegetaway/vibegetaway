@@ -4,10 +4,12 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/inspire(.*)',
   '/plan(.*)',
+  '/quickstart(.*)',
   '/api/suggestions(.*)',
   '/api/generate-itinerary(.*)',
   '/api/generate-itinerary-name(.*)',
   '/api/plan-trip(.*)',
+  '/api/quickstart-itinerary(.*)',
   '/api/unsplash-images(.*)',
   '/api/city-search(.*)',
 ])
