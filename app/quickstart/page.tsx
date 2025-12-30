@@ -4,6 +4,7 @@ import { useState } from "react"
 import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X } from "lucide-react"
 import { Header } from "@/components/Header"
 import { MobileNav } from "@/components/MobileNav"
+import { useTypingAnimation } from "@/hooks/useTypingAnimation"
 
 interface TimeSlotActivity {
   title: string
@@ -25,6 +26,19 @@ interface LockedSlots {
   evening: boolean
 }
 
+const ACTIVITY_PHRASES = [
+  "swimming",
+  "surfing",
+  "hiking",
+  "dancing",
+  "exploring museums",
+  "trying local food",
+  "photography",
+  "rock climbing",
+  "yoga and meditation",
+  "wine tasting"
+]
+
 export default function QuickStart() {
   const [activity, setActivity] = useState("")
   const [location, setLocation] = useState("")
@@ -43,6 +57,11 @@ export default function QuickStart() {
   const [alternatives, setAlternatives] = useState<TimeSlotActivity[]>([])
   const [loadingAlternatives, setLoadingAlternatives] = useState(false)
   const [isLocating, setIsLocating] = useState(false)
+
+  const activityPlaceholder = useTypingAnimation({
+    phrases: ACTIVITY_PHRASES,
+    enabled: !activity
+  })
 
   const handleGeolocation = () => {
     if (!navigator.geolocation) {
@@ -306,16 +325,21 @@ export default function QuickStart() {
                 What do you want to do? <span className="text-secondary">*</span>
               </label>
               <div className="relative">
-                <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+                <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary pointer-events-none z-10" />
                 <input
                   id="activity"
                   type="text"
                   value={activity}
                   onChange={(e) => setActivity(e.target.value)}
-                  placeholder="e.g., swimming, surfing, dancing, hiking..."
+                  placeholder=""
                   className="w-full pl-12 pr-4 py-3.5 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   disabled={isGenerating}
                 />
+                {!activity && activityPlaceholder && (
+                  <div className="absolute left-12 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground z-[5]">
+                    {activityPlaceholder}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -325,7 +349,7 @@ export default function QuickStart() {
               </label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary" />
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary pointer-events-none z-10" />
                   <input
                     id="location"
                     type="text"

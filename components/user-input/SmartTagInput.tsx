@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, KeyboardEvent } from "react"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTypingAnimation } from "@/hooks/useTypingAnimation"
 
 interface SmartTagInputProps {
     value: string[]
@@ -47,54 +48,12 @@ export function SmartTagInput({
     const [inputValue, setInputValue] = useState("")
     const [suggestion, setSuggestion] = useState("")
     const [lastFullSuggestion, setLastFullSuggestion] = useState("")
-    const [placeholderIndex, setPlaceholderIndex] = useState(0)
-    const [displayedPlaceholder, setDisplayedPlaceholder] = useState("")
-    const [isTyping, setIsTyping] = useState(true)
     const inputRef = useRef<HTMLInputElement>(null)
 
-    // Typing animation for placeholder
-    useEffect(() => {
-        if (value.length > 0 || inputValue) {
-            setDisplayedPlaceholder("")
-            return
-        }
-
-        const currentText = placeholder || PLACEHOLDER_EXAMPLES[placeholderIndex]
-        let currentIndex = 0
-        let typingInterval: NodeJS.Timeout
-
-        if (isTyping) {
-            // Typing forward
-            typingInterval = setInterval(() => {
-                if (currentIndex < currentText.length) {
-                    setDisplayedPlaceholder(currentText.slice(0, currentIndex + 1))
-                    currentIndex++
-                } else {
-                    clearInterval(typingInterval)
-                    // Pause at full text, then start deleting
-                    setTimeout(() => setIsTyping(false), 1500)
-                }
-            }, 80) // Type speed
-        } else {
-            // Deleting backward
-            currentIndex = currentText.length
-            typingInterval = setInterval(() => {
-                if (currentIndex > 0) {
-                    setDisplayedPlaceholder(currentText.slice(0, currentIndex - 1))
-                    currentIndex--
-                } else {
-                    clearInterval(typingInterval)
-                    // Move to next placeholder and start typing
-                    setTimeout(() => {
-                        setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDER_EXAMPLES.length)
-                        setIsTyping(true)
-                    }, 500)
-                }
-            }, 50) // Delete speed (faster than typing)
-        }
-
-        return () => clearInterval(typingInterval)
-    }, [value.length, inputValue, placeholderIndex, isTyping, placeholder])
+    const displayedPlaceholder = useTypingAnimation({
+        phrases: placeholder ? [placeholder] : PLACEHOLDER_EXAMPLES,
+        enabled: value.length === 0 && !inputValue
+    })
 
     // Fetch suggestions with debounce, but prefer local sticky match
     useEffect(() => {
