@@ -8,6 +8,7 @@ import 'leaflet/dist/leaflet.css'
 
 interface Location {
   location: string      // City/area
+  logical_location: string  // Logical grouping (e.g., Bali)
   spot: string         // Specific landmark
   country: string
   latitude: number
@@ -278,7 +279,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     setIsClient(true)
     
     // Fetch and parse CSV
-    fetch('/data/global_locations_dataset_100_new.csv')
+    fetch('/data/bali_test_dataset.csv')
       .then(response => response.text())
       .then(csvText => {
         const lines = csvText.split('\n')
@@ -307,16 +308,17 @@ export default function ExploreMap({ className }: ExploreMapProps) {
             
             return {
               location: values[0] || '',
-              country: values[1] || '',
-              spot: values[2] || '',
-              latitude: parseFloat(values[3]),
-              longitude: parseFloat(values[4]),
-              activity: values[5] || '',
-              description: values[6] || '',
-              price_class: values[7] || '',
-              prominence_score: parseInt(values[8]) || 0,
-              tags: values[9] || '',
-              image_url: values[10] || '',
+              logical_location: values[1] || '',
+              country: values[2] || '',
+              spot: values[3] || '',
+              latitude: parseFloat(values[4]),
+              longitude: parseFloat(values[5]),
+              activity: values[6] || '',
+              description: values[7] || '',
+              price_class: values[8] || '',
+              prominence_score: parseInt(values[9]) || 0,
+              tags: values[10] || '',
+              image_url: values[11] || '',
             }
           })
           .filter(loc => !isNaN(loc.latitude) && !isNaN(loc.longitude) && loc.image_url)
