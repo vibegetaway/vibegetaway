@@ -7,7 +7,8 @@ import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
 
 interface Location {
-  location: string
+  location: string      // City/area
+  spot: string         // Specific landmark
   country: string
   latitude: number
   longitude: number
@@ -25,7 +26,8 @@ interface ExploreMapProps {
 
 interface LocationProperties {
   cluster: boolean
-  location: string
+  location: string     // City/area
+  spot: string        // Specific landmark
   country: string
   activity: string
   description: string
@@ -115,6 +117,7 @@ function MapController({ locations }: { locations: Location[] }) {
       properties: {
         cluster: false,
         location: loc.location,
+        spot: loc.spot,
         country: loc.country,
         activity: loc.activity,
         description: loc.description,
@@ -201,12 +204,12 @@ function MapController({ locations }: { locations: Location[] }) {
                 <div className="p-0">
                   <img 
                     src={marker.topLocation.image_url} 
-                    alt={marker.topLocation.location}
+                    alt={marker.topLocation.spot}
                     className="w-full h-40 object-cover"
                   />
                   <div className="p-3">
-                    <h3 className="font-bold text-lg mb-1">{marker.topLocation.location}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{marker.topLocation.country}</p>
+                    <h3 className="font-bold text-lg mb-1">{marker.topLocation.spot}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{marker.topLocation.location}, {marker.topLocation.country}</p>
                     <p className="text-sm mb-2">{marker.topLocation.description}</p>
                     <p className="text-xs text-violet-600 font-semibold mb-2">
                       Top location in cluster of {marker.count}
@@ -237,12 +240,12 @@ function MapController({ locations }: { locations: Location[] }) {
                 <div className="p-0">
                   <img 
                     src={marker.location.image_url} 
-                    alt={marker.location.location}
+                    alt={marker.location.spot}
                     className="w-full h-40 object-cover"
                   />
                   <div className="p-3">
-                    <h3 className="font-bold text-lg mb-1">{marker.location.location}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{marker.location.country}</p>
+                    <h3 className="font-bold text-lg mb-1">{marker.location.spot}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{marker.location.location}, {marker.location.country}</p>
                     <p className="text-sm mb-2">{marker.location.description}</p>
                     <div className="flex gap-2 flex-wrap">
                       {marker.location.tags.split(',').map((tag: string, i: number) => (
@@ -275,7 +278,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     setIsClient(true)
     
     // Fetch and parse CSV
-    fetch('/data/global_locations_dataset.csv')
+    fetch('/data/global_locations_dataset_100_new.csv')
       .then(response => response.text())
       .then(csvText => {
         const lines = csvText.split('\n')
@@ -305,14 +308,15 @@ export default function ExploreMap({ className }: ExploreMapProps) {
             return {
               location: values[0] || '',
               country: values[1] || '',
-              latitude: parseFloat(values[2]),
-              longitude: parseFloat(values[3]),
-              activity: values[4] || '',
-              description: values[5] || '',
-              price_class: values[6] || '',
-              prominence_score: parseInt(values[7]) || 0,
-              tags: values[8] || '',
-              image_url: values[9] || '',
+              spot: values[2] || '',
+              latitude: parseFloat(values[3]),
+              longitude: parseFloat(values[4]),
+              activity: values[5] || '',
+              description: values[6] || '',
+              price_class: values[7] || '',
+              prominence_score: parseInt(values[8]) || 0,
+              tags: values[9] || '',
+              image_url: values[10] || '',
             }
           })
           .filter(loc => !isNaN(loc.latitude) && !isNaN(loc.longitude) && loc.image_url)
