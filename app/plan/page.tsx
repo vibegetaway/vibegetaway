@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Home, Sparkles, MapPin, GripVertical, Loader2, ChevronDown, ChevronUp, Sun, Cloud, Moon, Info, Plus, Minus, Calendar, BookOpen, Search, X, Trash2 } from 'lucide-react'
-import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
+import { Sparkles, MapPin, GripVertical, Loader2, ChevronDown, ChevronUp, Sun, Cloud, Moon, Info, Plus, Minus, Calendar, BookOpen, Search, X, Trash2 } from 'lucide-react'
 import { getSavedLocations, addToSavedLocations, removeFromSavedLocations } from '@/lib/itinerary'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { saveItineraryToHistory, type DayBreakdown } from '@/lib/itineraryHistory'
@@ -11,6 +10,7 @@ import { useTripFilters } from '@/hooks/useTripFilters'
 import { FilterBar } from '@/components/user-input/FilterBar'
 import { FilterSidePanel } from '@/components/panels/FilterSidePanel'
 import { MobileNav } from '@/components/MobileNav'
+import { Header } from '@/components/Header'
 import { cn } from '@/lib/utils'
 import dynamic from 'next/dynamic'
 import { TripDetailsPanel } from '@/components/panels/TripDetailsPanel'
@@ -561,9 +561,6 @@ export default function PlanPage() {
   const expandAll = () => setExpandedDays(new Set(generatedPlan.map(d => d.day)))
   const collapseAll = () => setExpandedDays(new Set())
 
-
-  const { isSignedIn } = useUser()
-
   // Calculate selected day logic for Map and Details Panel
   const selectedDayData = selectedDay
     ? generatedPlan.find(d => d.day === selectedDay) || null
@@ -571,27 +568,7 @@ export default function PlanPage() {
 
   return (
     <div className="h-screen overflow-hidden bg-gradient-to-br from-violet-100 via-pink-100 to-rose-100 flex flex-col relative">
-      {/* Header */}
-      <div className="bg-white/90 backdrop-blur-xl border-b border-violet-200/50 z-20 shadow-sm shrink-0">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between relative">
-          {/* Home button - left */}
-          <button
-            onClick={() => router.push('/')}
-            className="flex items-center justify-center p-2 rounded-full bg-violet-50 text-violet-700 hover:bg-violet-100 hover:text-violet-900 transition-all"
-            aria-label="Home"
-          >
-            <Home className="w-5 h-5" />
-          </button>
-
-          {/* Title - centered */}
-          <h1 className="absolute left-1/2 -translate-x-1/2 text-2xl font-bold bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent whitespace-nowrap">
-            Itinerary Planner
-          </h1>
-
-          {/* Spacer - right (same width as home button for balance) */}
-          <div className="w-10 h-10" />
-        </div>
-      </div>
+      <Header />
 
       <div className="flex-1 flex overflow-hidden max-w-[1400px] mx-auto w-full px-2 py-2 gap-2">
         {/* Left Column - Configuration & Itinerary */}
@@ -1095,37 +1072,6 @@ export default function PlanPage() {
         month={month}
         setMonth={setMonth}
       />
-
-      {/* User profile button - bottom left */}
-      <div className="fixed bottom-4 left-4 z-[70]">
-        {isSignedIn ? (
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "w-10 h-10 rounded-full ring-2 ring-violet-300 hover:ring-pink-400 transition-all",
-                userButtonPopoverCard: "shadow-xl border border-violet-200",
-              }
-            }}
-          />
-        ) : (
-          <SignInButton mode="modal">
-            <button
-              type="button"
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-violet-500 hover:from-pink-500 hover:to-violet-600 transition-all shadow-md hover:shadow-lg active:scale-95"
-              aria-label="Sign In"
-              title="Sign in with Google"
-            >
-              <svg
-                className="w-5 h-5 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-              </svg>
-            </button>
-          </SignInButton>
-        )}
-      </div>
 
       {/* Mobile Bottom Navigation */}
       <MobileNav activePage="plan" hidePlanButton />

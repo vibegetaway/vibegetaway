@@ -149,3 +149,13 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Hide duplicate floating Clerk UserButton at bottom left */
+div.fixed[style*="bottom"][style*="left"]:has(div.cl-rootBox) {
+  display: none !important;
+}
+
+/* Alternative selector for Tailwind classes */
+div[class*="fixed"][class*="bottom-4"][class*="left-4"]:has(div.cl-rootBox) {
+  display: none !important;
+}
