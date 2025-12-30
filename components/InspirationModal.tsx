@@ -37,13 +37,13 @@ export function InspirationModal({
     setShowResults(false)
     setCurrentIndex(0)
     setSwipeResults([])
-    
+
     try {
       const response = await fetch('/api/inspiration-cards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          activity, 
+        body: JSON.stringify({
+          activity,
           location,
           excludeActivities,
         }),
@@ -83,15 +83,16 @@ export function InspirationModal({
     if (direction === null || currentIndex >= cards.length) return
 
     const currentCard = cards[currentIndex]
-    
+
     setSwipeResults(prev => [...prev, { card: currentCard, direction }])
     setSeenActivities(prev => [...prev, currentCard.title])
 
     setTimeout(() => {
-      if (currentIndex >= cards.length - 1) {
+      const nextIndex = currentIndex + 1
+      if (nextIndex >= cards.length) {
         setShowResults(true)
       } else {
-        setCurrentIndex(prev => prev + 1)
+        setCurrentIndex(nextIndex)
       }
     }, 100)
 
@@ -111,7 +112,7 @@ export function InspirationModal({
     const superliked = swipeResults
       .filter(r => r.direction === 'up')
       .map(r => r.card)
-    
+
     onRegenerateWithPreferences(liked, superliked)
     onClose()
   }
@@ -123,11 +124,11 @@ export function InspirationModal({
   if (!isOpen) return null
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div 
+      <div
         className="relative w-full max-w-md h-[600px] sm:h-[650px]"
         onClick={(e) => e.stopPropagation()}
       >
@@ -148,9 +149,8 @@ export function InspirationModal({
               {cards.map((_, i) => (
                 <div
                   key={i}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    i < currentIndex ? 'bg-primary' : i === currentIndex ? 'bg-white' : 'bg-white/30'
-                  }`}
+                  className={`w-2 h-2 rounded-full transition-colors ${i < currentIndex ? 'bg-primary' : i === currentIndex ? 'bg-white' : 'bg-white/30'
+                    }`}
                 />
               ))}
             </div>

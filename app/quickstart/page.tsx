@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X, Heart } from "lucide-react"
+import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X, Heart, Image as ImageIcon } from "lucide-react"
 import { Header } from "@/components/Header"
 import { MobileNav } from "@/components/MobileNav"
 import { useTypingAnimation } from "@/hooks/useTypingAnimation"
@@ -12,6 +12,7 @@ interface TimeSlotActivity {
   title: string
   description: string
   reason: string
+  imageUrl?: string
 }
 
 interface Itinerary {
@@ -60,6 +61,7 @@ export default function QuickStart() {
   const [loadingAlternatives, setLoadingAlternatives] = useState(false)
   const [isLocating, setIsLocating] = useState(false)
   const [showInspirationModal, setShowInspirationModal] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null)
 
   const activityPlaceholder = useTypingAnimation({
     phrases: ACTIVITY_PHRASES,
@@ -123,7 +125,31 @@ export default function QuickStart() {
       }
 
       const data = await response.json()
-      setItinerary(data.itinerary)
+      const itineraryData = data.itinerary
+      
+      const itineraryWithImages = await Promise.all(
+        (['morning', 'midday', 'evening'] as TimeSlot[]).map(async (slot) => {
+          const activity = itineraryData[slot]
+          try {
+            const imageResponse = await fetch(
+              `/api/unsplash-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&single=true&size=regular`
+            )
+            if (imageResponse.ok) {
+              const imageData = await imageResponse.json()
+              return { ...activity, imageUrl: imageData.url }
+            }
+          } catch (error) {
+            console.error(`Error fetching image for ${slot}:`, error)
+          }
+          return activity
+        })
+      )
+      
+      setItinerary({
+        morning: itineraryWithImages[0],
+        midday: itineraryWithImages[1],
+        evening: itineraryWithImages[2],
+      })
     } catch (error) {
       console.error("Error generating itinerary:", error)
       alert("Failed to generate itinerary. Please try again.")
@@ -151,15 +177,37 @@ export default function QuickStart() {
       }
 
       const data = await response.json()
-      
-      const newItinerary = { ...data.itinerary }
+      const itineraryData = { ...data.itinerary }
       if (itinerary) {
-        if (lockedSlots.morning) newItinerary.morning = itinerary.morning
-        if (lockedSlots.midday) newItinerary.midday = itinerary.midday
-        if (lockedSlots.evening) newItinerary.evening = itinerary.evening
+        if (lockedSlots.morning) itineraryData.morning = itinerary.morning
+        if (lockedSlots.midday) itineraryData.midday = itinerary.midday
+        if (lockedSlots.evening) itineraryData.evening = itinerary.evening
       }
       
-      setItinerary(newItinerary)
+      const itineraryWithImages = await Promise.all(
+        (['morning', 'midday', 'evening'] as TimeSlot[]).map(async (slot) => {
+          const activity = itineraryData[slot]
+          if (activity.imageUrl) return activity
+          try {
+            const imageResponse = await fetch(
+              `/api/unsplash-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&single=true&size=regular`
+            )
+            if (imageResponse.ok) {
+              const imageData = await imageResponse.json()
+              return { ...activity, imageUrl: imageData.url }
+            }
+          } catch (error) {
+            console.error(`Error fetching image for ${slot}:`, error)
+          }
+          return activity
+        })
+      )
+      
+      setItinerary({
+        morning: itineraryWithImages[0],
+        midday: itineraryWithImages[1],
+        evening: itineraryWithImages[2],
+      })
     } catch (error) {
       console.error("Error regenerating itinerary:", error)
       alert("Failed to regenerate itinerary. Please try again.")
@@ -189,9 +237,23 @@ export default function QuickStart() {
       }
 
       const data = await response.json()
+      const newActivity = data.activity
+      
+      try {
+        const imageResponse = await fetch(
+          `/api/unsplash-images?keywords=${encodeURIComponent(`${newActivity.title} ${location}`)}&single=true&size=regular`
+        )
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json()
+          newActivity.imageUrl = imageData.url
+        }
+      } catch (error) {
+        console.error(`Error fetching image for ${slot}:`, error)
+      }
+      
       setItinerary({
         ...itinerary,
-        [slot]: data.activity,
+        [slot]: newActivity,
       })
     } catch (error) {
       console.error("Error regenerating slot:", error)
@@ -236,15 +298,37 @@ export default function QuickStart() {
       }
 
       const data = await response.json()
-      
-      const newItinerary = { ...data.itinerary }
+      const itineraryData = { ...data.itinerary }
       if (itinerary) {
-        if (lockedSlots.morning) newItinerary.morning = itinerary.morning
-        if (lockedSlots.midday) newItinerary.midday = itinerary.midday
-        if (lockedSlots.evening) newItinerary.evening = itinerary.evening
+        if (lockedSlots.morning) itineraryData.morning = itinerary.morning
+        if (lockedSlots.midday) itineraryData.midday = itinerary.midday
+        if (lockedSlots.evening) itineraryData.evening = itinerary.evening
       }
       
-      setItinerary(newItinerary)
+      const itineraryWithImages = await Promise.all(
+        (['morning', 'midday', 'evening'] as TimeSlot[]).map(async (slot) => {
+          const activity = itineraryData[slot]
+          if (activity.imageUrl) return activity
+          try {
+            const imageResponse = await fetch(
+              `/api/unsplash-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&single=true&size=regular`
+            )
+            if (imageResponse.ok) {
+              const imageData = await imageResponse.json()
+              return { ...activity, imageUrl: imageData.url }
+            }
+          } catch (error) {
+            console.error(`Error fetching image for ${slot}:`, error)
+          }
+          return activity
+        })
+      )
+      
+      setItinerary({
+        morning: itineraryWithImages[0],
+        midday: itineraryWithImages[1],
+        evening: itineraryWithImages[2],
+      })
     } catch (error) {
       console.error("Error regenerating itinerary with preferences:", error)
       alert("Failed to regenerate itinerary. Please try again.")
@@ -356,15 +440,12 @@ export default function QuickStart() {
       <main className="min-h-screen bg-background pb-24 md:pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div className="max-w-5xl mx-auto">
-          <div className="mb-8 sm:mb-12 text-center space-y-3">
+          <div className="mb-8 sm:mb-12 text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold">
               <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Quick Day Planner
               </span>
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-              Tell us what you want to do, and we'll plan your perfect day
-            </p>
           </div>
 
           <div className="bg-card rounded-2xl p-6 sm:p-8 border border-border shadow-lg mb-8 space-y-6">
@@ -436,7 +517,7 @@ export default function QuickStart() {
               ) : (
                 <>
                   <Sparkles className="w-6 h-6" />
-                  Generate My Day
+                  Plan My Day
                 </>
               )}
             </button>
@@ -516,28 +597,46 @@ export default function QuickStart() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => openDetailView(slot, itinerary[slot])}
-                        className="w-full text-left group"
-                      >
-                        <div className="space-y-3">
-                          <h4 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-                            {itinerary[slot].title}
-                          </h4>
-                          <p className="text-foreground/80 leading-relaxed">
-                            {itinerary[slot].description}
-                          </p>
-                          <div className="flex items-start gap-2 p-3 bg-card/50 rounded-lg border border-border/50">
-                            <Sparkles className={`w-4 h-4 mt-0.5 flex-shrink-0 ${getSlotAccent(slot)}`} />
-                            <p className="text-sm text-muted-foreground italic">
-                              {itinerary[slot].reason}
-                            </p>
+                      <div className="space-y-3">
+                        <div className="flex gap-4">
+                          {itinerary[slot].imageUrl && (
+                            <div className="flex-shrink-0">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setSelectedImage({ url: itinerary[slot].imageUrl!, title: itinerary[slot].title })
+                                }}
+                                className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-all group"
+                              >
+                                <img
+                                  src={itinerary[slot].imageUrl}
+                                  alt={itinerary[slot].title}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                  <ImageIcon className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                              </button>
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <button
+                              onClick={() => openDetailView(slot, itinerary[slot])}
+                              className="w-full text-left group"
+                            >
+                              <h4 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors mb-2">
+                                {itinerary[slot].title}
+                              </h4>
+                              <p className="text-sm text-foreground/70 leading-relaxed">
+                                {itinerary[slot].description} {itinerary[slot].reason}
+                              </p>
+                              <p className="text-xs font-semibold text-primary mt-2 group-hover:translate-x-1 transition-transform">
+                                Click to see alternatives →
+                              </p>
+                            </button>
                           </div>
-                          <p className="text-sm font-semibold text-primary group-hover:translate-x-1 transition-transform">
-                            Click to see alternatives →
-                          </p>
                         </div>
-                      </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -642,6 +741,33 @@ export default function QuickStart() {
         location={location}
         onRegenerateWithPreferences={regenerateWithPreferences}
       />
+
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-4xl w-full max-h-[90vh]">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-12 right-0 p-2 text-white/70 hover:text-white transition-colors z-10"
+              aria-label="Close"
+            >
+              <X className="w-8 h-8" />
+            </button>
+            <div className="bg-card rounded-2xl overflow-hidden">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.title}
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+              <div className="p-4 border-t border-border">
+                <h3 className="text-lg font-bold text-foreground">{selectedImage.title}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       </main>
       <MobileNav hidePlanButton={true} />
     </>

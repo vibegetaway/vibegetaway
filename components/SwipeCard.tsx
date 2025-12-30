@@ -216,7 +216,7 @@ export function SwipeCard({ card, onSwipe, isTop, index }: SwipeCardProps) {
           </span>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+        <div className={`absolute bottom-0 left-0 right-0 p-6 text-white ${isTop ? 'pb-32' : ''}`}>
           <h3 className="text-2xl sm:text-3xl font-bold mb-2 drop-shadow-lg">
             {card.title}
           </h3>
@@ -230,7 +230,7 @@ export function SwipeCard({ card, onSwipe, isTop, index }: SwipeCardProps) {
         </div>
 
         {isTop && (
-          <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-6 pt-4">
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6 z-10">
             <button
               onClick={(e) => {
                 e.stopPropagation()
