@@ -455,7 +455,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
         zoom={2}
         minZoom={2}
         maxBounds={[[-90, -180], [90, 180]]}
-        maxBoundsViscosity={1.0}
+        maxBoundsViscosity={0.7}
         scrollWheelZoom={true}
         zoomControl={false}
         className="w-full h-full"
