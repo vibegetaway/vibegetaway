@@ -90,8 +90,24 @@ function MapController({ locations }: { locations: Location[] }) {
 
   useEffect(() => {
     const updateBounds = () => {
-      setBounds(map.getBounds())
-      setZoom(map.getZoom())
+      const newBounds = map.getBounds()
+      const newZoom = map.getZoom()
+      
+      // Only update if bounds or zoom actually changed
+      setBounds(prevBounds => {
+        if (!prevBounds || 
+            !prevBounds.equals(newBounds)) {
+          return newBounds
+        }
+        return prevBounds
+      })
+      
+      setZoom(prevZoom => {
+        if (prevZoom !== newZoom) {
+          return newZoom
+        }
+        return prevZoom
+      })
     }
 
     updateBounds()
