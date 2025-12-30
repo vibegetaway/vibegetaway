@@ -1,7 +1,7 @@
 'use client'
 
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
-import { useEffect, useState, useMemo } from 'react'
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
@@ -45,6 +45,19 @@ interface ProcessedMarker {
   count?: number
   topLocation?: LocationProperties
   location?: LocationProperties
+  clusterId?: number
+}
+
+interface DrawerItem {
+  spot: string
+  location: string
+  country: string
+  description: string
+  tags: string
+  image_url: string
+  activity: string
+  price_class: string
+  prominence_score: number
 }
 
 // Create circular image pin
@@ -83,7 +96,13 @@ const createClusterPin = (imageUrl: string, count: number) => {
   })
 }
 
-function MapController({ locations }: { locations: Location[] }) {
+function MapController({ 
+  locations, 
+  onMarkerClick 
+}: { 
+  locations: Location[]
+  onMarkerClick: (items: DrawerItem[], isCluster: boolean) => void
+}) {
   const map = useMap()
   const [bounds, setBounds] = useState<L.LatLngBounds | null>(null)
   const [zoom, setZoom] = useState(map.getZoom())
@@ -189,6 +208,7 @@ function MapController({ locations }: { locations: Location[] }) {
           isCluster: true,
           count: point_count,
           topLocation: topLocation.properties as LocationProperties,
+          clusterId: clusterId,
         }
       } else {
         // Single location
@@ -205,7 +225,7 @@ function MapController({ locations }: { locations: Location[] }) {
   return (
     <>
       {markers.map((marker: ProcessedMarker) => {
-        if (marker.isCluster && marker.topLocation) {
+        if (marker.isCluster && marker.topLocation && marker.clusterId !== undefined) {
           return (
             <Marker
               key={marker.id}
@@ -213,38 +233,25 @@ function MapController({ locations }: { locations: Location[] }) {
               icon={createClusterPin(marker.topLocation.image_url, marker.count || 0)}
               eventHandlers={{
                 click: () => {
-                  map.setView(marker.position, zoom + 2)
+                  // Get all items in the cluster
+                  const points = supercluster.getLeaves(marker.clusterId!, Infinity)
+                  const items: DrawerItem[] = points
+                    .map((point: any) => ({
+                      spot: point.properties.spot,
+                      location: point.properties.location,
+                      country: point.properties.country,
+                      description: point.properties.description,
+                      tags: point.properties.tags,
+                      image_url: point.properties.image_url,
+                      activity: point.properties.activity,
+                      price_class: point.properties.price_class,
+                      prominence_score: point.properties.prominence_score,
+                    }))
+                    .sort((a, b) => b.prominence_score - a.prominence_score)
+                  onMarkerClick(items, true)
                 },
               }}
-            >
-              <Popup>
-                <div className="p-0">
-                  <img 
-                    src={marker.topLocation.image_url} 
-                    alt={marker.topLocation.spot}
-                    className="w-full h-40 object-cover"
-                  />
-                  <div className="p-3">
-                    <h3 className="font-bold text-lg mb-1">{marker.topLocation.spot}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{marker.topLocation.location}, {marker.topLocation.country}</p>
-                    <p className="text-sm mb-2">{marker.topLocation.description}</p>
-                    <p className="text-xs text-violet-600 font-semibold mb-2">
-                      Top location in cluster of {marker.count}
-                    </p>
-                    <div className="flex gap-2 flex-wrap">
-                      {marker.topLocation.tags.split(',').map((tag: string, i: number) => (
-                        <span 
-                          key={i}
-                          className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full"
-                        >
-                          {tag.trim()}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
+            />
           )
         } else if (marker.location) {
           return (
@@ -252,32 +259,24 @@ function MapController({ locations }: { locations: Location[] }) {
               key={marker.id}
               position={marker.position}
               icon={createCircularPin(marker.location.image_url)}
-            >
-              <Popup>
-                <div className="p-0">
-                  <img 
-                    src={marker.location.image_url} 
-                    alt={marker.location.spot}
-                    className="w-full h-40 object-cover"
-                  />
-                  <div className="p-3">
-                    <h3 className="font-bold text-lg mb-1">{marker.location.spot}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{marker.location.location}, {marker.location.country}</p>
-                    <p className="text-sm mb-2">{marker.location.description}</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {marker.location.tags.split(',').map((tag: string, i: number) => (
-                        <span 
-                          key={i}
-                          className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full"
-                        >
-                          {tag.trim()}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
+              eventHandlers={{
+                click: () => {
+                  // Single item
+                  const items: DrawerItem[] = [{
+                    spot: marker.location!.spot,
+                    location: marker.location!.location,
+                    country: marker.location!.country,
+                    description: marker.location!.description,
+                    tags: marker.location!.tags,
+                    image_url: marker.location!.image_url,
+                    activity: marker.location!.activity,
+                    price_class: marker.location!.price_class,
+                    prominence_score: marker.location!.prominence_score,
+                  }]
+                  onMarkerClick(items, false)
+                },
+              }}
+            />
           )
         } else {
           return null
@@ -290,6 +289,12 @@ function MapController({ locations }: { locations: Location[] }) {
 export default function ExploreMap({ className }: ExploreMapProps) {
   const [locations, setLocations] = useState<Location[]>([])
   const [isClient, setIsClient] = useState(false)
+  const [drawerItems, setDrawerItems] = useState<DrawerItem[]>([])
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isClusterView, setIsClusterView] = useState(false)
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const [dragStart, setDragStart] = useState<number | null>(null)
+  const [dragOffset, setDragOffset] = useState(0)
 
   useEffect(() => {
     setIsClient(true)
@@ -343,6 +348,44 @@ export default function ExploreMap({ className }: ExploreMapProps) {
       })
       .catch(error => console.error('Error loading locations:', error))
   }, [])
+
+  const handleMarkerClick = (items: DrawerItem[], isCluster: boolean) => {
+    setDrawerItems(items)
+    setIsClusterView(isCluster)
+    setIsDrawerOpen(true)
+    setDragOffset(0)
+  }
+
+  const closeDrawer = () => {
+    setIsDrawerOpen(false)
+    setDragOffset(0)
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setDragStart(e.touches[0].clientY)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (dragStart === null) return
+    const currentY = e.touches[0].clientY
+    const diff = currentY - dragStart
+    
+    // Only allow dragging down
+    if (diff > 0) {
+      setDragOffset(diff)
+    }
+  }
+
+  const handleTouchEnd = () => {
+    if (dragOffset > 100) {
+      // Close if dragged down more than 100px
+      closeDrawer()
+    } else {
+      // Snap back
+      setDragOffset(0)
+    }
+    setDragStart(null)
+  }
 
   if (!isClient) {
     return <div className={className} />
@@ -405,17 +448,6 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           border: 2px solid white;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
-        
-        .leaflet-popup-content-wrapper {
-          border-radius: 12px;
-          padding: 0;
-          overflow: hidden;
-        }
-        
-        .leaflet-popup-content {
-          margin: 0;
-          width: 280px !important;
-        }
       `}</style>
       
       <MapContainer
@@ -434,8 +466,99 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           maxZoom={20}
         />
         
-        {locations.length > 0 && <MapController locations={locations} />}
+        {locations.length > 0 && <MapController locations={locations} onMarkerClick={handleMarkerClick} />}
       </MapContainer>
+
+      {/* Bottom Drawer */}
+      {isDrawerOpen && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/40 z-[9998] transition-opacity"
+            onClick={closeDrawer}
+            style={{ 
+              opacity: dragOffset > 0 ? Math.max(0, 1 - dragOffset / 300) : 1 
+            }}
+          />
+          
+          {/* Drawer */}
+          <div
+            ref={drawerRef}
+            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-[9999] max-h-[80vh] flex flex-col"
+            style={{
+              transform: `translateY(${dragOffset}px)`,
+              transition: dragStart === null ? 'transform 0.3s ease-out' : 'none',
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Handle bar */}
+            <div className="pt-3 pb-2 flex justify-center">
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+            </div>
+
+            {/* Header */}
+            <div className="px-5 pb-3 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">
+                {isClusterView 
+                  ? `${drawerItems.length} Places` 
+                  : drawerItems[0]?.spot
+                }
+              </h2>
+              {!isClusterView && drawerItems[0] && (
+                <p className="text-sm text-gray-500">
+                  {drawerItems[0].location}, {drawerItems[0].country}
+                </p>
+              )}
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+              {drawerItems.map((item, index) => (
+                <div 
+                  key={index} 
+                  className="border-b border-gray-100 last:border-b-0"
+                >
+                  <div className="p-4 flex gap-3">
+                    {/* Image */}
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={item.image_url} 
+                        alt={item.spot}
+                        className="w-24 h-24 object-cover rounded-lg"
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base text-gray-900 mb-1 line-clamp-1">
+                        {item.spot}
+                      </h3>
+                      <p className="text-xs text-gray-500 mb-2">
+                        {item.location}, {item.country}
+                      </p>
+                      <p className="text-sm text-gray-700 mb-2 line-clamp-2">
+                        {item.description}
+                      </p>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {item.tags.split(',').slice(0, 3).map((tag, i) => (
+                          <span 
+                            key={i}
+                            className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full"
+                          >
+                            {tag.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
