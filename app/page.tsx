@@ -10,6 +10,7 @@ import Image from "next/image"
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 import { useEffect, useState } from "react"
 import { Download } from "lucide-react"
+import type { ItineraryCardProps } from "@/types/itinerary"
 
 interface OptionCardProps {
   title: string
@@ -136,14 +137,6 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
       </div>
     </div>
   )
-}
-
-interface ItineraryCardProps {
-  destination: string
-  date: string
-  image: string
-  type: string
-  keywords?: string
 }
 
 function ItineraryCard({ destination, date, image, type, keywords }: ItineraryCardProps) {

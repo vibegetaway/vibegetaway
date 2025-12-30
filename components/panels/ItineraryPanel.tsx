@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { MapPin, X, Trash2, Sparkles } from 'lucide-react'
-import { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/types/destination'
 import { getCountryName } from '@/lib/countryCodeMapping'
 import { getSavedLocations, removeFromSavedLocations } from '@/lib/itinerary'
 

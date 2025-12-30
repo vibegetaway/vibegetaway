@@ -84,35 +84,9 @@ export interface RapidApiResponse {
   itineraries: RapidApiFlight[]
 }
 
-// Intermediate stop information
-export interface FlightStop {
-  code: string
-  name: string
-}
+import type { FlightStop, SimplifiedFlight } from '@/types/flight'
 
-// Simplified flight interface for the UI
-export interface SimplifiedFlight {
-  id: string
-  price: number
-  currency: string
-  departure_at: string
-  return_at: string
-  airline: string
-  origin: string
-  originName: string
-  destination: string
-  destinationName: string
-  duration: number // Total duration in minutes
-  outboundDuration: number // Outbound duration in minutes
-  inboundDuration: number // Return duration in minutes
-  outboundTransfers: number
-  inboundTransfers: number
-  transfers: number // Total transfers
-  outboundStops: FlightStop[] // Intermediate stops for outbound
-  inboundStops: FlightStop[] // Intermediate stops for return
-  bookingUrl: string
-  stayDuration: number
-}
+export type { FlightStop, SimplifiedFlight }
 
 /**
  * Fetches flights from Rapid API (Kiwi.com)
