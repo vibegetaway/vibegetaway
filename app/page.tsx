@@ -52,7 +52,8 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
   const backgroundPatterns = {
     'world-map': '/assets/homepage/world-map-simple.png',
     'sun-route': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='currentColor' stroke-width='1.5' opacity='0.6'%3E%3Ccircle cx='100' cy='50' r='15'/%3E%3Cline x1='100' y1='25' x2='100' y2='10'/%3E%3Cline x1='100' y1='75' x2='100' y2='90'/%3E%3Cline x1='75' y1='50' x2='60' y2='50'/%3E%3Cline x1='125' y1='50' x2='140' y2='50'/%3E%3Cline x1='82' y1='32' x2='71' y2='21'/%3E%3Cline x1='118' y1='32' x2='129' y2='21'/%3E%3Cline x1='82' y1='68' x2='71' y2='79'/%3E%3Cline x1='118' y1='68' x2='129' y2='79'/%3E%3Cpath d='M30,120 Q50,110 70,120 T110,120 T150,120' stroke-dasharray='3,3'/%3E%3Ccircle cx='30' cy='120' r='3' fill='currentColor'/%3E%3Ccircle cx='70' cy='120' r='3' fill='currentColor'/%3E%3Ccircle cx='110' cy='120' r='3' fill='currentColor'/%3E%3Ccircle cx='150' cy='120' r='3' fill='currentColor'/%3E%3Cpath d='M40,160 L50,150 L55,155 L45,165 Z' fill='currentColor' opacity='0.4'/%3E%3Cpath d='M90,165 L100,155 L105,160 L95,170 Z' fill='currentColor' opacity='0.4'/%3E%3Cpath d='M140,155 L150,145 L155,150 L145,160 Z' fill='currentColor' opacity='0.4'/%3E%3C/g%3E%3C/svg%3E")`,
-    'calendar': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='currentColor' stroke-width='1.5'%3E%3Crect x='30' y='40' width='60' height='60' rx='4'/%3E%3Cline x1='35' y1='35' x2='35' y2='45'/%3E%3Cline x1='85' y1='35' x2='85' y2='45'/%3E%3Cline x1='30' y1='55' x2='90' y2='55'/%3E%3Crect x='110' y='40' width='60' height='60' rx='4'/%3E%3Cline x1='115' y1='35' x2='115' y2='45'/%3E%3Cline x1='165' y1='35' x2='165' y2='45'/%3E%3Cline x1='110' y1='55' x2='170' y2='55'/%3E%3Crect x='30' y='120' width='60' height='60' rx='4'/%3E%3Cline x1='35' y1='115' x2='35' y2='125'/%3E%3Cline x1='85' y1='115' x2='85' y2='125'/%3E%3Cline x1='30' y1='135' x2='90' y2='135'/%3E%3Cpath d='M45,70 L50,75 L65,60' stroke-width='2' fill='none'/%3E%3Ccircle cx='140' cy='75' r='8' fill='currentColor' opacity='0.3'/%3E%3Ccircle cx='60' cy='155' r='8' fill='currentColor' opacity='0.3'/%3E%3C/g%3E%3C/svg%3E")`,
+    'calendar': '/assets/homepage/calendar-simple.png',
+    'calendar-svg': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='currentColor' stroke-width='1.5'%3E%3Crect x='30' y='40' width='60' height='60' rx='4'/%3E%3Cline x1='35' y1='35' x2='35' y2='45'/%3E%3Cline x1='85' y1='35' x2='85' y2='45'/%3E%3Cline x1='30' y1='55' x2='90' y2='55'/%3E%3Crect x='110' y='40' width='60' height='60' rx='4'/%3E%3Cline x1='115' y1='35' x2='115' y2='45'/%3E%3Cline x1='165' y1='35' x2='165' y2='45'/%3E%3Cline x1='110' y1='55' x2='170' y2='55'/%3E%3Crect x='30' y='120' width='60' height='60' rx='4'/%3E%3Cline x1='35' y1='115' x2='35' y2='125'/%3E%3Cline x1='85' y1='115' x2='85' y2='125'/%3E%3Cline x1='30' y1='135' x2='90' y2='135'/%3E%3Cpath d='M45,70 L50,75 L65,60' stroke-width='2' fill='none'/%3E%3Ccircle cx='140' cy='75' r='8' fill='currentColor' opacity='0.3'/%3E%3Ccircle cx='60' cy='155' r='8' fill='currentColor' opacity='0.3'/%3E%3C/g%3E%3C/svg%3E")`,
     'group': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='currentColor' opacity='0.5'%3E%3Ccircle cx='60' cy='50' r='12'/%3E%3Cpath d='M40,90 Q60,75 80,90 L80,95 L40,95 Z'/%3E%3Ccircle cx='140' cy='50' r='12'/%3E%3Cpath d='M120,90 Q140,75 160,90 L160,95 L120,95 Z'/%3E%3Ccircle cx='100' cy='75' r='15'/%3E%3Cpath d='M75,125 Q100,105 125,125 L125,130 L75,130 Z'/%3E%3Ccircle cx='60' cy='140' r='10'/%3E%3Cpath d='M45,175 Q60,163 75,175 L75,180 L45,180 Z'/%3E%3Ccircle cx='140' cy='140' r='10'/%3E%3Cpath d='M125,175 Q140,163 155,175 L155,180 L125,180 Z'/%3E%3C/g%3E%3C/svg%3E")`
   }
 
@@ -78,7 +79,11 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
       {/* Background pattern */}
       <div 
         className={`absolute inset-0 pointer-events-none ${
-          backgroundPattern === 'world-map' ? 'opacity-[0.15]' : 'opacity-[0.04]'
+          backgroundPattern === 'world-map' 
+            ? 'opacity-[0.15]' 
+            : backgroundPattern === 'calendar'
+            ? 'opacity-[0.10]'
+            : 'opacity-[0.04]'
         }`}
         style={{
           backgroundImage: typeof bgPattern === 'string' && bgPattern.startsWith('/') 
@@ -369,7 +374,7 @@ export default function Home() {
               icon={<Calendar className="w-full h-full" />}
               href="/plan"
               accentColor="secondary"
-              backgroundPattern="sun-route"
+              backgroundPattern="calendar"
             />
 
             <OptionCard
