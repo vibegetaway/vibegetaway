@@ -65,7 +65,7 @@ const createCircularPin = (imageUrl: string, size: number = 50) => {
 
 // Create cluster icon with count badge
 const createClusterPin = (imageUrl: string, count: number) => {
-  const size = 60
+  const size = 50
   return L.divIcon({
     className: 'custom-circular-marker',
     html: `
