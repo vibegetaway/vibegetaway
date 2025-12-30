@@ -220,10 +220,11 @@ export default function Home() {
   const { isSignedIn } = useUser()
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [showInstallButton, setShowInstallButton] = useState(false)
+  const [isStandalone, setIsStandalone] = useState(false)
 
   useEffect(() => {
     const handler = (e: Event) => {
-      console.log('beforeinstallprompt event fired - PWA is installable!')
+      console.log('✅ beforeinstallprompt event fired - PWA is installable!')
       e.preventDefault()
       setDeferredPrompt(e)
       setShowInstallButton(true)
@@ -232,12 +233,40 @@ export default function Home() {
     window.addEventListener('beforeinstallprompt', handler)
 
     // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      console.log('PWA is already installed')
+    const standalone = window.matchMedia('(display-mode: standalone)').matches
+    setIsStandalone(standalone)
+    
+    if (standalone) {
+      console.log('✅ PWA is already installed and running in standalone mode')
+    } else {
+      console.log('ℹ️ PWA not yet installed. Waiting for browser install prompt...')
     }
+
+    // Check if service worker is registered
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(registration => {
+        console.log('✅ Service Worker is ready and registered')
+      }).catch(err => {
+        console.log('⚠️ Service Worker not registered:', err)
+      })
+    }
+
+    // Timeout to show install button after 3 seconds if event hasn't fired
+    // This helps with testing and provides fallback
+    const timeout = setTimeout(() => {
+      if (!deferredPrompt && !standalone) {
+        console.log('⚠️ beforeinstallprompt event did not fire. This could mean:')
+        console.log('   - App is already installed')
+        console.log('   - Browser does not support PWA install')
+        console.log('   - PWA criteria not yet met (needs HTTPS in production)')
+        console.log('   - User previously dismissed the prompt')
+        console.log('   - App is running on localhost (install may not trigger)')
+      }
+    }, 3000)
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler)
+      clearTimeout(timeout)
     }
   }, [])
 
