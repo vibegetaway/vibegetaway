@@ -17,6 +17,7 @@ interface SmartTagInputProps {
     onFocus?: () => void
     onBlur?: () => void
     isFocused?: boolean
+    ariaLabel?: string
 }
 
 // Example placeholders for cycling animation
@@ -43,7 +44,8 @@ export function SmartTagInput({
     onInputChange,
     onFocus,
     onBlur,
-    isFocused = false
+    isFocused = false,
+    ariaLabel
 }: SmartTagInputProps) {
     const [inputValue, setInputValue] = useState("")
     const [suggestion, setSuggestion] = useState("")
@@ -176,6 +178,7 @@ export function SmartTagInput({
                             removeTag(index)
                         }}
                         className="hover:text-violet-900 focus:outline-none"
+                        aria-label={`Remove tag ${tag}`}
                     >
                         <X className="h-3 w-3" />
                     </button>
@@ -199,6 +202,7 @@ export function SmartTagInput({
                             removeTag(visibleTagsCount + index)
                         }}
                         className="hover:text-violet-900 focus:outline-none"
+                        aria-label={`Remove tag ${tag}`}
                     >
                         <X className="h-3 w-3" />
                     </button>
@@ -221,6 +225,7 @@ export function SmartTagInput({
                     className="w-full bg-transparent outline-none text-stone-800"
                     placeholder=""
                     autoFocus={autoFocus}
+                    aria-label={ariaLabel || "Add a tag"}
                 />
                 {/* Animated typing placeholder */}
                 {value.length === 0 && !inputValue && displayedPlaceholder && (
