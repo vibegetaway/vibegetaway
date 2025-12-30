@@ -50,7 +50,7 @@ export function MobileNav({ activePage, hidePlanButton = false }: MobileNavProps
         {/* Create Day Trip - Elevated Center Button - Only shown on home page */}
         {!hidePlanButton && (
           <button
-            onClick={() => router.push("/plan")}
+            onClick={() => router.push("/quickstart")}
             className="flex flex-col items-center -mt-6 flex-1"
           >
             <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-primary via-secondary to-chart-3 shadow-2xl flex items-center justify-center border-2 border-primary/40 active:scale-95 transition-transform hover:shadow-[0_0_30px_rgba(120,119,198,0.6)] hover:scale-105 ring-4 ring-primary/20">

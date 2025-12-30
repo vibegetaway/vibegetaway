@@ -130,7 +130,7 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
 
         {locked && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Coming soon</span>
+            <span>Premium feature</span>
           </div>
         )}
       </div>
@@ -471,7 +471,7 @@ export default function Home() {
               title="Day Trip"
               description="Perfect for single day adventures"
               icon={<Calendar className="w-full h-full" />}
-              href="/plan"
+              href="/quickstart"
               accentColor="secondary"
               backgroundPattern="calendar"
             />
@@ -480,8 +480,7 @@ export default function Home() {
               title="Multi-Day"
               description="Extended journeys and vacations"
               icon={<CalendarDays className="w-full h-full" />}
-              href="/plan-multiday"
-              locked={true}
+              href="/plan"
               accentColor="primary"
               backgroundPattern="calendar"
             />
