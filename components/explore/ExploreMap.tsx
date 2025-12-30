@@ -293,8 +293,10 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isClusterView, setIsClusterView] = useState(false)
   const drawerRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const [dragStart, setDragStart] = useState<number | null>(null)
   const [dragOffset, setDragOffset] = useState(0)
+  const [canDragDrawer, setCanDragDrawer] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
@@ -349,6 +351,21 @@ export default function ExploreMap({ className }: ExploreMapProps) {
       .catch(error => console.error('Error loading locations:', error))
   }, [])
 
+  // Prevent body scroll and pull-to-refresh when drawer is open
+  useEffect(() => {
+    if (isDrawerOpen) {
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden'
+      // Prevent pull-to-refresh on mobile
+      document.body.style.overscrollBehavior = 'none'
+      
+      return () => {
+        document.body.style.overflow = ''
+        document.body.style.overscrollBehavior = ''
+      }
+    }
+  }, [isDrawerOpen])
+
   const handleMarkerClick = (items: DrawerItem[], isCluster: boolean) => {
     setDrawerItems(items)
     setIsClusterView(isCluster)
@@ -361,31 +378,81 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     setDragOffset(0)
   }
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setDragStart(e.touches[0].clientY)
-  }
+  // Attach native touch event listeners with passive: false
+  useEffect(() => {
+    const drawer = drawerRef.current
+    if (!drawer || !isDrawerOpen) return
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (dragStart === null) return
-    const currentY = e.touches[0].clientY
-    const diff = currentY - dragStart
-    
-    // Only allow dragging down
-    if (diff > 0) {
-      setDragOffset(diff)
-    }
-  }
+    let localDragStart: number | null = null
+    let localCanDragDrawer = false
+    let localDragOffset = 0
 
-  const handleTouchEnd = () => {
-    if (dragOffset > 100) {
-      // Close if dragged down more than 100px
-      closeDrawer()
-    } else {
-      // Snap back
-      setDragOffset(0)
+    const handleTouchStart = (e: TouchEvent) => {
+      const startY = e.touches[0].clientY
+      localDragStart = startY
+      setDragStart(startY)
+      
+      // Check if content is at the top
+      const content = contentRef.current
+      if (content) {
+        const isAtTop = content.scrollTop === 0
+        localCanDragDrawer = isAtTop
+        setCanDragDrawer(isAtTop)
+      }
     }
-    setDragStart(null)
-  }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (localDragStart === null) return
+      
+      const currentY = e.touches[0].clientY
+      const diff = currentY - localDragStart
+      
+      // Check if content is at top
+      const content = contentRef.current
+      const isAtTop = content ? content.scrollTop === 0 : false
+      
+      // Only allow dragging the drawer down if:
+      // 1. User is swiping down (diff > 0)
+      // 2. Content was at top when touch started (localCanDragDrawer)
+      // 3. Content is still at top (isAtTop)
+      if (diff > 0 && localCanDragDrawer && isAtTop) {
+        // Prevent pull-to-refresh when dragging the drawer down
+        e.preventDefault()
+        localDragOffset = diff
+        setDragOffset(diff)
+      } else if (diff < 0) {
+        // Reset if user starts swiping up
+        localDragOffset = 0
+        setDragOffset(0)
+      }
+    }
+
+    const handleTouchEnd = () => {
+      if (localDragOffset > 100) {
+        // Close if dragged down more than 100px
+        closeDrawer()
+      } else {
+        // Snap back
+        setDragOffset(0)
+      }
+      localDragStart = null
+      localCanDragDrawer = false
+      localDragOffset = 0
+      setDragStart(null)
+      setCanDragDrawer(false)
+    }
+
+    // Add event listeners with passive: false to allow preventDefault
+    drawer.addEventListener('touchstart', handleTouchStart, { passive: false })
+    drawer.addEventListener('touchmove', handleTouchMove, { passive: false })
+    drawer.addEventListener('touchend', handleTouchEnd)
+
+    return () => {
+      drawer.removeEventListener('touchstart', handleTouchStart)
+      drawer.removeEventListener('touchmove', handleTouchMove)
+      drawer.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [isDrawerOpen])
 
   if (!isClient) {
     return <div className={className} />
@@ -490,13 +557,13 @@ export default function ExploreMap({ className }: ExploreMapProps) {
             style={{
               transform: `translateY(${dragOffset}px)`,
               transition: dragStart === null ? 'transform 0.3s ease-out' : 'none',
+              overscrollBehavior: 'contain',
             }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
           >
             {/* Handle bar */}
-            <div className="pt-3 pb-2 flex justify-center">
+            <div 
+              className="pt-3 pb-2 flex justify-center"
+            >
               <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
             </div>
 
@@ -516,7 +583,11 @@ export default function ExploreMap({ className }: ExploreMapProps) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto">
+            <div 
+              ref={contentRef}
+              className="flex-1 overflow-y-auto"
+              style={{ overscrollBehavior: 'contain' }}
+            >
               {drawerItems.map((item, index) => (
                 <div 
                   key={index} 
