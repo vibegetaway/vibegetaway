@@ -33,19 +33,19 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
 
   const colorClasses = {
     primary: {
-      bg: 'bg-gradient-to-br from-violet-500/20 to-violet-600/30 group-hover:from-violet-500/30 group-hover:to-violet-600/40',
-      text: 'text-violet-700',
-      border: 'border-violet-300/20',
+      bg: 'bg-gradient-to-br from-primary/20 to-primary/30 group-hover:from-primary/30 group-hover:to-primary/40',
+      text: 'text-primary',
+      border: 'border-primary/20',
     },
     secondary: {
-      bg: 'bg-gradient-to-br from-pink-500/25 to-pink-600/35 group-hover:from-pink-500/35 group-hover:to-pink-600/45',
-      text: 'text-pink-700',
-      border: 'border-pink-300/20',
+      bg: 'bg-gradient-to-br from-secondary/25 to-secondary/35 group-hover:from-secondary/35 group-hover:to-secondary/45',
+      text: 'text-secondary',
+      border: 'border-secondary/20',
     },
     'chart-3': {
-      bg: 'bg-gradient-to-br from-violet-400/25 to-pink-500/35 group-hover:from-violet-400/35 group-hover:to-pink-500/45',
-      text: 'text-violet-600',
-      border: 'border-violet-200/20',
+      bg: 'bg-gradient-to-br from-accent/25 to-chart-3/35 group-hover:from-accent/35 group-hover:to-chart-3/45',
+      text: 'text-accent',
+      border: 'border-accent/20',
     },
   }
 
@@ -207,7 +207,7 @@ function ItineraryCard({ destination, date, image, type, keywords }: ItineraryCa
         </div>
       </div>
       <div className="p-4 sm:p-5">
-        <button className="w-full bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-700 hover:to-pink-700 text-white text-sm font-semibold py-2.5 sm:py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow">
+        <button className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground text-sm font-semibold py-2.5 sm:py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow">
           View Itinerary
         </button>
       </div>
@@ -307,13 +307,13 @@ export default function Home() {
     <main className="min-h-screen bg-background relative overflow-hidden">
       {/* Subtle decorative background elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-20 right-20 w-72 h-72 bg-violet-300/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-40 left-20 w-96 h-96 bg-pink-300/15 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-200/10 rounded-full blur-3xl" />
+        <div className="absolute top-20 right-20 w-72 h-72 bg-secondary/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-40 left-20 w-96 h-96 bg-accent/15 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-3xl" />
       </div>
 
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-sm">
-        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-violet-300/40 via-pink-300/40 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-primary/30 via-secondary/30 to-transparent" />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 relative">
             <button onClick={() => router.push("/")} className="flex items-center gap-2 group">
@@ -333,14 +333,14 @@ export default function Home() {
                 <UserButton
                   appearance={{
                     elements: {
-                      avatarBox: "w-10 h-10 rounded-full ring-2 ring-border/50 hover:ring-violet-500/50 transition-all shadow-sm",
+                      avatarBox: "w-10 h-10 rounded-full ring-2 ring-border/50 hover:ring-primary/50 transition-all shadow-sm",
                       userButtonPopoverCard: "shadow-2xl border border-border rounded-xl",
                     }
                   }}
                 />
               ) : (
                 <SignInButton mode="modal">
-                  <button className="px-4 sm:px-5 py-2 bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-700 hover:to-pink-700 text-white text-sm font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95">
+                  <button className="px-4 sm:px-5 py-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground text-sm font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95">
                     Sign In
                   </button>
                 </SignInButton>
@@ -357,7 +357,7 @@ export default function Home() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
               <span className="text-foreground">Plan your perfect</span>
               <br />
-              <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 getaway
               </span>
             </h1>
@@ -367,7 +367,7 @@ export default function Home() {
             {!isStandalone && (
               <button
                 onClick={handleInstallClick}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-700 hover:to-pink-700 text-white text-sm font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl mx-auto"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground text-sm font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl mx-auto"
               >
                 <Download className="w-4 h-4" />
                 {platform === 'ios' ? 'Add to Home Screen' : 'Install App'}
@@ -400,7 +400,7 @@ export default function Home() {
               <div className="space-y-4 text-sm text-muted-foreground">
                 <p className="text-foreground font-medium">To install this app on iOS:</p>
                 <ol className="space-y-3 list-decimal list-inside">
-                  <li>Tap the <span className="inline-flex items-center mx-1 px-2 py-0.5 bg-violet-100 text-violet-700 rounded">
+                  <li>Tap the <span className="inline-flex items-center mx-1 px-2 py-0.5 bg-primary/10 text-primary rounded">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z"/>
                     </svg>
@@ -503,14 +503,14 @@ export default function Home() {
               <div className="inline-block">
                 <div className="flex items-center gap-3 sm:gap-4">
                   <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Travel Plans</h2>
-                  <button className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-700 hover:to-pink-700 text-white text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 hover:gap-3">
+                  <button className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 hover:gap-3">
                     View All
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
                   </button>
                 </div>
-                <div className="h-1 w-full bg-gradient-to-r from-violet-600 via-pink-600 to-transparent rounded-full mt-2" />
+                <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-transparent rounded-full mt-2" />
               </div>
             </div>
             <p className="text-sm sm:text-base text-muted-foreground">Your recently planned adventures</p>
