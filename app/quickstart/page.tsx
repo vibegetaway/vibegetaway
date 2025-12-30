@@ -7,26 +7,7 @@ import { MobileNav } from "@/components/MobileNav"
 import { useTypingAnimation } from "@/hooks/useTypingAnimation"
 import { InspirationModal } from "@/components/InspirationModal"
 import type { InspirationCard } from "@/components/SwipeCard"
-
-interface TimeSlotActivity {
-  title: string
-  description: string
-  reason: string
-}
-
-interface Itinerary {
-  morning: TimeSlotActivity
-  midday: TimeSlotActivity
-  evening: TimeSlotActivity
-}
-
-type TimeSlot = 'morning' | 'midday' | 'evening'
-
-interface LockedSlots {
-  morning: boolean
-  midday: boolean
-  evening: boolean
-}
+import type { TimeSlotActivity, Itinerary, TimeSlot, LockedSlots } from "@/types/itinerary"
 
 const ACTIVITY_PHRASES = [
   "swimming",

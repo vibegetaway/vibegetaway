@@ -1,29 +1,6 @@
 'use server'
 
-// TypeScript interfaces for TravelPayouts API responses
-export interface Flight {
-  flight_number: string
-  link: string
-  origin_airport: string
-  destination_airport: string
-  departure_at: string
-  return_at: string
-  airline: string
-  destination: string
-  origin: string
-  price: number
-  return_transfers: number
-  duration: number
-  duration_to: number
-  duration_back: number
-  transfers: number
-}
-
-export interface FlightSearchResponse {
-  data: Flight[]
-  currency: string
-  success: boolean
-}
+import type { Flight, FlightSearchResponse } from '@/types/flight'
 
 export interface AffiliateLinkRequest {
   trs: number

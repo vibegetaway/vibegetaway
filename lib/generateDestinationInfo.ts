@@ -5,43 +5,9 @@ import { google } from '@ai-sdk/google'
 import { groq } from '@ai-sdk/groq'
 
 
-export interface DestinationPricing {
-  accommodation: string
-  food: string
-  activities: string
-}
+import type { Destination, GenerateDestinationParams, DestinationPricing, ImageKeywords } from '@/types/destination'
 
-export interface ImageKeywords {
-  cover?: string
-  gallery?: string
-}
-
-export interface Destination {
-  country: string
-  region?: string
-  description?: string[]
-  imagesKeywords?: ImageKeywords
-  pricing?: DestinationPricing
-  recommendedDuration?: string
-  destinationAirportCode?: string
-  coordinates?: {
-    lat: number
-    lng: number
-  }
-  searchVibe?: string
-}
-
-export interface GenerateDestinationParams {
-  vibe: string
-  timePeriod?: string
-  price?: string
-  from?: string
-  destinations?: string[]
-  duration?: [number, number]
-  budget?: number
-  exclusions?: string[]
-  styles?: string[]
-}
+export type { Destination, GenerateDestinationParams, DestinationPricing, ImageKeywords }
 
 function stripMarkdownFences(text: string): string {
   let cleaned = text.trim()
