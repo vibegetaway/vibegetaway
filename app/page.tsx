@@ -376,7 +376,7 @@ export default function Home() {
             {!isStandalone && (
               <button
                 onClick={handleInstallClick}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary via-secondary to-chart-3 hover:opacity-90 text-primary-foreground text-sm font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl mx-auto"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground text-sm font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl mx-auto md:hidden"
               >
                 <Download className="w-4 h-4" />
                 {platform === 'ios' ? 'Add to Home Screen' : 'Install App'}
