@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+const MAX_QUERY_LENGTH = 100
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -7,6 +9,10 @@ export async function GET(request: Request) {
 
     if (!query || query.length < 2) {
       return NextResponse.json({ error: 'Query must be at least 2 characters' }, { status: 400 })
+    }
+
+    if (query.length > MAX_QUERY_LENGTH) {
+      return NextResponse.json({ error: 'Query is too long' }, { status: 400 })
     }
 
     const apiKey = process.env.LOCATIONIQ_API_KEY
@@ -73,4 +79,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-
