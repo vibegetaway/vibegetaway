@@ -1,10 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X } from "lucide-react"
+import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X, Heart } from "lucide-react"
 import { Header } from "@/components/Header"
 import { MobileNav } from "@/components/MobileNav"
 import { useTypingAnimation } from "@/hooks/useTypingAnimation"
+import { InspirationModal } from "@/components/InspirationModal"
+import type { InspirationCard } from "@/components/SwipeCard"
 
 interface TimeSlotActivity {
   title: string
@@ -57,6 +59,7 @@ export default function QuickStart() {
   const [alternatives, setAlternatives] = useState<TimeSlotActivity[]>([])
   const [loadingAlternatives, setLoadingAlternatives] = useState(false)
   const [isLocating, setIsLocating] = useState(false)
+  const [showInspirationModal, setShowInspirationModal] = useState(false)
 
   const activityPlaceholder = useTypingAnimation({
     phrases: ACTIVITY_PHRASES,
@@ -203,6 +206,51 @@ export default function QuickStart() {
       ...lockedSlots,
       [slot]: !lockedSlots[slot],
     })
+  }
+
+  const regenerateWithPreferences = async (liked: InspirationCard[], superliked: InspirationCard[]) => {
+    if (!activity.trim() || !location.trim()) return
+
+    const preferenceContext = [
+      ...superliked.map(c => `LOVE: ${c.title} at ${c.location}`),
+      ...liked.map(c => `LIKE: ${c.title} at ${c.location}`),
+    ].join('; ')
+
+    setIsGenerating(true)
+    try {
+      const enhancedActivity = preferenceContext 
+        ? `${activity} (User preferences: ${preferenceContext})`
+        : activity
+
+      const response = await fetch("/api/quickstart-itinerary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          activity: enhancedActivity, 
+          location,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to regenerate itinerary")
+      }
+
+      const data = await response.json()
+      
+      const newItinerary = { ...data.itinerary }
+      if (itinerary) {
+        if (lockedSlots.morning) newItinerary.morning = itinerary.morning
+        if (lockedSlots.midday) newItinerary.midday = itinerary.midday
+        if (lockedSlots.evening) newItinerary.evening = itinerary.evening
+      }
+      
+      setItinerary(newItinerary)
+    } catch (error) {
+      console.error("Error regenerating itinerary with preferences:", error)
+      alert("Failed to regenerate itinerary. Please try again.")
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const openDetailView = async (slot: TimeSlot, activityData: TimeSlotActivity) => {
@@ -400,15 +448,26 @@ export default function QuickStart() {
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
                   Your Day Plan
                 </h2>
-                <button
-                  onClick={regenerateFullDay}
-                  disabled={isGenerating}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                >
-                  <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-                  <span className="hidden sm:inline">Regenerate All</span>
-                  <span className="sm:hidden">Regenerate</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={regenerateFullDay}
+                    disabled={isGenerating}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+                    <span className="hidden sm:inline">Regenerate All</span>
+                    <span className="sm:hidden">Regenerate</span>
+                  </button>
+                  <button
+                    onClick={() => setShowInspirationModal(true)}
+                    disabled={isGenerating}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:opacity-90 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                  >
+                    <Heart className="w-4 h-4" />
+                    <span className="hidden sm:inline">Get Inspired</span>
+                    <span className="sm:hidden">Inspire</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid gap-6">
@@ -575,6 +634,14 @@ export default function QuickStart() {
           </div>
         </div>
       )}
+
+      <InspirationModal
+        isOpen={showInspirationModal}
+        onClose={() => setShowInspirationModal(false)}
+        activity={activity}
+        location={location}
+        onRegenerateWithPreferences={regenerateWithPreferences}
+      />
       </main>
       <MobileNav hidePlanButton={true} />
     </>
