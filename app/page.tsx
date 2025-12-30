@@ -67,34 +67,32 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
         group relative ${locked ? "overflow-visible" : "overflow-hidden"}
         rounded-2xl bg-card backdrop-blur-sm
         transition-all duration-300
-        ${
-          locked
-            ? "cursor-not-allowed opacity-60"
-            : "cursor-pointer hover:shadow-2xl hover:-translate-y-2 active:scale-98"
+        ${locked
+          ? "cursor-not-allowed opacity-60"
+          : "cursor-pointer hover:shadow-2xl hover:-translate-y-2 active:scale-98"
         }
         border ${colors.border}
         p-6 sm:p-8
       `}
     >
       {/* Background pattern */}
-      <div 
-        className={`absolute inset-0 pointer-events-none ${
-          backgroundPattern === 'world-map' 
-            ? 'opacity-[0.15]' 
+      <div
+        className={`absolute inset-0 pointer-events-none ${backgroundPattern === 'world-map'
+            ? 'opacity-[0.15]'
             : backgroundPattern === 'calendar'
-            ? 'opacity-[0.10]'
-            : 'opacity-[0.04]'
-        }`}
+              ? 'opacity-[0.10]'
+              : 'opacity-[0.04]'
+          }`}
         style={{
-          backgroundImage: typeof bgPattern === 'string' && bgPattern.startsWith('/') 
-            ? `url(${bgPattern})` 
+          backgroundImage: typeof bgPattern === 'string' && bgPattern.startsWith('/')
+            ? `url(${bgPattern})`
             : bgPattern,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
       />
-      
+
       {locked && <LockedBanner />}
 
       <div className="relative z-10 flex flex-col space-y-4">
@@ -153,7 +151,7 @@ function ItineraryCard({ destination, date, image, type, keywords }: ItineraryCa
   useEffect(() => {
     if (keywords) {
       setLoading(true)
-      fetch(`/api/unsplash-images?keywords=${encodeURIComponent(keywords)}&single=true&size=regular`)
+      fetch(`/api/pixabay-images?keywords=${encodeURIComponent(keywords)}&single=true&size=regular`)
         .then(res => {
           if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`)
@@ -229,7 +227,7 @@ export default function Home() {
     const userAgent = window.navigator.userAgent.toLowerCase()
     const isIOS = /iphone|ipad|ipod/.test(userAgent)
     const isAndroid = /android/.test(userAgent)
-    
+
     if (isIOS) {
       setPlatform('ios')
     } else if (isAndroid) {
@@ -246,7 +244,7 @@ export default function Home() {
     window.addEventListener('beforeinstallprompt', handler)
 
     const standalone = window.matchMedia('(display-mode: standalone)').matches ||
-                       (window.navigator as any).standalone === true
+      (window.navigator as any).standalone === true
     setIsStandalone(standalone)
 
     return () => {
@@ -348,7 +346,7 @@ export default function Home() {
                   </SignInButton>
                 )}
               </div>
-              
+
               <button
                 onClick={() => setShowMenu(!showMenu)}
                 className="p-2 hover:bg-muted rounded-lg transition-colors"
@@ -368,7 +366,7 @@ export default function Home() {
       {/* Slide-in Menu */}
       {showMenu && (
         <div className="fixed inset-0 z-50 md:z-[60]">
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowMenu(false)}
           />
@@ -383,7 +381,7 @@ export default function Home() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <nav className="flex-1 overflow-y-auto p-6">
                 <ul className="space-y-2">
                   <li>
@@ -462,7 +460,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <SignInButton mode="modal">
-                    <button 
+                    <button
                       onClick={() => setShowMenu(false)}
                       className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground py-3 rounded-xl font-semibold transition-all duration-200"
                     >
@@ -504,17 +502,17 @@ export default function Home() {
 
         {/* iOS Installation Instructions Modal */}
         {showIOSInstructions && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setShowIOSInstructions(false)}
           >
-            <div 
+            <div
               className="bg-card border border-border rounded-2xl p-6 max-w-md w-full shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-foreground">Install VibeGetaway</h3>
-                <button 
+                <button
                   onClick={() => setShowIOSInstructions(false)}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -528,7 +526,7 @@ export default function Home() {
                 <ol className="space-y-3 list-decimal list-inside">
                   <li>Tap the <span className="inline-flex items-center mx-1 px-2 py-0.5 bg-primary/10 text-primary rounded">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z"/>
+                      <path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z" />
                     </svg>
                   </span> Share button in your browser</li>
                   <li>Scroll down and tap <span className="font-semibold text-foreground">"Add to Home Screen"</span></li>
@@ -546,17 +544,17 @@ export default function Home() {
 
         {/* Android Installation Instructions Modal */}
         {showAndroidInstructions && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setShowAndroidInstructions(false)}
           >
-            <div 
+            <div
               className="bg-card border border-border rounded-2xl p-6 max-w-md w-full shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-foreground">Install VibeGetaway</h3>
-                <button 
+                <button
                   onClick={() => setShowAndroidInstructions(false)}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >

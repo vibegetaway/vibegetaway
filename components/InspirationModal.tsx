@@ -101,6 +101,22 @@ export function InspirationModal({
     }
   }, [currentIndex, cards, showInstructions])
 
+  const handleCardClick = useCallback(() => {
+    if (showInstructions) {
+      setShowInstructions(false)
+    }
+  }, [showInstructions])
+
+  useEffect(() => {
+    if (showInstructions && cards.length > 0 && currentIndex === 0) {
+      const timer = setTimeout(() => {
+        setShowInstructions(false)
+      }, 5000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [showInstructions, cards.length, currentIndex])
+
   const handleShowMoreInspirations = () => {
     fetchCards(seenActivities)
   }
@@ -227,7 +243,7 @@ export function InspirationModal({
             </button>
           </div>
         ) : (
-          <div className="relative w-full h-full">
+          <div className="relative w-full h-full" onClick={handleCardClick}>
             {cards.slice(currentIndex, currentIndex + 3).reverse().map((card, reversedIndex) => {
               const actualIndex = 2 - reversedIndex
               return (
@@ -243,7 +259,7 @@ export function InspirationModal({
 
             {showInstructions && currentIndex === 0 && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-6 text-white text-center max-w-xs">
+                <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-6 text-white text-center max-w-xs animate-fade-in">
                   <p className="text-lg font-semibold mb-4">Swipe to explore!</p>
                   <div className="flex justify-center gap-6 text-sm">
                     <div className="flex flex-col items-center gap-2">
@@ -261,6 +277,9 @@ export function InspirationModal({
                   </div>
                   <p className="text-xs text-white/60 mt-4">
                     Or use the buttons below
+                  </p>
+                  <p className="text-xs text-white/40 mt-2">
+                    (Tap anywhere to dismiss)
                   </p>
                 </div>
               </div>

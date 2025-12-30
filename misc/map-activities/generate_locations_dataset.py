@@ -21,7 +21,7 @@ import re
 
 # Configuration
 DEFAULT_NUM_ENTRIES = 3000
-BATCH_SIZE = 100  # Number of locations to generate per API call
+BATCH_SIZE = 10  # Number of locations to generate per API call
 OUTPUT_FILE = "global_locations_dataset.csv"
 
 # Activity categories for diverse sampling
@@ -96,10 +96,16 @@ def get_unsplash_image(location: str, activity: str, country: str, unsplash_key:
                         photo = data['results'][0]
                         # Return the regular size URL (same as Next.js default)
                         return photo['urls']['regular']
+                elif response.status_code == 403:
+                    print(f"Warning: Unsplash API Rate Limit Exceeded (403). Falling back to Source API.")
+                    # Force fallback
+                    raise requests.RequestException("Rate limit exceeded")
                 else:
                     print(f"Warning: Unsplash API returned status {response.status_code} for {location}")
             except requests.RequestException as e:
-                print(f"Warning: Unsplash API request failed for {location}: {e}")
+                # Don't print stack trace for rate limit, just the warning
+                if "Rate limit exceeded" not in str(e):
+                    print(f"Warning: Unsplash API request failed for {location}: {e}")
         
         # Fallback to Unsplash Source API if no access key or API call fails
         # Simplify keywords: just location and country, remove special chars

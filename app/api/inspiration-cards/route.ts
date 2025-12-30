@@ -10,6 +10,7 @@ interface InspirationCard {
   description: string
   category: 'adventure' | 'culture' | 'food' | 'relaxation' | 'nightlife'
   imageKeywords: string
+  imageUrl?: string
 }
 
 interface InspirationRequest {
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
     })
     const model = google('gemini-2.5-flash-lite')
 
-    const excludeText = excludeActivities.length > 0 
+    const excludeText = excludeActivities.length > 0
       ? `\n\nDo NOT suggest these activities (already shown): ${excludeActivities.join(', ')}`
       : ''
 
@@ -118,39 +119,51 @@ Generate 5 diverse suggestions mixing different categories.`
       id: `card-${Date.now()}-${index}`,
     }))
 
-    const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY
-    
-    if (UNSPLASH_ACCESS_KEY) {
-      const cardsWithImages = await Promise.all(
-        cardsWithIds.map(async (card) => {
-          try {
-            const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(card.imageKeywords)}&per_page=1`
-            const response = await fetch(url, {
-              headers: { 'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}` }
-            })
-            
+    const PIXABAY_API_KEY = process.env.PIXABAY_API_KEY
+
+    // Fetch images from Pixabay for each card
+    const cardsWithImages = await Promise.all(
+      cardsWithIds.map(async (card) => {
+        try {
+          if (!PIXABAY_API_KEY) {
+            console.warn('[inspiration-cards] PIXABAY_API_KEY not configured')
+            return card
+          }
+
+          // Progressive fallback strategy for image search
+          const searchTerms = [
+            card.imageKeywords, // Original search
+            card.imageKeywords.split(' ').slice(0, 2).join(' '), // First 2 words
+            card.imageKeywords.split(' ')[0], // First word only
+            'travel destination' // Ultimate fallback
+          ]
+
+          for (const searchTerm of searchTerms) {
+            if (!searchTerm || searchTerm.trim().length === 0) continue
+
+            const url = `https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(searchTerm)}&image_type=photo&per_page=3&safesearch=true`
+            const response = await fetch(url)
+
             if (response.ok) {
               const data = await response.json()
-              if (data.results && data.results.length > 0) {
+              if (data.hits && data.hits.length > 0) {
                 return {
                   ...card,
-                  imageUrl: data.results[0].urls.regular,
+                  imageUrl: data.hits[0].webformatURL,
                 }
               }
             }
-          } catch (error) {
-            console.error(`[inspiration-cards] Failed to fetch image for ${card.title}:`, error)
           }
-          return card
-        })
-      )
 
-      return new Response(JSON.stringify({ cards: cardsWithImages }), {
-        headers: { 'Content-Type': 'application/json' },
+          console.warn(`[inspiration-cards] No image found for ${card.title}`)
+        } catch (error) {
+          console.error(`[inspiration-cards] Failed to fetch image for ${card.title}:`, error)
+        }
+        return card
       })
-    }
+    )
 
-    return new Response(JSON.stringify({ cards: cardsWithIds }), {
+    return new Response(JSON.stringify({ cards: cardsWithImages }), {
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (error) {
