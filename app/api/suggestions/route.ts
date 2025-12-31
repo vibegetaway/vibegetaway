@@ -5,31 +5,50 @@ import { generateText } from 'ai';
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
+// Security constants
+const MAX_INPUT_LENGTH = 100;
+const MAX_CONTEXT_LENGTH = 1000;
+const VALID_TYPES = ['event', 'exclusion', 'location', 'vibe'];
+
 export async function POST(req: Request) {
-    const { input, context, type = 'vibe' } = await req.json();
+    try {
+        const { input, context, type = 'vibe' } = await req.json();
 
-    if (!input || typeof input !== 'string') {
-        return new Response('Input is required', { status: 400 });
-    }
+        // Security: Input validation
+        if (!input || typeof input !== 'string') {
+            return new Response('Input is required and must be a string', { status: 400 });
+        }
 
-    // Prioritize Groq for speed, fallback to Gemini
-    const groq = createGroq({
-        apiKey: process.env.GROQ_API_KEY,
-    });
+        if (input.length > MAX_INPUT_LENGTH) {
+            return new Response(`Input too long (max ${MAX_INPUT_LENGTH} chars)`, { status: 400 });
+        }
 
-    const google = createGoogleGenerativeAI({
-        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-    });
+        if (context && (typeof context !== 'string' || context.length > MAX_CONTEXT_LENGTH)) {
+            return new Response(`Context too long or invalid type (max ${MAX_CONTEXT_LENGTH} chars)`, { status: 400 });
+        }
 
-    const model = process.env.GROQ_API_KEY
-        ? groq('llama-3.3-70b-versatile')
-        : google('gemini-2.0-flash-exp');
+        if (!VALID_TYPES.includes(type)) {
+             return new Response('Invalid type provided', { status: 400 });
+        }
 
-    let systemPrompt = '';
+        // Prioritize Groq for speed, fallback to Gemini
+        const groq = createGroq({
+            apiKey: process.env.GROQ_API_KEY,
+        });
 
-    switch (type) {
-        case 'event':
-            systemPrompt = `You are a fast autocomplete engine for travel events and experiences.
+        const google = createGoogleGenerativeAI({
+            apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+        });
+
+        const model = process.env.GROQ_API_KEY
+            ? groq('llama-3.3-70b-versatile')
+            : google('gemini-2.0-flash-exp');
+
+        let systemPrompt = '';
+
+        switch (type) {
+            case 'event':
+                systemPrompt = `You are a fast autocomplete engine for travel events and experiences.
       User is typing an event or activity for their trip.
       Complete their input with a single word or short phrase.
       Do NOT repeat the input. Only provide the suffix to complete the word/phrase.
@@ -41,9 +60,9 @@ export async function POST(req: Request) {
       Context (already selected events): ${context || 'none'}
       Current Input: "${input}"
       Output only the completion suffix.`;
-            break;
-        case 'exclusion':
-            systemPrompt = `You are a fast autocomplete engine for travel exclusions (things to avoid).
+                break;
+            case 'exclusion':
+                systemPrompt = `You are a fast autocomplete engine for travel exclusions (things to avoid).
       User is typing something they want to avoid on their trip.
       Complete their input with a single word or short phrase.
       Do NOT repeat the input. Only provide the suffix to complete the word/phrase.
@@ -55,9 +74,9 @@ export async function POST(req: Request) {
       Context (already selected exclusions): ${context || 'none'}
       Current Input: "${input}"
       Output only the completion suffix.`;
-            break;
-        case 'location':
-            systemPrompt = `You are a fast autocomplete engine for travel locations.
+                break;
+            case 'location':
+                systemPrompt = `You are a fast autocomplete engine for travel locations.
       User is typing a location which could be a city, country, region, island, or airport code.
       Complete their input with a single word or short phrase.
       Do NOT repeat the input. Only provide the suffix to complete the word/phrase.
@@ -70,10 +89,10 @@ export async function POST(req: Request) {
       Context (already selected locations): ${context || 'none'}
       Current Input: "${input}"
       Output only the completion suffix.`;
-            break;
-        case 'vibe':
-        default:
-            systemPrompt = `You are a fast autocomplete engine for travel vibes. 
+                break;
+            case 'vibe':
+            default:
+                systemPrompt = `You are a fast autocomplete engine for travel vibes.
       User is typing a "vibe" for their trip.
       Complete their input with a single word or short phrase.
       Do NOT repeat the input. Only provide the suffix to complete the word/phrase.
@@ -87,10 +106,9 @@ export async function POST(req: Request) {
       Context (already selected vibes): ${context || 'none'}
       Current Input: "${input}"
       Output only the completion suffix.`;
-            break;
-    }
+                break;
+        }
 
-    try {
         const { text } = await generateText({
             model,
             system: systemPrompt,
