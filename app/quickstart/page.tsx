@@ -7,22 +7,7 @@ import { MobileNav } from "@/components/MobileNav"
 import { useTypingAnimation } from "@/hooks/useTypingAnimation"
 import { InspirationModal } from "@/components/InspirationModal"
 import type { InspirationCard } from "@/components/SwipeCard"
-
-interface TimeSlotActivity {
-  title: string
-  description: string
-  reason: string
-  imageUrl?: string
-  imageUrls?: string[]
-}
-
-interface Itinerary {
-  morning: TimeSlotActivity
-  midday: TimeSlotActivity
-  evening: TimeSlotActivity
-}
-
-type TimeSlot = 'morning' | 'midday' | 'evening'
+import type { Itinerary, TimeSlot, TimeSlotActivity } from "@/types/itinerary"
 
 interface LockedSlots {
   morning: boolean

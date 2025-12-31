@@ -3,33 +3,10 @@
 import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
 import { groq } from '@ai-sdk/groq'
+import { stripMarkdownFences } from './utils'
+import type { Destination } from '@/types/destination'
 
-
-export interface DestinationPricing {
-  accommodation: string
-  food: string
-  activities: string
-}
-
-export interface ImageKeywords {
-  cover?: string
-  gallery?: string
-}
-
-export interface Destination {
-  country: string
-  region?: string
-  description?: string[]
-  imagesKeywords?: ImageKeywords
-  pricing?: DestinationPricing
-  recommendedDuration?: string
-  destinationAirportCode?: string
-  coordinates?: {
-    lat: number
-    lng: number
-  }
-  searchVibe?: string
-}
+export type { Destination } from '@/types/destination'
 
 export interface GenerateDestinationParams {
   vibe: string
@@ -41,13 +18,6 @@ export interface GenerateDestinationParams {
   budget?: number
   exclusions?: string[]
   styles?: string[]
-}
-
-function stripMarkdownFences(text: string): string {
-  let cleaned = text.trim()
-  cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  cleaned = cleaned.replace(/\n?```$/, '')
-  return cleaned.trim()
 }
 
 const DESTINATION_NAMES_SYSTEM_PROMPT = `
