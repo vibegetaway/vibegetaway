@@ -5,6 +5,7 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
+import { Search, X } from 'lucide-react'
 
 interface Location {
   location: string      // City/area
@@ -98,14 +99,23 @@ const createClusterPin = (imageUrl: string, count: number) => {
 
 function MapController({ 
   locations, 
-  onMarkerClick 
+  onMarkerClick,
+  searchBounds 
 }: { 
   locations: Location[]
   onMarkerClick: (items: DrawerItem[], isCluster: boolean) => void
+  searchBounds: L.LatLngBounds | null
 }) {
   const map = useMap()
   const [bounds, setBounds] = useState<L.LatLngBounds | null>(null)
   const [zoom, setZoom] = useState(map.getZoom())
+
+  // Pan and zoom to search results
+  useEffect(() => {
+    if (searchBounds) {
+      map.fitBounds(searchBounds, { padding: [50, 50], maxZoom: 12 })
+    }
+  }, [searchBounds, map])
 
   useEffect(() => {
     const updateBounds = () => {
@@ -297,6 +307,82 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   const [dragStart, setDragStart] = useState<number | null>(null)
   const [dragOffset, setDragOffset] = useState(0)
   const [canDragDrawer, setCanDragDrawer] = useState(false)
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
+  const [filteredLocations, setFilteredLocations] = useState<Location[]>([])
+  const [searchBounds, setSearchBounds] = useState<L.LatLngBounds | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Compute autocomplete suggestions
+  const autocompleteSuggestions = useMemo(() => {
+    if (!searchQuery.trim() || !isSearchFocused) return []
+    
+    const query = searchQuery.toLowerCase().trim()
+    const matchedLocations = new Map<string, Location>()
+    
+    // Search across all relevant columns
+    locations.forEach(loc => {
+      const searchableText = [
+        loc.spot,
+        loc.location,
+        loc.logical_location,
+        loc.country,
+        loc.activity,
+        loc.tags,
+        loc.description
+      ].join(' ').toLowerCase()
+      
+      if (searchableText.includes(query)) {
+        // Use a unique key to avoid duplicates
+        const key = `${loc.spot}-${loc.location}-${loc.country}`
+        if (!matchedLocations.has(key)) {
+          matchedLocations.set(key, loc)
+        }
+      }
+    })
+    
+    return Array.from(matchedLocations.values()).slice(0, 10)
+  }, [searchQuery, locations, isSearchFocused])
+
+  // Handle search submit (Enter key or suggestion click)
+  const handleSearchSubmit = (selectedLocations?: Location[]) => {
+    const locationsToShow = selectedLocations || autocompleteSuggestions
+    
+    if (locationsToShow.length === 0) return
+    
+    setFilteredLocations(locationsToShow)
+    setIsSearchFocused(false)
+    
+    // Calculate bounds for filtered locations
+    const lats = locationsToShow.map(loc => loc.latitude)
+    const lngs = locationsToShow.map(loc => loc.longitude)
+    
+    const bounds = L.latLngBounds(
+      [Math.min(...lats), Math.min(...lngs)],
+      [Math.max(...lats), Math.max(...lngs)]
+    )
+    
+    setSearchBounds(bounds)
+  }
+
+  // Handle suggestion click
+  const handleSuggestionClick = (location: Location) => {
+    setSearchQuery(location.spot)
+    handleSearchSubmit([location])
+  }
+
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchQuery('')
+    setFilteredLocations([])
+    setSearchBounds(null)
+    setIsSearchFocused(false)
+  }
+
+  // Determine which locations to display
+  const displayLocations = filteredLocations.length > 0 ? filteredLocations : locations
 
   useEffect(() => {
     setIsClient(true)
@@ -460,6 +546,75 @@ export default function ExploreMap({ className }: ExploreMapProps) {
 
   return (
     <div className={className}>
+      {/* Search Bar */}
+      <div className="absolute top-0 left-0 right-0 z-[1000] p-4">
+        <div className="relative">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearchSubmit()
+                }
+              }}
+              placeholder="Search places, activities, countries..."
+              className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 shadow-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
+            {searchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+          
+          {/* Autocomplete Dropdown */}
+          {isSearchFocused && autocompleteSuggestions.length > 0 && (
+            <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-2xl max-h-[60vh] overflow-y-auto">
+              {autocompleteSuggestions.map((location, index) => (
+                <button
+                  key={`${location.spot}-${location.latitude}-${location.longitude}-${index}`}
+                  onClick={() => handleSuggestionClick(location)}
+                  className="w-full p-3 flex gap-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 text-left"
+                >
+                  <img 
+                    src={location.image_url} 
+                    alt={location.spot}
+                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-gray-900 truncate">
+                      {location.spot}
+                    </div>
+                    <div className="text-sm text-gray-500 truncate">
+                      {location.location}, {location.country}
+                    </div>
+                    <div className="text-xs text-gray-400 truncate mt-0.5">
+                      {location.activity}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Overlay to hide map when search is focused */}
+      {isSearchFocused && (
+        <div 
+          className="absolute inset-0 bg-gray-100 z-[999]"
+          onClick={() => setIsSearchFocused(false)}
+        />
+      )}
+
       <style jsx global>{`
         .custom-circular-marker {
           background: transparent !important;
@@ -535,7 +690,13 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           maxZoom={20}
         />
         
-        {locations.length > 0 && <MapController locations={locations} onMarkerClick={handleMarkerClick} />}
+        {displayLocations.length > 0 && (
+          <MapController 
+            locations={displayLocations} 
+            onMarkerClick={handleMarkerClick}
+            searchBounds={searchBounds}
+          />
+        )}
       </MapContainer>
 
       {/* Bottom Drawer */}
