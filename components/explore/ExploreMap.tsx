@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
-import { Search, X } from 'lucide-react'
+import { Search, X, MapPin } from 'lucide-react'
 
 interface Location {
   location: string      // City/area
@@ -315,40 +315,89 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   const [searchBounds, setSearchBounds] = useState<L.LatLngBounds | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // Compute autocomplete suggestions
+  // Compute autocomplete suggestions - only from location, logical_location, country
   const autocompleteSuggestions = useMemo(() => {
     if (!searchQuery.trim() || !isSearchFocused) return []
     
     const query = searchQuery.toLowerCase().trim()
-    const matchedLocations = new Map<string, Location>()
+    const uniqueAreas = new Map<string, { label: string; location: Location; type: 'location' | 'logical_location' | 'country' }>()
     
-    // Search across all relevant columns
+    // Search only in location, logical_location, and country columns
     locations.forEach(loc => {
-      const searchableText = [
-        loc.spot,
-        loc.location,
-        loc.logical_location,
-        loc.country,
-        loc.activity,
-        loc.tags,
-        loc.description
-      ].join(' ').toLowerCase()
+      // Check location field
+      if (loc.location && loc.location.toLowerCase().includes(query)) {
+        const key = `location-${loc.location}-${loc.country}`
+        if (!uniqueAreas.has(key)) {
+          uniqueAreas.set(key, {
+            label: `${loc.location}, ${loc.country}`,
+            location: loc,
+            type: 'location'
+          })
+        }
+      }
       
-      if (searchableText.includes(query)) {
-        // Use a unique key to avoid duplicates
-        const key = `${loc.spot}-${loc.location}-${loc.country}`
-        if (!matchedLocations.has(key)) {
-          matchedLocations.set(key, loc)
+      // Check logical_location field
+      if (loc.logical_location && loc.logical_location.toLowerCase().includes(query)) {
+        const key = `logical-${loc.logical_location}-${loc.country}`
+        if (!uniqueAreas.has(key)) {
+          uniqueAreas.set(key, {
+            label: `${loc.logical_location}, ${loc.country}`,
+            location: loc,
+            type: 'logical_location'
+          })
+        }
+      }
+      
+      // Check country field
+      if (loc.country && loc.country.toLowerCase().includes(query)) {
+        const key = `country-${loc.country}`
+        if (!uniqueAreas.has(key)) {
+          uniqueAreas.set(key, {
+            label: loc.country,
+            location: loc,
+            type: 'country'
+          })
         }
       }
     })
     
-    return Array.from(matchedLocations.values()).slice(0, 10)
+    return Array.from(uniqueAreas.values()).slice(0, 10)
   }, [searchQuery, locations, isSearchFocused])
 
   // Handle search submit (Enter key or suggestion click)
-  const handleSearchSubmit = (selectedLocations?: Location[]) => {
-    const locationsToShow = selectedLocations || autocompleteSuggestions
+  const handleSearchSubmit = (selectedArea?: { label: string; location: Location; type: 'location' | 'logical_location' | 'country' }) => {
+    let locationsToShow: Location[] = []
+    
+    if (selectedArea) {
+      // Find all locations that match the selected area
+      const { location: sampleLoc, type } = selectedArea
+      
+      locationsToShow = locations.filter(loc => {
+        if (type === 'location') {
+          return loc.location === sampleLoc.location && loc.country === sampleLoc.country
+        } else if (type === 'logical_location') {
+          return loc.logical_location === sampleLoc.logical_location && loc.country === sampleLoc.country
+        } else if (type === 'country') {
+          return loc.country === sampleLoc.country
+        }
+        return false
+      })
+    } else if (autocompleteSuggestions.length > 0) {
+      // If Enter pressed, use first suggestion
+      const firstSuggestion = autocompleteSuggestions[0]
+      const { location: sampleLoc, type } = firstSuggestion
+      
+      locationsToShow = locations.filter(loc => {
+        if (type === 'location') {
+          return loc.location === sampleLoc.location && loc.country === sampleLoc.country
+        } else if (type === 'logical_location') {
+          return loc.logical_location === sampleLoc.logical_location && loc.country === sampleLoc.country
+        } else if (type === 'country') {
+          return loc.country === sampleLoc.country
+        }
+        return false
+      })
+    }
     
     if (locationsToShow.length === 0) return
     
@@ -368,9 +417,10 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   }
 
   // Handle suggestion click
-  const handleSuggestionClick = (location: Location) => {
-    setSearchQuery(location.spot)
-    handleSearchSubmit([location])
+  const handleSuggestionClick = (suggestion: { label: string; location: Location; type: 'location' | 'logical_location' | 'country' }) => {
+    setSearchQuery(suggestion.label)
+    handleSearchSubmit(suggestion)
+    searchInputRef.current?.blur()
   }
 
   // Clear search
@@ -560,6 +610,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleSearchSubmit()
+                  searchInputRef.current?.blur()
                 }
               }}
               placeholder="Search places, activities, countries..."
@@ -578,26 +629,16 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           {/* Autocomplete Dropdown */}
           {isSearchFocused && autocompleteSuggestions.length > 0 && (
             <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-2xl max-h-[60vh] overflow-y-auto">
-              {autocompleteSuggestions.map((location, index) => (
+              {autocompleteSuggestions.map((suggestion, index) => (
                 <button
-                  key={`${location.spot}-${location.latitude}-${location.longitude}-${index}`}
-                  onClick={() => handleSuggestionClick(location)}
-                  className="w-full p-3 flex gap-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 text-left"
+                  key={`${suggestion.type}-${suggestion.label}-${index}`}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 text-left"
                 >
-                  <img 
-                    src={location.image_url} 
-                    alt={location.spot}
-                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                  />
+                  <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-gray-900 truncate">
-                      {location.spot}
-                    </div>
-                    <div className="text-sm text-gray-500 truncate">
-                      {location.location}, {location.country}
-                    </div>
-                    <div className="text-xs text-gray-400 truncate mt-0.5">
-                      {location.activity}
+                    <div className="text-sm text-gray-900 truncate">
+                      {suggestion.label}
                     </div>
                   </div>
                 </button>
