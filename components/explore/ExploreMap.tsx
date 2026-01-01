@@ -387,10 +387,11 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     // Mark search as active to disable viewport fetching
     setIsSearchActive(true)
     
+    // Remove search focus immediately so map appears while loading
+    setIsSearchFocused(false)
+    
     // Fetch locations from backend with the search query (ignores viewport)
     await fetchLocations(query)
-    
-    setIsSearchFocused(false)
     
     // After fetching, calculate bounds from the returned locations
     // The locations will be in the main state, so we use them directly
