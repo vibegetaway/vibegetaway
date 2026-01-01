@@ -51,7 +51,7 @@ Return ONLY a comma-separated list of expanded search terms. Include:
 Do not add explanations, just return the comma-separated terms.`
 
     const { text } = await generateText({
-      model: groq('qwen/qwen3-32b'),
+      model: groq('llama-3.1-8b-instant'),
       system: systemPrompt,
       prompt: query,
       temperature: 0.3,
@@ -187,7 +187,11 @@ export async function GET(request: Request) {
 
     if (query.trim()) {
       // Search query: use AI to expand query and search across ALL columns
+      const expansionStartTime = Date.now()
       const expandedTerms = await expandQuery(query)
+      const expansionEndTime = Date.now()
+      const expansionDuration = expansionEndTime - expansionStartTime
+      console.log(`Query expansion took ${expansionDuration}ms for query: "${query}"`)
       
       filteredLocations = parsedLocations.filter(loc => {
         // Convert all searchable fields to lowercase strings
