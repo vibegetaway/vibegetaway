@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Search, Clock, Calendar, History } from 'lucide-react'
-import { getSavedLocationsCount } from '@/lib/itinerary'
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 
 interface LeftSidebarProps {
@@ -13,21 +12,7 @@ interface LeftSidebarProps {
 
 export function LeftSidebar({ onSearchClick, onItineraryClick }: LeftSidebarProps) {
   const { isSignedIn } = useUser()
-  const [savedCount, setSavedCount] = useState(0)
-
-  useEffect(() => {
-    setSavedCount(getSavedLocationsCount())
-
-    const handleLocationsUpdate = () => {
-      setSavedCount(getSavedLocationsCount())
-    }
-
-    window.addEventListener('locationsUpdated', handleLocationsUpdate)
-
-    return () => {
-      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
-    }
-  }, [])
+  const savedCount = 0
 
   return (
     <div className="hidden md:flex fixed left-0 top-0 w-16 h-screen bg-violet-50 border-r border-violet-200/50 flex-col items-center py-4 gap-6 z-[60]">

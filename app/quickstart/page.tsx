@@ -1,12 +1,14 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X, Heart, Image as ImageIcon, ChevronDown, ChevronUp } from "lucide-react"
+import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X, Heart, Image as ImageIcon, ChevronDown, ChevronUp, BookmarkCheck } from "lucide-react"
 import { Header } from "@/components/Header"
 import { MobileNav } from "@/components/MobileNav"
 import { useTypingAnimation } from "@/hooks/useTypingAnimation"
 import { InspirationModal } from "@/components/InspirationModal"
 import type { InspirationCard } from "@/components/SwipeCard"
+import { saveQuickstartToHistory, updateItineraryById, getItineraryById } from "@/lib/itineraryHistory"
+import { useRouter, useSearchParams } from "next/navigation"
 
 interface TimeSlotActivity {
   title: string
@@ -44,10 +46,13 @@ const ACTIVITY_PHRASES = [
 ]
 
 export default function QuickStart() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [activity, setActivity] = useState("")
   const [location, setLocation] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [itinerary, setItinerary] = useState<Itinerary | null>(null)
+  const [savedItineraryId, setSavedItineraryId] = useState<string>("")
   const [lockedSlots, setLockedSlots] = useState<LockedSlots>({
     morning: false,
     midday: false,
@@ -74,6 +79,58 @@ export default function QuickStart() {
     midday: false,
     evening: false
   })
+
+  useEffect(() => {
+    const id = searchParams.get('id')
+    if (id) {
+      const savedItinerary = getItineraryById(id)
+      if (savedItinerary && savedItinerary.generatedPlan.length > 0) {
+        setSavedItineraryId(id)
+        
+        const plan = savedItinerary.generatedPlan[0]
+        setLocation(plan.location)
+        
+        const itineraryName = savedItinerary.name
+        const activityMatch = itineraryName.match(/^(.+) in /)
+        if (activityMatch) {
+          setActivity(activityMatch[1].toLowerCase())
+        }
+        
+        const loadedItinerary: Itinerary = {
+          morning: {
+            title: plan.morning.activity,
+            description: plan.morning.description.split(' ')[0] === plan.morning.activity 
+              ? plan.morning.description.substring(plan.morning.activity.length).trim()
+              : plan.morning.description,
+            reason: '',
+            imageUrl: plan.morning.imageUrl,
+            imageUrls: plan.morning.imageUrls
+          },
+          midday: {
+            title: plan.midday.activity,
+            description: plan.midday.description.split(' ')[0] === plan.midday.activity
+              ? plan.midday.description.substring(plan.midday.activity.length).trim()
+              : plan.midday.description,
+            reason: '',
+            imageUrl: plan.midday.imageUrl,
+            imageUrls: plan.midday.imageUrls
+          },
+          evening: {
+            title: plan.evening.activity,
+            description: plan.evening.description.split(' ')[0] === plan.evening.activity
+              ? plan.evening.description.substring(plan.evening.activity.length).trim()
+              : plan.evening.description,
+            reason: '',
+            imageUrl: plan.evening.imageUrl,
+            imageUrls: plan.evening.imageUrls
+          }
+        }
+        
+        setItinerary(loadedItinerary)
+        setIsFormCollapsed(true)
+      }
+    }
+  }, [searchParams])
 
   const activityPlaceholder = useTypingAnimation({
     phrases: ACTIVITY_PHRASES,
@@ -234,12 +291,21 @@ export default function QuickStart() {
         })
       )
 
-      setItinerary({
+      const newItinerary = {
         morning: itineraryWithImages[0],
         midday: itineraryWithImages[1],
         evening: itineraryWithImages[2],
-      })
+      }
+      
+      setItinerary(newItinerary)
       setIsFormCollapsed(true)
+
+      const itineraryId = saveQuickstartToHistory(newItinerary, activity, location)
+      setSavedItineraryId(itineraryId)
+      
+      if (itineraryId) {
+        console.log('Trip automatically saved to history')
+      }
     } catch (error) {
       console.error("Error generating itinerary:", error)
       alert("Failed to generate itinerary. Please try again.")
@@ -298,11 +364,22 @@ export default function QuickStart() {
         })
       )
 
-      setItinerary({
+      const newItinerary = {
         morning: itineraryWithImages[0],
         midday: itineraryWithImages[1],
         evening: itineraryWithImages[2],
-      })
+      }
+      
+      setItinerary(newItinerary)
+
+      if (savedItineraryId) {
+        updateItineraryById(savedItineraryId, newItinerary, activity, location)
+        console.log('Trip updated in history')
+      } else {
+        const itineraryId = saveQuickstartToHistory(newItinerary, activity, location)
+        setSavedItineraryId(itineraryId)
+        console.log('Trip saved to history')
+      }
     } catch (error) {
       console.error("Error regenerating itinerary:", error)
       alert("Failed to regenerate itinerary. Please try again.")
@@ -348,10 +425,17 @@ export default function QuickStart() {
         console.error(`Error fetching image for ${slot}:`, error)
       }
 
-      setItinerary({
+      const updatedItinerary = {
         ...itinerary,
         [slot]: newActivity,
-      })
+      }
+      
+      setItinerary(updatedItinerary)
+
+      if (savedItineraryId) {
+        updateItineraryById(savedItineraryId, updatedItinerary, activity, location)
+        console.log('Trip updated in history (slot regenerated)')
+      }
     } catch (error) {
       console.error("Error regenerating slot:", error)
       alert("Failed to regenerate activity. Please try again.")
@@ -426,11 +510,22 @@ export default function QuickStart() {
         })
       )
 
-      setItinerary({
+      const newItinerary = {
         morning: itineraryWithImages[0],
         midday: itineraryWithImages[1],
         evening: itineraryWithImages[2],
-      })
+      }
+      
+      setItinerary(newItinerary)
+
+      if (savedItineraryId) {
+        updateItineraryById(savedItineraryId, newItinerary, activity, location)
+        console.log('Trip updated in history with preferences')
+      } else {
+        const itineraryId = saveQuickstartToHistory(newItinerary, activity, location)
+        setSavedItineraryId(itineraryId)
+        console.log('Trip saved to history with preferences')
+      }
     } catch (error) {
       console.error("Error regenerating itinerary with preferences:", error)
       alert("Failed to regenerate itinerary. Please try again.")
@@ -472,10 +567,18 @@ export default function QuickStart() {
 
   const selectAlternative = (alternative: TimeSlotActivity) => {
     if (detailView && itinerary) {
-      setItinerary({
+      const updatedItinerary = {
         ...itinerary,
         [detailView.slot]: alternative,
-      })
+      }
+      
+      setItinerary(updatedItinerary)
+      
+      if (savedItineraryId) {
+        updateItineraryById(savedItineraryId, updatedItinerary, activity, location)
+        console.log('Trip updated in history (alternative selected)')
+      }
+      
       setDetailView(null)
       setAlternatives([])
     }
@@ -693,10 +796,22 @@ export default function QuickStart() {
 
             {itinerary && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
-                    Your Day Plan
-                  </h2>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+                      Your Day Plan
+                    </h2>
+                    {savedItineraryId && (
+                      <button
+                        onClick={() => router.push('/itineraries')}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg font-medium transition-all text-sm"
+                        title="View all saved trips"
+                      >
+                        <BookmarkCheck className="w-4 h-4" />
+                        <span className="hidden sm:inline">Saved</span>
+                      </button>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={regenerateFullDay}

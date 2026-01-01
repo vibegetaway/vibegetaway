@@ -6,7 +6,7 @@ export const maxDuration = 60
 const maxLocations = 10
 const maxStringLength = 500
 
-import { saveItineraryToHistory, type DayBreakdown, type DayActivity } from '@/lib/itineraryHistory'
+import type { DayBreakdown, DayActivity } from '@/lib/itineraryHistory'
 
 interface TripFilters {
   origin: string

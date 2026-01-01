@@ -9,7 +9,6 @@ import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useEffect, useState } from 'react'
-import { addToSavedLocations, removeFromSavedLocations, isDestinationSaved } from '@/lib/itinerary'
 
 interface DestinationInfoPanelProps {
   destination: Destination | null
@@ -47,7 +46,6 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
   const [loadingCover, setLoadingCover] = useState(false)
   const [flights, setFlights] = useState<SimplifiedFlight[]>([])
   const [loadingFlights, setLoadingFlights] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
 
   useEffect(() => {
     async function loadImages() {
@@ -115,19 +113,6 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
       loadCoverImage()
       loadImages()
       loadFlights()
-      setIsSaved(isDestinationSaved(destination))
-    }
-
-    const handleLocationsUpdate = () => {
-      if (destination) {
-        setIsSaved(isDestinationSaved(destination))
-      }
-    }
-
-    window.addEventListener('locationsUpdated', handleLocationsUpdate)
-
-    return () => {
-      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
     }
   }, [destination, isOpen])
 
@@ -170,34 +155,6 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
 
             {/* Action buttons */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  if (isSaved) {
-                    removeFromSavedLocations(destination)
-                  } else {
-                    addToSavedLocations(destination)
-                  }
-                }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all whitespace-nowrap ${
-                  isSaved
-                    ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md'
-                    : 'bg-violet-500 text-white hover:bg-violet-600 shadow-md'
-                }`}
-                aria-label={isSaved ? 'Remove from plan' : 'Add to plan'}
-              >
-                {isSaved ? (
-                  <>
-                    <CalendarCheck className="w-5 h-5" />
-                    <span>In Plan</span>
-                  </>
-                ) : (
-                  <>
-                    <CalendarPlus className="w-5 h-5" />
-                    <span>Add to Plan</span>
-                  </>
-                )}
-              </button>
-
               <button onClick={onClose} className="p-2 hover:bg-violet-100 rounded-lg transition-colors">
                 <X className="w-6 h-6 text-violet-500" />
               </button>

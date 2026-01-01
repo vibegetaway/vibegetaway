@@ -6,7 +6,6 @@ import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { CalendarPlus, CalendarCheck } from 'lucide-react'
-import { addToSavedLocations, removeFromSavedLocations, isDestinationSaved } from '@/lib/itinerary'
 
 interface DestinationOverlayProps {
   destination: Destination
@@ -23,22 +22,7 @@ function parsePricing(value: string | number): number {
 
 export function DestinationOverlay({ destination, mousePosition }: DestinationOverlayProps) {
   const cardRef = useRef<HTMLDivElement>(null)
-  const [isSaved, setIsSaved] = useState(false)
   const [position, setPosition] = useState({ left: 0, top: 0 })
-
-  useEffect(() => {
-    setIsSaved(isDestinationSaved(destination))
-
-    const handleLocationsUpdate = () => {
-      setIsSaved(isDestinationSaved(destination))
-    }
-
-    window.addEventListener('locationsUpdated', handleLocationsUpdate)
-
-    return () => {
-      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
-    }
-  }, [destination])
 
   // Calculate position with edge detection
   useEffect(() => {
@@ -82,14 +66,6 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
   const activitiesPrice = parsePricing(destination.pricing?.activities || 0)
   const totalDaily = accommodationPrice + foodPrice + activitiesPrice
 
-  const handleToggleSaved = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (isSaved) {
-      removeFromSavedLocations(destination)
-    } else {
-      addToSavedLocations(destination)
-    }
-  }
 
   return (
     <div
@@ -119,28 +95,6 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
                 <h3 className="text-base font-semibold text-gray-900">{destination.region}</h3>
                 <p className="text-xs text-gray-500 mt-0.5">{getCountryName(destination.country)}</p>
               </div>
-
-              <button
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
-                  isSaved
-                    ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
-                    : 'bg-blue-500 text-white hover:bg-blue-600 shadow-sm'
-                }`}
-                onClick={handleToggleSaved}
-                aria-label={isSaved ? 'Remove from plan' : 'Add to plan'}
-              >
-                {isSaved ? (
-                  <>
-                    <CalendarCheck className="w-4 h-4" />
-                    <span>In Plan</span>
-                  </>
-                ) : (
-                  <>
-                    <CalendarPlus className="w-4 h-4" />
-                    <span>Add to Plan</span>
-                  </>
-                )}
-              </button>
             </div>
           </div>
 

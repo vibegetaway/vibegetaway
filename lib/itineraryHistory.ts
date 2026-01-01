@@ -5,6 +5,8 @@ import type { Destination } from './generateDestinationInfo'
 export interface DayActivity {
   activity: string
   description: string
+  imageUrl?: string
+  imageUrls?: string[]
 }
 
 export interface DayBreakdown {
@@ -149,3 +151,146 @@ export function formatTimeAgo(timestamp: number): string {
   }
   return 'Just now'
 }
+
+export interface QuickstartActivity {
+  title: string
+  description: string
+  reason: string
+  imageUrl?: string
+  imageUrls?: string[]
+}
+
+export interface QuickstartItinerary {
+  morning: QuickstartActivity
+  midday: QuickstartActivity
+  evening: QuickstartActivity
+}
+
+function parseLocation(locationString: string): { region: string; country: string } {
+  const parts = locationString.split(',').map(s => s.trim())
+  
+  if (parts.length >= 2) {
+    return {
+      region: parts[0],
+      country: parts[parts.length - 1]
+    }
+  }
+  
+  return {
+    region: locationString,
+    country: ''
+  }
+}
+
+export function saveQuickstartToHistory(
+  itinerary: QuickstartItinerary,
+  activity: string,
+  location: string
+): string {
+  if (typeof window === 'undefined') return ''
+
+  try {
+    const { region, country } = parseLocation(location)
+    
+    const tripName = activity 
+      ? `${activity.charAt(0).toUpperCase() + activity.slice(1)} in ${region}`
+      : `Day in ${location}`
+
+    const locationData: Destination = {
+      country,
+      region
+    }
+
+    const dayBreakdown: DayBreakdown = {
+      day: 1,
+      location: location,
+      morning: {
+        activity: itinerary.morning.title,
+        description: `${itinerary.morning.description} ${itinerary.morning.reason}`,
+        imageUrl: itinerary.morning.imageUrl,
+        imageUrls: itinerary.morning.imageUrls
+      },
+      midday: {
+        activity: itinerary.midday.title,
+        description: `${itinerary.midday.description} ${itinerary.midday.reason}`,
+        imageUrl: itinerary.midday.imageUrl,
+        imageUrls: itinerary.midday.imageUrls
+      },
+      evening: {
+        activity: itinerary.evening.title,
+        description: `${itinerary.evening.description} ${itinerary.evening.reason}`,
+        imageUrl: itinerary.evening.imageUrl,
+        imageUrls: itinerary.evening.imageUrls
+      }
+    }
+
+    const itineraryId = saveItineraryToHistory(
+      [locationData],
+      1,
+      [dayBreakdown],
+      tripName
+    )
+
+    return itineraryId
+  } catch (error) {
+    console.error('Error saving quickstart to history:', error)
+    return ''
+  }
+}
+
+export function updateItineraryById(
+  id: string,
+  itinerary: QuickstartItinerary,
+  activity: string,
+  location: string
+): void {
+  if (typeof window === 'undefined') return
+
+  try {
+    const history = getItineraryHistory()
+    const index = history.findIndex(item => item.id === id)
+    
+    if (index === -1) return
+
+    const { region, country } = parseLocation(location)
+    
+    const tripName = activity 
+      ? `${activity.charAt(0).toUpperCase() + activity.slice(1)} in ${region}`
+      : `Day in ${location}`
+
+    const dayBreakdown: DayBreakdown = {
+      day: 1,
+      location: location,
+      morning: {
+        activity: itinerary.morning.title,
+        description: `${itinerary.morning.description} ${itinerary.morning.reason}`,
+        imageUrl: itinerary.morning.imageUrl,
+        imageUrls: itinerary.morning.imageUrls
+      },
+      midday: {
+        activity: itinerary.midday.title,
+        description: `${itinerary.midday.description} ${itinerary.midday.reason}`,
+        imageUrl: itinerary.midday.imageUrl,
+        imageUrls: itinerary.midday.imageUrls
+      },
+      evening: {
+        activity: itinerary.evening.title,
+        description: `${itinerary.evening.description} ${itinerary.evening.reason}`,
+        imageUrl: itinerary.evening.imageUrl,
+        imageUrls: itinerary.evening.imageUrls
+      }
+    }
+
+    history[index] = {
+      ...history[index],
+      name: tripName,
+      generatedPlan: [dayBreakdown],
+      locations: [{ country, region }]
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
+  } catch (error) {
+    console.error('Error updating itinerary:', error)
+  }
+}
+

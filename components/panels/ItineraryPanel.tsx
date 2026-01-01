@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { MapPin, X, Trash2, Sparkles } from 'lucide-react'
 import { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
-import { getSavedLocations, removeFromSavedLocations } from '@/lib/itinerary'
 
 interface ItineraryPanelProps {
   isOpen: boolean
@@ -21,30 +20,10 @@ export function ItineraryPanel({
   selectedDestination,
 }: ItineraryPanelProps) {
   const router = useRouter()
-  const [savedLocations, setSavedLocations] = useState<Destination[]>([])
-
-  const refreshLocations = () => {
-    setSavedLocations(getSavedLocations())
-  }
+  const savedLocations: Destination[] = []
 
   const handlePlanTrip = () => {
     router.push('/plan')
-  }
-
-  useEffect(() => {
-    refreshLocations()
-
-    const handleLocationsUpdate = () => {
-      refreshLocations()
-    }
-
-    window.addEventListener('locationsUpdated', handleLocationsUpdate)
-    return () => window.removeEventListener('locationsUpdated', handleLocationsUpdate)
-  }, [])
-
-  const handleRemoveLocation = (destination: Destination, e: React.MouseEvent) => {
-    e.stopPropagation()
-    removeFromSavedLocations(destination)
   }
 
   return (

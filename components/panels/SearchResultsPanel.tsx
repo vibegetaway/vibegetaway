@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Destination } from '@/lib/generateDestinationInfo'
 import { MapPin, X, Loader2, CalendarPlus, CalendarCheck, ChevronRight } from 'lucide-react'
-import { addToSavedLocations, removeFromSavedLocations, isDestinationSaved } from '@/lib/itinerary'
 import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -25,35 +24,6 @@ export function SearchResultsPanel({
   isOpen,
   onClose,
 }: SearchResultsPanelProps) {
-  const [savedStates, setSavedStates] = useState<Record<string, boolean>>({})
-
-  useEffect(() => {
-    const newSavedStates: Record<string, boolean> = {}
-
-    destinations.forEach(dest => {
-      const key = `${dest.country}-${dest.region}`
-      newSavedStates[key] = isDestinationSaved(dest)
-    })
-
-    setSavedStates(newSavedStates)
-  }, [destinations])
-
-  useEffect(() => {
-    const handleLocationsUpdate = () => {
-      const newStates: Record<string, boolean> = {}
-      destinations.forEach(dest => {
-        const key = `${dest.country}-${dest.region}`
-        newStates[key] = isDestinationSaved(dest)
-      })
-      setSavedStates(newStates)
-    }
-
-    window.addEventListener('locationsUpdated', handleLocationsUpdate)
-
-    return () => {
-      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
-    }
-  }, [destinations])
 
   // Helper to parse pricing values
   function parsePricing(value: string | number): number {
@@ -123,8 +93,6 @@ export function SearchResultsPanel({
               const isSelected = selectedDestination?.region === destination.region &&
                 selectedDestination?.country === destination.country
               const hasDetails = destination.description && destination.pricing
-              const destKey = `${destination.country}-${destination.region}`
-              const isSaved = savedStates[destKey] || false
 
               // Prepare description for markdown - ONLY FIRST ITEM
               const descriptionText = Array.isArray(destination.description)
@@ -160,36 +128,6 @@ export function SearchResultsPanel({
                           <span className="text-xs font-medium tracking-wide uppercase">{getCountryName(destination.country)}</span>
                         </div>
                       </div>
-
-                      {hasDetails && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            if (isSaved) {
-                              removeFromSavedLocations(destination)
-                            } else {
-                              addToSavedLocations(destination)
-                            }
-                          }}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all whitespace-nowrap ${isSaved
-                              ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
-                              : 'bg-violet-100 text-violet-700 hover:bg-violet-200'
-                            }`}
-                          title={isSaved ? 'Remove from plan' : 'Add to plan'}
-                        >
-                          {isSaved ? (
-                            <>
-                              <CalendarCheck className="w-4 h-4" />
-                              <span>In Plan</span>
-                            </>
-                          ) : (
-                            <>
-                              <CalendarPlus className="w-4 h-4" />
-                              <span>Add to Plan</span>
-                            </>
-                          )}
-                        </button>
-                      )}
                     </div>
 
                     {/* Loading indicator for details */}

@@ -19,7 +19,6 @@ import { usePostHog } from 'posthog-js/react'
 import type { InspirationChip } from '@/data/inspirationChips'
 import { getUserLocation, formatLocationString } from '@/lib/geolocation'
 import { useTripFilters } from '@/hooks/useTripFilters'
-import { getSavedLocationsCount } from '@/lib/itinerary'
 import { useRouter } from 'next/navigation'
 import { Calendar } from 'lucide-react'
 import Image from 'next/image'
@@ -39,7 +38,7 @@ export default function Home() {
   const [month, setMonth] = useState('Anytime')
   const [activePanel, setActivePanel] = useState<'none' | 'search' | 'recent' | 'itinerary'>('none')
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
-  const [savedCount, setSavedCount] = useState(0)
+  const savedCount = 0
 
   // Ensure only the latest async call updates state
   const callIdRef = useRef(0)
@@ -213,20 +212,6 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Track saved locations count
-  useEffect(() => {
-    setSavedCount(getSavedLocationsCount())
-
-    const handleLocationsUpdate = () => {
-      setSavedCount(getSavedLocationsCount())
-    }
-
-    window.addEventListener('locationsUpdated', handleLocationsUpdate)
-
-    return () => {
-      window.removeEventListener('locationsUpdated', handleLocationsUpdate)
-    }
-  }, [])
 
   // Handle keyboard shortcut (Enter) to trigger search
   useEffect(() => {
