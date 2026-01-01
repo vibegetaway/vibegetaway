@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X, Heart, Image as ImageIcon, ChevronDown, ChevronUp, BookmarkCheck } from "lucide-react"
 import { Header } from "@/components/Header"
 import { MobileNav } from "@/components/MobileNav"
@@ -45,7 +45,7 @@ const ACTIVITY_PHRASES = [
   "wine tasting"
 ]
 
-export default function QuickStart() {
+function QuickStartContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [activity, setActivity] = useState("")
@@ -1060,5 +1060,20 @@ export default function QuickStart() {
       </main>
       <MobileNav hidePlanButton={true} />
     </>
+  )
+}
+
+export default function QuickStart() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <QuickStartContent />
+    </Suspense>
   )
 }

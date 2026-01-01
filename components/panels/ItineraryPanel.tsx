@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { MapPin, X, Trash2, Sparkles } from 'lucide-react'
+import { MapPin, X, Sparkles } from 'lucide-react'
 import { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
 
@@ -97,13 +97,6 @@ export function ItineraryPanel({
                         </p>
                       )}
                     </div>
-                    <button
-                      onClick={(e) => handleRemoveLocation(destination, e)}
-                      className="absolute top-4 right-4 p-1.5 rounded-full bg-white/80 opacity-0 group-hover:opacity-100 hover:bg-rose-50 text-violet-400 hover:text-rose-500 transition-all shadow-sm"
-                      aria-label="Remove from itinerary"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 )
               })}
