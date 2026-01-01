@@ -93,10 +93,13 @@ const createClusterPin = (imageUrl: string, locationName: string, count: number)
             <img src="${imageUrl}" alt="location" class="pin-image" />
           </div>
         </div>
-        <div class="pin-label">${locationName}</div>
+        <div class="pin-label-wrapper">
+          <div class="pin-label">${locationName}</div>
+          <div class="pin-label-count">+ ${count - 1} more</div>
+        </div>
       </div>
     `,
-    iconSize: [size + 20, size + 35],
+    iconSize: [size + 20, size + 45],
     iconAnchor: [(size + 20) / 2, size / 2],
     popupAnchor: [0, -size / 2],
   })
@@ -691,6 +694,13 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           min-height: 50px;
         }
         
+        .pin-label-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0px;
+        }
+        
         .pin-label {
           font-family: 'Geist', sans-serif;
           font-size: 11px;
@@ -701,6 +711,15 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           max-width: 120px;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+        
+        .pin-label-count {
+          font-family: 'Geist', sans-serif;
+          font-size: 10px;
+          font-weight: 500;
+          color: #6b7280;
+          text-align: center;
+          white-space: nowrap;
         }
       `}</style>
       
