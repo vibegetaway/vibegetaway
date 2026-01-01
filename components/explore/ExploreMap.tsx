@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
-import { Search, X, MapPin, Loader2 } from 'lucide-react'
+import { Search, X, Loader2 } from 'lucide-react'
 
 interface Location {
   location: string      // City/area
@@ -328,59 +328,12 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   const [isLoading, setIsLoading] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [currentViewportBounds, setCurrentViewportBounds] = useState<L.LatLngBounds | null>(null)
 
-  // Compute autocomplete suggestions - only from location, logical_location, country
-  const autocompleteSuggestions = useMemo(() => {
-    if (!searchQuery.trim() || !isSearchFocused) return []
-    
-    const query = searchQuery.toLowerCase().trim()
-    const uniqueAreas = new Map<string, { label: string; location: Location; type: 'location' | 'logical_location' | 'country' }>()
-    
-    // Search only in location, logical_location, and country columns
-    locations.forEach(loc => {
-      // Check location field
-      if (loc.location && loc.location.toLowerCase().includes(query)) {
-        const key = `location-${loc.location}-${loc.country}`
-        if (!uniqueAreas.has(key)) {
-          uniqueAreas.set(key, {
-            label: `${loc.location}, ${loc.country}`,
-            location: loc,
-            type: 'location'
-          })
-        }
-      }
-      
-      // Check logical_location field
-      if (loc.logical_location && loc.logical_location.toLowerCase().includes(query)) {
-        const key = `logical-${loc.logical_location}-${loc.country}`
-        if (!uniqueAreas.has(key)) {
-          uniqueAreas.set(key, {
-            label: `${loc.logical_location}, ${loc.country}`,
-            location: loc,
-            type: 'logical_location'
-          })
-        }
-      }
-      
-      // Check country field
-      if (loc.country && loc.country.toLowerCase().includes(query)) {
-        const key = `country-${loc.country}`
-        if (!uniqueAreas.has(key)) {
-          uniqueAreas.set(key, {
-            label: loc.country,
-            location: loc,
-            type: 'country'
-          })
-        }
-      }
-    })
-    
-    return Array.from(uniqueAreas.values()).slice(0, 10)
-  }, [searchQuery, locations, isSearchFocused])
 
-  // Handle search submit (Enter key or suggestion click)
-  const handleSearchSubmit = async (selectedArea?: { label: string; location: Location; type: 'location' | 'logical_location' | 'country' }) => {
-    const query = selectedArea ? selectedArea.label : (autocompleteSuggestions.length > 0 ? autocompleteSuggestions[0].label : searchQuery)
+  // Handle search submit (Enter key)
+  const handleSearchSubmit = async () => {
+    const query = searchQuery
     
     if (!query.trim()) return
     
@@ -410,20 +363,16 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     }, 100)
   }
 
-  // Handle suggestion click
-  const handleSuggestionClick = (suggestion: { label: string; location: Location; type: 'location' | 'logical_location' | 'country' }) => {
-    setSearchQuery(suggestion.label)
-    handleSearchSubmit(suggestion)
-    searchInputRef.current?.blur()
-  }
-
   // Clear search
   const handleClearSearch = () => {
     setSearchQuery('')
     setSearchBounds(null)
     setIsSearchFocused(false)
     setIsSearchActive(false)
-    // Viewport-based loading will resume automatically on next map move
+    // Fetch locations for current viewport immediately
+    if (currentViewportBounds) {
+      fetchLocations('', currentViewportBounds)
+    }
   }
 
   // Fetch locations from API
@@ -461,6 +410,9 @@ export default function ExploreMap({ className }: ExploreMapProps) {
 
   // Debounced fetch for viewport changes
   const debouncedFetchViewport = (bounds: L.LatLngBounds) => {
+    // Store the current viewport bounds
+    setCurrentViewportBounds(bounds)
+    
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
@@ -599,6 +551,12 @@ export default function ExploreMap({ className }: ExploreMapProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => {
+                // If user clicks away with a query, trigger search
+                if (searchQuery.trim() && !isSearchActive) {
+                  handleSearchSubmit()
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleSearchSubmit()
@@ -622,26 +580,6 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           {isLoading && (
             <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-full shadow-lg p-2 flex items-center justify-center">
               <Loader2 className="w-5 h-5 text-violet-600 animate-spin" />
-            </div>
-          )}
-          
-          {/* Autocomplete Dropdown */}
-          {isSearchFocused && autocompleteSuggestions.length > 0 && (
-            <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-2xl max-h-[60vh] overflow-y-auto">
-              {autocompleteSuggestions.map((suggestion, index) => (
-                <button
-                  key={`${suggestion.type}-${suggestion.label}-${index}`}
-                  onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 text-left"
-                >
-                  <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-gray-900 truncate">
-                      {suggestion.label}
-                    </div>
-                  </div>
-                </button>
-              ))}
             </div>
           )}
         </div>
