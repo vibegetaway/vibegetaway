@@ -17,6 +17,61 @@ interface Location {
   image_url: string
 }
 
+// Cache for Pixabay images to avoid repeated API calls
+const imageCache = new Map<string, string>()
+
+async function fetchPixabayImage(spot: string, location: string, tags: string): Promise<string> {
+  const cacheKey = `${spot}-${location}`
+  
+  // Check cache first
+  if (imageCache.has(cacheKey)) {
+    return imageCache.get(cacheKey)!
+  }
+  
+  try {
+    const PIXABAY_API_KEY = process.env.PIXABAY_API_KEY
+    
+    if (!PIXABAY_API_KEY) {
+      console.error('PIXABAY_API_KEY not set')
+      return '/assets/icon-512.png' // Fallback image
+    }
+    
+    // Try different search strategies
+    const searchTerms = [
+      `${spot} ${location}`, // Most specific
+      spot, // Just the spot name
+      tags.split(',')[0]?.trim(), // First tag
+      location, // Just the location
+    ].filter(Boolean)
+    
+    for (const searchTerm of searchTerms) {
+      const url = `https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(searchTerm)}&image_type=photo&per_page=3&safesearch=true`
+      
+      const response = await fetch(url, { 
+        next: { revalidate: 86400 } // Cache for 24 hours
+      })
+      
+      if (!response.ok) continue
+      
+      const data = await response.json()
+      
+      if (data.hits && data.hits.length > 0) {
+        const imageUrl = data.hits[0].webformatURL || data.hits[0].previewURL
+        imageCache.set(cacheKey, imageUrl)
+        return imageUrl
+      }
+    }
+    
+    // Fallback if no images found
+    const fallbackUrl = '/assets/icon-512.png'
+    imageCache.set(cacheKey, fallbackUrl)
+    return fallbackUrl
+  } catch (error) {
+    console.error(`Error fetching image for ${spot}:`, error)
+    return '/assets/icon-512.png'
+  }
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -108,7 +163,18 @@ export async function GET(request: Request) {
     // Limit to top 50 results
     const limitedLocations = filteredLocations.slice(0, 50)
 
-    return NextResponse.json({ locations: limitedLocations })
+    // Fetch fresh images for each location in parallel
+    const locationsWithImages = await Promise.all(
+      limitedLocations.map(async (loc) => {
+        const freshImageUrl = await fetchPixabayImage(loc.spot, loc.location, loc.tags)
+        return {
+          ...loc,
+          image_url: freshImageUrl
+        }
+      })
+    )
+
+    return NextResponse.json({ locations: locationsWithImages })
   } catch (error) {
     console.error('Error in locations API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
