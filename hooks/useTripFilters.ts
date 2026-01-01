@@ -1,14 +1,6 @@
 import { useState } from 'react'
 import { usePostHog } from 'posthog-js/react'
-
-export interface TripFilters {
-    origin: string
-    locations: string[]
-    duration: [number, number]
-    budget: number
-    exclusions: string[]
-    styles: string[]
-}
+import type { TripFilters } from '@/types/trip'
 
 export interface UseTripFiltersReturn {
     // State

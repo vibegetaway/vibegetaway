@@ -1,37 +1,11 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createGroq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
-
-export const maxDuration = 60
-const maxLocations = 10
-const maxStringLength = 500
+import { MAX_DURATION, MAX_LOCATIONS, MAX_STRING_LENGTH } from '@/lib/constants'
 
 import type { DayBreakdown, DayActivity } from '@/lib/itineraryHistory'
-
-interface TripFilters {
-  origin: string
-  budget: number
-  exclusions: string[]
-  styles: string[]
-}
-
-interface PlanTripRequest {
-  locations: Array<{
-    region?: string
-    country: string
-    recommendedDuration?: string
-    searchVibe?: string
-  }>
-  tripDuration: number
-  filters?: TripFilters
-}
-
-function stripMarkdownFences(text: string): string {
-  let cleaned = text.trim()
-  cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  cleaned = cleaned.replace(/\n?```$/, '')
-  return cleaned.trim()
-}
+import type { TripPlanRequest } from '@/types/trip'
+import { stripMarkdownFences } from '@/lib/utils'
 
 const SYSTEM_PROMPT = `You are an expert travel itinerary planner. Create realistic day-by-day trip plans that account for:
 - Travel logistics between locations (include travel days when switching destinations)
@@ -113,7 +87,7 @@ Example format:
 
 export async function POST(req: Request) {
   try {
-    const body: PlanTripRequest = await req.json()
+    const body: TripPlanRequest = await req.json()
     const { locations, tripDuration, filters } = body
 
     if (!locations || !Array.isArray(locations) || locations.length === 0) {
@@ -123,29 +97,29 @@ export async function POST(req: Request) {
       })
     }
 
-    if (locations.length > maxLocations) {
-      return new Response(JSON.stringify({ error: `Too many locations. Max ${maxLocations} allowed.` }), {
+    if (locations.length > MAX_LOCATIONS) {
+      return new Response(JSON.stringify({ error: `Too many locations. Max ${MAX_LOCATIONS} allowed.` }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       })
     }
 
-    if (!tripDuration || tripDuration < 1 || tripDuration > maxDuration) {
-      return new Response(JSON.stringify({ error: `Trip duration must be between 1 and ${maxDuration} days` }), {
+    if (!tripDuration || tripDuration < 1 || tripDuration > MAX_DURATION) {
+      return new Response(JSON.stringify({ error: `Trip duration must be between 1 and ${MAX_DURATION} days` }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       })
     }
 
     if (filters && typeof filters === 'object') {
-        if (filters.origin && typeof filters.origin === 'string' && filters.origin.length > maxStringLength) {
+        if (filters.origin && typeof filters.origin === 'string' && filters.origin.length > MAX_STRING_LENGTH) {
              return new Response(JSON.stringify({ error: 'Origin input too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
         }
         if (filters.exclusions) {
              if (!Array.isArray(filters.exclusions)) {
                  return new Response(JSON.stringify({ error: 'Exclusions must be an array' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
              }
-             if (filters.exclusions.some(s => typeof s === 'string' && s.length > maxStringLength)) {
+             if (filters.exclusions.some(s => typeof s === 'string' && s.length > MAX_STRING_LENGTH)) {
                  return new Response(JSON.stringify({ error: 'Exclusion input too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
              }
         }
@@ -153,7 +127,7 @@ export async function POST(req: Request) {
              if (!Array.isArray(filters.styles)) {
                  return new Response(JSON.stringify({ error: 'Styles must be an array' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
              }
-             if (filters.styles.some(s => typeof s === 'string' && s.length > maxStringLength)) {
+             if (filters.styles.some(s => typeof s === 'string' && s.length > MAX_STRING_LENGTH)) {
                  return new Response(JSON.stringify({ error: 'Style input too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
              }
         }
