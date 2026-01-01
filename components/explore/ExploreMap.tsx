@@ -438,7 +438,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     setIsClient(true)
     
     // Fetch and parse CSV
-    fetch('/data/global_locations_dataset_100_new.csv')
+    fetch('/data/global_locations_dataset_10k.csv')
       .then(response => response.text())
       .then(csvText => {
         const lines = csvText.split('\n')
