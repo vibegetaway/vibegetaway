@@ -37,7 +37,7 @@ async function expandQuery(query: string): Promise<string[]> {
     const systemPrompt = `You are a travel search query expansion assistant. Your task is to take a user's search query and expand it into related search terms that would help find relevant travel locations.
 
 For example:
-- "beach" should expand to: beach, beaches, seaside, coastal, ocean, surf, swimming, tropical
+- "beach" should expand to: beach, beaches, seaside, coastal, ocean, surf, swimming
 - "temple" should expand to: temple, temples, shrine, shrines, religious, sacred, buddhist, hindu, worship, monastery
 - "hiking" should expand to: hiking, trekking, trail, trails, mountain, mountains, nature walk, outdoor, adventure
 - "food" should expand to: food, cuisine, restaurant, restaurants, dining, culinary, market, markets, street food
@@ -47,6 +47,8 @@ Return ONLY a comma-separated list of expanded search terms. Include:
 2. Plural/singular variations
 3. Synonyms and related concepts
 4. Common misspellings if applicable
+
+ONLY add terms that are related to the original query and are not too general.
 
 Do not add explanations, just return the comma-separated terms.`
 
