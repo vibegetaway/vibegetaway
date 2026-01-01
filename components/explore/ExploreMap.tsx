@@ -62,36 +62,42 @@ interface DrawerItem {
 }
 
 // Create circular image pin
-const createCircularPin = (imageUrl: string, size: number = 50) => {
+const createCircularPin = (imageUrl: string, locationName: string, size: number = 50) => {
   return L.divIcon({
     className: 'custom-circular-marker',
     html: `
-      <div class="circular-pin" style="width: ${size}px; height: ${size}px;">
-        <div class="pin-image-wrapper" style="width: ${size}px; height: ${size}px;">
-          <img src="${imageUrl}" alt="location" class="pin-image" />
+      <div class="circular-pin-container">
+        <div class="circular-pin" style="width: ${size}px; height: ${size}px;">
+          <div class="pin-image-wrapper" style="width: ${size}px; height: ${size}px;">
+            <img src="${imageUrl}" alt="location" class="pin-image" />
+          </div>
         </div>
+        <div class="pin-label">${locationName}</div>
       </div>
     `,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+    iconSize: [size + 20, size + 35],
+    iconAnchor: [(size + 20) / 2, size / 2],
     popupAnchor: [0, -size / 2],
   })
 }
 
 // Create cluster icon (looks same as leaf pin - white border, no number)
-const createClusterPin = (imageUrl: string, count: number) => {
+const createClusterPin = (imageUrl: string, locationName: string, count: number) => {
   const size = 50
   return L.divIcon({
     className: 'custom-circular-marker',
     html: `
-      <div class="circular-pin" style="width: ${size}px; height: ${size}px;">
-        <div class="pin-image-wrapper" style="width: ${size}px; height: ${size}px;">
-          <img src="${imageUrl}" alt="location" class="pin-image" />
+      <div class="circular-pin-container">
+        <div class="circular-pin" style="width: ${size}px; height: ${size}px;">
+          <div class="pin-image-wrapper" style="width: ${size}px; height: ${size}px;">
+            <img src="${imageUrl}" alt="location" class="pin-image" />
+          </div>
         </div>
+        <div class="pin-label">${locationName}</div>
       </div>
     `,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+    iconSize: [size + 20, size + 35],
+    iconAnchor: [(size + 20) / 2, size / 2],
     popupAnchor: [0, -size / 2],
   })
 }
@@ -243,7 +249,7 @@ function MapController({
             <Marker
               key={marker.id}
               position={marker.position}
-              icon={createClusterPin(marker.topLocation.image_url, marker.count || 0)}
+              icon={createClusterPin(marker.topLocation.image_url, marker.topLocation.spot, marker.count || 0)}
               eventHandlers={{
                 click: () => {
                   // Get all items in the cluster
@@ -271,7 +277,7 @@ function MapController({
             <Marker
               key={marker.id}
               position={marker.position}
-              icon={createCircularPin(marker.location.image_url)}
+              icon={createCircularPin(marker.location.image_url, marker.location.spot)}
               eventHandlers={{
                 click: () => {
                   // Single item
@@ -651,6 +657,13 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           border: none !important;
         }
         
+        .circular-pin-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+        
         .circular-pin {
           position: relative;
           cursor: pointer;
@@ -676,6 +689,18 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           object-fit: cover;
           min-width: 50px;
           min-height: 50px;
+        }
+        
+        .pin-label {
+          font-family: 'Geist', sans-serif;
+          font-size: 11px;
+          font-weight: 600;
+          color: #1a1a1a;
+          text-align: center;
+          white-space: nowrap;
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
       `}</style>
       
