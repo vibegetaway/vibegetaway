@@ -100,11 +100,13 @@ const createClusterPin = (imageUrl: string, count: number) => {
 function MapController({ 
   locations, 
   onMarkerClick,
-  searchBounds 
+  searchBounds,
+  onViewportChange
 }: { 
   locations: Location[]
   onMarkerClick: (items: DrawerItem[], isCluster: boolean) => void
   searchBounds: L.LatLngBounds | null
+  onViewportChange: (bounds: L.LatLngBounds) => void
 }) {
   const map = useMap()
   const [bounds, setBounds] = useState<L.LatLngBounds | null>(null)
@@ -126,6 +128,8 @@ function MapController({
       setBounds(prevBounds => {
         if (!prevBounds || 
             !prevBounds.equals(newBounds)) {
+          // Notify parent of viewport change
+          onViewportChange(newBounds)
           return newBounds
         }
         return prevBounds
@@ -147,7 +151,7 @@ function MapController({
       map.off('moveend', updateBounds)
       map.off('zoomend', updateBounds)
     }
-  }, [map])
+  }, [map, onViewportChange])
 
   // Create supercluster instance
   const supercluster = useMemo(() => {
@@ -311,9 +315,10 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   // Search state
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchFocused, setIsSearchFocused] = useState(false)
-  const [filteredLocations, setFilteredLocations] = useState<Location[]>([])
   const [searchBounds, setSearchBounds] = useState<L.LatLngBounds | null>(null)
+  const [isSearchActive, setIsSearchActive] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Compute autocomplete suggestions - only from location, logical_location, country
   const autocompleteSuggestions = useMemo(() => {
@@ -365,55 +370,34 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   }, [searchQuery, locations, isSearchFocused])
 
   // Handle search submit (Enter key or suggestion click)
-  const handleSearchSubmit = (selectedArea?: { label: string; location: Location; type: 'location' | 'logical_location' | 'country' }) => {
-    let locationsToShow: Location[] = []
+  const handleSearchSubmit = async (selectedArea?: { label: string; location: Location; type: 'location' | 'logical_location' | 'country' }) => {
+    const query = selectedArea ? selectedArea.label : (autocompleteSuggestions.length > 0 ? autocompleteSuggestions[0].label : searchQuery)
     
-    if (selectedArea) {
-      // Find all locations that match the selected area
-      const { location: sampleLoc, type } = selectedArea
-      
-      locationsToShow = locations.filter(loc => {
-        if (type === 'location') {
-          return loc.location === sampleLoc.location && loc.country === sampleLoc.country
-        } else if (type === 'logical_location') {
-          return loc.logical_location === sampleLoc.logical_location && loc.country === sampleLoc.country
-        } else if (type === 'country') {
-          return loc.country === sampleLoc.country
-        }
-        return false
-      })
-    } else if (autocompleteSuggestions.length > 0) {
-      // If Enter pressed, use first suggestion
-      const firstSuggestion = autocompleteSuggestions[0]
-      const { location: sampleLoc, type } = firstSuggestion
-      
-      locationsToShow = locations.filter(loc => {
-        if (type === 'location') {
-          return loc.location === sampleLoc.location && loc.country === sampleLoc.country
-        } else if (type === 'logical_location') {
-          return loc.logical_location === sampleLoc.logical_location && loc.country === sampleLoc.country
-        } else if (type === 'country') {
-          return loc.country === sampleLoc.country
-        }
-        return false
-      })
-    }
+    if (!query.trim()) return
     
-    if (locationsToShow.length === 0) return
+    // Mark search as active to disable viewport fetching
+    setIsSearchActive(true)
     
-    setFilteredLocations(locationsToShow)
+    // Fetch locations from backend with the search query (ignores viewport)
+    await fetchLocations(query)
+    
     setIsSearchFocused(false)
     
-    // Calculate bounds for filtered locations
-    const lats = locationsToShow.map(loc => loc.latitude)
-    const lngs = locationsToShow.map(loc => loc.longitude)
-    
-    const bounds = L.latLngBounds(
-      [Math.min(...lats), Math.min(...lngs)],
-      [Math.max(...lats), Math.max(...lngs)]
-    )
-    
-    setSearchBounds(bounds)
+    // After fetching, calculate bounds from the returned locations
+    // The locations will be in the main state, so we use them directly
+    setTimeout(() => {
+      if (locations.length > 0) {
+        const lats = locations.map(loc => loc.latitude)
+        const lngs = locations.map(loc => loc.longitude)
+        
+        const bounds = L.latLngBounds(
+          [Math.min(...lats), Math.min(...lngs)],
+          [Math.max(...lats), Math.max(...lngs)]
+        )
+        
+        setSearchBounds(bounds)
+      }
+    }, 100)
   }
 
   // Handle suggestion click
@@ -426,65 +410,60 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   // Clear search
   const handleClearSearch = () => {
     setSearchQuery('')
-    setFilteredLocations([])
     setSearchBounds(null)
     setIsSearchFocused(false)
+    setIsSearchActive(false)
+    // Viewport-based loading will resume automatically on next map move
   }
 
-  // Determine which locations to display
-  const displayLocations = filteredLocations.length > 0 ? filteredLocations : locations
+  // Fetch locations from API
+  const fetchLocations = async (query: string = '', bounds?: L.LatLngBounds) => {
+    try {
+      let url = '/api/locations'
+      const params = new URLSearchParams()
+      
+      if (query.trim()) {
+        // Search query: ignore viewport
+        params.append('q', query)
+      } else if (bounds) {
+        // No search: use viewport bounds
+        const north = bounds.getNorth()
+        const south = bounds.getSouth()
+        const east = bounds.getEast()
+        const west = bounds.getWest()
+        params.append('viewport', `${north},${south},${east},${west}`)
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`
+      }
+      
+      const response = await fetch(url)
+      const data = await response.json()
+      setLocations(data.locations || [])
+    } catch (error) {
+      console.error('Error loading locations:', error)
+    }
+  }
+
+  // Debounced fetch for viewport changes
+  const debouncedFetchViewport = (bounds: L.LatLngBounds) => {
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    
+    // Set new timer
+    debounceTimerRef.current = setTimeout(() => {
+      if (!isSearchActive) {
+        fetchLocations('', bounds)
+      }
+    }, 300)
+  }
 
   useEffect(() => {
     setIsClient(true)
-    
-    // Fetch and parse CSV
-    fetch('/data/global_locations_dataset_10k.csv')
-      .then(response => response.text())
-      .then(csvText => {
-        const lines = csvText.split('\n')
-        
-        const parsedLocations = lines.slice(1)
-          .filter(line => line.trim())
-          .map(line => {
-            // Parse CSV line with proper handling of quoted fields
-            const values: string[] = []
-            let current = ''
-            let inQuotes = false
-            
-            for (let i = 0; i < line.length; i++) {
-              const char = line[i]
-              
-              if (char === '"') {
-                inQuotes = !inQuotes
-              } else if (char === ',' && !inQuotes) {
-                values.push(current.trim())
-                current = ''
-              } else {
-                current += char
-              }
-            }
-            values.push(current.trim())
-            
-            return {
-              location: values[0] || '',
-              logical_location: values[1] || '',
-              country: values[2] || '',
-              spot: values[3] || '',
-              latitude: parseFloat(values[4]),
-              longitude: parseFloat(values[5]),
-              activity: values[6] || '',
-              description: values[7] || '',
-              price_class: values[8] || '',
-              prominence_score: parseInt(values[9]) || 0,
-              tags: values[10] || '',
-              image_url: values[11] || '',
-            }
-          })
-          .filter(loc => !isNaN(loc.latitude) && !isNaN(loc.longitude) && loc.image_url)
-        
-        setLocations(parsedLocations)
-      })
-      .catch(error => console.error('Error loading locations:', error))
+    // Initial locations will be loaded when map viewport is ready
   }, [])
 
   // Prevent body scroll and pull-to-refresh when drawer is open
@@ -731,13 +710,12 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           maxZoom={20}
         />
         
-        {displayLocations.length > 0 && (
-          <MapController 
-            locations={displayLocations} 
-            onMarkerClick={handleMarkerClick}
-            searchBounds={searchBounds}
-          />
-        )}
+        <MapController 
+          locations={locations} 
+          onMarkerClick={handleMarkerClick}
+          searchBounds={searchBounds}
+          onViewportChange={debouncedFetchViewport}
+        />
       </MapContainer>
 
       {/* Bottom Drawer */}
