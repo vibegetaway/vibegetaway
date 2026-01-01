@@ -5,12 +5,38 @@ import { generateText } from 'ai';
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
+const MAX_INPUT_LENGTH = 100;
+const MAX_CONTEXT_LENGTH = 500;
+const VALID_TYPES = ['event', 'exclusion', 'location', 'vibe'] as const;
+type SuggestionType = typeof VALID_TYPES[number];
+
 export async function POST(req: Request) {
     const { input, context, type = 'vibe' } = await req.json();
 
     if (!input || typeof input !== 'string') {
-        return new Response('Input is required', { status: 400 });
+        return new Response(JSON.stringify({ error: 'Input is required and must be a string' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
+
+    if (input.length > MAX_INPUT_LENGTH) {
+        return new Response(JSON.stringify({ error: `Input exceeds maximum length of ${MAX_INPUT_LENGTH} characters` }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
+
+    if (!VALID_TYPES.includes(type as SuggestionType)) {
+        return new Response(JSON.stringify({ error: `Invalid type. Must be one of: ${VALID_TYPES.join(', ')}` }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
+
+    const safeContext = (context && typeof context === 'string')
+        ? (context.length > MAX_CONTEXT_LENGTH ? context.slice(0, MAX_CONTEXT_LENGTH) + '...' : context)
+        : 'none';
 
     // Prioritize Groq for speed, fallback to Gemini
     const groq = createGroq({
@@ -27,7 +53,7 @@ export async function POST(req: Request) {
 
     let systemPrompt = '';
 
-    switch (type) {
+    switch (type as SuggestionType) {
         case 'event':
             systemPrompt = `You are a fast autocomplete engine for travel events and experiences.
       User is typing an event or activity for their trip.
@@ -38,7 +64,7 @@ export async function POST(req: Request) {
       Input: "Jazz" -> Output: " Festival" (Jazz Festival)
       Input: "Food" -> Output: " market" (Food market)
       
-      Context (already selected events): ${context || 'none'}
+      Context (already selected events): ${safeContext}
       Current Input: "${input}"
       Output only the completion suffix.`;
             break;
@@ -52,7 +78,7 @@ export async function POST(req: Request) {
       Input: "Crow" -> Output: "ds" (Crowds)
       Input: "Mosq" -> Output: "uitoes" (Mosquitoes)
       
-      Context (already selected exclusions): ${context || 'none'}
+      Context (already selected exclusions): ${safeContext}
       Current Input: "${input}"
       Output only the completion suffix.`;
             break;
@@ -67,7 +93,7 @@ export async function POST(req: Request) {
       Input: "JF" -> Output: "K" (JFK)
       Input: "South East A" -> Output: "sia" (South East Asia)
       
-      Context (already selected locations): ${context || 'none'}
+      Context (already selected locations): ${safeContext}
       Current Input: "${input}"
       Output only the completion suffix.`;
             break;
@@ -84,7 +110,7 @@ export async function POST(req: Request) {
       Input: "chi" -> Output: "ll" (chill)
       Input: "food" -> Output: "ie tour" (foodie tour)
       
-      Context (already selected vibes): ${context || 'none'}
+      Context (already selected vibes): ${safeContext}
       Current Input: "${input}"
       Output only the completion suffix.`;
             break;

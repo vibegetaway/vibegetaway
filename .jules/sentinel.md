@@ -1,4 +1,7 @@
-## 2025-12-27 - Input Validation on Public LLM Endpoints
-**Vulnerability:** The `/api/plan-trip` endpoint lacked input validation for `tripDuration`, `locations` count, and string lengths in `filters`. This exposed the application to Denial of Service (DoS) attacks via payload bloat and potential cost exhaustion (LLM token usage).
-**Learning:** Public endpoints that trigger expensive operations (like LLM calls) must have strict, early validation boundaries. Validating types (`Array.isArray`) is crucial to prevent runtime 500 errors.
-**Prevention:** Implement strict schema validation (using Zod or manual checks) at the top of every API route handler. Define explicit constants for maximum limits (e.g., `maxDuration`, `maxLocations`).
+## 2025-12-27 - Input Validation on Public Suggestion Endpoint
+**Vulnerability:** The `/api/suggestions` endpoint lacked strict input validation for the `input` string length, `context` size, and `type` parameter. This created a potential for token exhaustion and unpredictable behavior if invalid types were passed.
+**Learning:** Even "simple" autocomplete endpoints connected to LLMs need rigorous boundaries. Whitelisting input values (enums) is safer than relying on default switch cases.
+**Prevention:**
+1. Define explicit `MAX_LENGTH` constants.
+2. Use strict whitelists for string enums.
+3. Validate and sanitize context before interpolating it into prompts.
