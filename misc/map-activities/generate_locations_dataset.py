@@ -89,7 +89,8 @@ def generate_location_batch(client, region: str, activity_category: str, batch_s
 Output valid JSON only. Return a SINGLE JSON array with this structure:
 [
   {{
-    "location": "city or region name",
+    "location": "specific city/town/area name (e.g., 'Canggu', 'Ubud', 'Montmartre')",
+    "logical_location": "broader region/island travelers recognize (e.g., 'Bali', 'Paris', 'Swiss Alps')",
     "country": "country name",
     "spot": "specific sight/attraction name",
     "latitude": 0.0,
@@ -133,7 +134,7 @@ def generate_dataset(api_key: str, num_entries: int = DEFAULT_NUM_ENTRIES, outpu
     total_batches = (num_entries + BATCH_SIZE - 1) // BATCH_SIZE
     
     with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['location', 'country', 'spot', 'latitude', 'longitude', 'activity', 'description', 'price_class', 'prominence_score', 'tags', 'image_url']
+        fieldnames = ['location', 'logical_location', 'country', 'spot', 'latitude', 'longitude', 'activity', 'description', 'price_class', 'prominence_score', 'tags', 'image_url']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         
@@ -167,6 +168,7 @@ def generate_dataset(api_key: str, num_entries: int = DEFAULT_NUM_ENTRIES, outpu
                     
                     writer.writerow({
                         'location': loc.get('location', ''),
+                        'logical_location': loc.get('logical_location', ''),
                         'country': loc.get('country', ''),
                         'spot': loc.get('spot', ''),
                         'latitude': loc.get('latitude', 0),

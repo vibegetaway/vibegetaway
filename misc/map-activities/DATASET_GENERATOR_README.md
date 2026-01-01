@@ -23,4 +23,4 @@ python generate_locations_dataset.py \
   --output my_locations.csv
 ```
 
-**Output Schema**: `location` (city), `country`, `spot` (attraction), `latitude`, `longitude`, `activity` (what to do), `description`, `price_class` ($-$$$$$), `prominence_score` (1-10), `tags`, `image_url`
+**Output Schema**: `location` (specific city/area), `logical_location` (broader region travelers recognize), `country`, `spot` (attraction), `latitude`, `longitude`, `activity` (what to do), `description`, `price_class` ($-$$$$$), `prominence_score` (1-10), `tags`, `image_url`
