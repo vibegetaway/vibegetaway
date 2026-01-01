@@ -224,9 +224,13 @@ function MapController({
           return point.properties.prominence_score > max.properties.prominence_score ? point : max
         }, points[0])
 
+        // Extract coordinates from the most prominent location
+        // GeoJSON uses [lng, lat], Leaflet uses [lat, lng]
+        const [topLng, topLat] = topLocation.geometry.coordinates
+
         return {
           id: `cluster-${clusterId}`,
-          position: [latitude, longitude] as [number, number],
+          position: [topLat, topLng] as [number, number],
           isCluster: true,
           count: point_count,
           topLocation: topLocation.properties as LocationProperties,
