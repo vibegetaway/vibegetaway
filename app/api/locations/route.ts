@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import { createGroq } from '@ai-sdk/groq'
+import { generateText } from 'ai'
 
 interface Location {
   location: string      // City/area
@@ -17,8 +19,66 @@ interface Location {
   image_url: string
 }
 
+// Allow up to 5 seconds for query expansion
+export const maxDuration = 5
+
 // Cache for Pixabay images to avoid repeated API calls
 const imageCache = new Map<string, string>()
+
+/**
+ * Expand a search query into multiple related search terms using Groq Qwen3-32B
+ */
+async function expandQuery(query: string): Promise<string[]> {
+  try {
+    const groq = createGroq({
+      apiKey: process.env.GROQ_API_KEY,
+    })
+
+    const systemPrompt = `You are a travel search query expansion assistant. Your task is to take a user's search query and expand it into related search terms that would help find relevant travel locations.
+
+For example:
+- "beach" should expand to: beach, beaches, seaside, coastal, ocean, surf, swimming, tropical
+- "temple" should expand to: temple, temples, shrine, shrines, religious, sacred, buddhist, hindu, worship, monastery
+- "hiking" should expand to: hiking, trekking, trail, trails, mountain, mountains, nature walk, outdoor, adventure
+- "food" should expand to: food, cuisine, restaurant, restaurants, dining, culinary, market, markets, street food
+
+Return ONLY a comma-separated list of expanded search terms. Include:
+1. The original term
+2. Plural/singular variations
+3. Synonyms and related concepts
+4. Common misspellings if applicable
+
+Do not add explanations, just return the comma-separated terms.`
+
+    const { text } = await generateText({
+      model: groq('qwen/qwen3-32b'),
+      system: systemPrompt,
+      prompt: query,
+      temperature: 0.3,
+    })
+
+    // Parse the response and clean up the terms
+    const expandedTerms = text
+      .split(',')
+      .map(term => term.trim().toLowerCase())
+      .filter(term => term.length > 0)
+
+    // Remove duplicates using Set
+    const uniqueTerms = Array.from(new Set(expandedTerms))
+
+    // Always include the original query
+    if (!uniqueTerms.includes(query.toLowerCase())) {
+      uniqueTerms.unshift(query.toLowerCase())
+    }
+
+    console.log(`Query expansion: "${query}" -> [${uniqueTerms.join(', ')}]`)
+    return uniqueTerms
+  } catch (error) {
+    console.error('Error expanding query:', error)
+    // Fallback to original query if expansion fails
+    return [query.toLowerCase()]
+  }
+}
 
 async function fetchPixabayImage(spot: string, location: string, tags: string): Promise<string> {
   const cacheKey = `${spot}-${location}`
@@ -126,15 +186,29 @@ export async function GET(request: Request) {
     let filteredLocations: Location[] = []
 
     if (query.trim()) {
-      // Search query: ignore viewport, search globally in 3 fields
-      const queryLower = query.toLowerCase().trim()
+      // Search query: use AI to expand query and search across ALL columns
+      const expandedTerms = await expandQuery(query)
+      
       filteredLocations = parsedLocations.filter(loc => {
-        return (
-          (loc.location && loc.location.toLowerCase().includes(queryLower)) ||
-          (loc.logical_location && loc.logical_location.toLowerCase().includes(queryLower)) ||
-          (loc.country && loc.country.toLowerCase().includes(queryLower))
+        // Convert all searchable fields to lowercase strings
+        const searchableFields = [
+          loc.location || '',
+          loc.logical_location || '',
+          loc.spot || '',
+          loc.country || '',
+          loc.activity || '',
+          loc.description || '',
+          loc.price_class || '',
+          loc.tags || '',
+        ].map(field => field.toLowerCase())
+        
+        // Check if ANY of the expanded terms matches ANY of the fields
+        return expandedTerms.some(term => 
+          searchableFields.some(field => field.includes(term))
         )
       })
+      
+      console.log(`Search for "${query}" found ${filteredLocations.length} results`)
     } else if (viewport.trim()) {
       // No query but viewport provided: filter by viewport bounds
       const [north, south, east, west] = viewport.split(',').map(parseFloat)
