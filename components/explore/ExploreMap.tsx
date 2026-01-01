@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
-import { Search, X, MapPin } from 'lucide-react'
+import { Search, X, MapPin, Loader2 } from 'lucide-react'
 
 interface Location {
   location: string      // City/area
@@ -78,17 +78,16 @@ const createCircularPin = (imageUrl: string, size: number = 50) => {
   })
 }
 
-// Create cluster icon with count badge
+// Create cluster icon (looks same as leaf pin - white border, no number)
 const createClusterPin = (imageUrl: string, count: number) => {
   const size = 50
   return L.divIcon({
     className: 'custom-circular-marker',
     html: `
-      <div class="circular-pin cluster-pin" style="width: ${size}px; height: ${size}px;">
+      <div class="circular-pin" style="width: ${size}px; height: ${size}px;">
         <div class="pin-image-wrapper" style="width: ${size}px; height: ${size}px;">
           <img src="${imageUrl}" alt="location" class="pin-image" />
         </div>
-        <div class="cluster-count">${count}</div>
       </div>
     `,
     iconSize: [size, size],
@@ -317,6 +316,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [searchBounds, setSearchBounds] = useState<L.LatLngBounds | null>(null)
   const [isSearchActive, setIsSearchActive] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -419,6 +419,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   // Fetch locations from API
   const fetchLocations = async (query: string = '', bounds?: L.LatLngBounds) => {
     try {
+      setIsLoading(true)
       let url = '/api/locations'
       const params = new URLSearchParams()
       
@@ -443,6 +444,8 @@ export default function ExploreMap({ className }: ExploreMapProps) {
       setLocations(data.locations || [])
     } catch (error) {
       console.error('Error loading locations:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -605,6 +608,13 @@ export default function ExploreMap({ className }: ExploreMapProps) {
             )}
           </div>
           
+          {/* Loading Spinner */}
+          {isLoading && (
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-full shadow-lg p-2 flex items-center justify-center">
+              <Loader2 className="w-5 h-5 text-violet-600 animate-spin" />
+            </div>
+          )}
+          
           {/* Autocomplete Dropdown */}
           {isSearchFocused && autocompleteSuggestions.length > 0 && (
             <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-2xl max-h-[60vh] overflow-y-auto">
@@ -660,35 +670,12 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           background: white;
         }
         
-        .cluster-pin .pin-image-wrapper {
-          border-color: rgba(139, 92, 246, 1);
-          border-width: 4px;
-        }
-        
         .pin-image {
           width: 100%;
           height: 100%;
           object-fit: cover;
           min-width: 50px;
           min-height: 50px;
-        }
-        
-        .cluster-count {
-          position: absolute;
-          bottom: -5px;
-          right: -5px;
-          background: rgba(139, 92, 246, 1);
-          color: white;
-          border-radius: 50%;
-          width: 24px;
-          height: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 11px;
-          font-weight: bold;
-          border: 2px solid white;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
       `}</style>
       
