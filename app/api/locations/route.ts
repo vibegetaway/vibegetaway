@@ -22,6 +22,8 @@ interface Location {
 // Allow up to 5 seconds for query expansion
 export const maxDuration = 5
 
+const MAX_QUERY_LENGTH = 100
+
 // Cache for Pixabay images to avoid repeated API calls
 const imageCache = new Map<string, string>()
 
@@ -139,6 +141,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q') || ''
     const viewport = searchParams.get('viewport') || ''
+
+    if (query.length > MAX_QUERY_LENGTH) {
+      return NextResponse.json({ error: 'Query too long' }, { status: 400 })
+    }
 
     // Read CSV file from public directory
     const csvPath = join(process.cwd(), 'public', 'data', 'global_locations_dataset_10k.csv')
