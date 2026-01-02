@@ -130,7 +130,7 @@ export default function ItinerariesPage() {
                   <li>
                     <button
                       onClick={() => {
-                        router.push("/inspire")
+                        router.push("/explore")
                         setShowMenu(false)
                       }}
                       className="w-full text-left px-4 py-3 rounded-lg hover:bg-secondary/10 text-foreground hover:text-secondary transition-colors flex items-center gap-3"

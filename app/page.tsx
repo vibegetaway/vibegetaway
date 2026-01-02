@@ -399,7 +399,7 @@ export default function Home() {
                   <li>
                     <button
                       onClick={() => {
-                        router.push("/inspire")
+                        router.push("/explore")
                         setShowMenu(false)
                       }}
                       className="w-full text-left px-4 py-3 rounded-lg hover:bg-secondary/10 text-foreground hover:text-secondary transition-colors flex items-center gap-3"
@@ -586,7 +586,7 @@ export default function Home() {
               title="Inspire"
               description="Find your next adventure with AI-powered destination recommendations"
               icon={<Map className="w-full h-full" />}
-              href="/inspire"
+              href="/explore"
               accentColor="chart-3"
               backgroundPattern="world-map"
             />

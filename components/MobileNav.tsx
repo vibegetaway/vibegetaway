@@ -34,7 +34,7 @@ export function MobileNav({ activePage, hidePlanButton = false }: MobileNavProps
 
         {/* Inspire */}
         <button
-          onClick={() => router.push("/inspire")}
+          onClick={() => router.push("/explore")}
           className={`group flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 flex-1 ${
             activePage === 'inspire'
               ? 'bg-secondary/20 text-secondary'
