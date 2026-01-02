@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import type { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/types/destination'
 import { COUNTRY_CENTROIDS } from '@/lib/countryCentroids'
 import { DestinationInfoPanel } from '@/components/panels/DestinationInfoPanel'
 import { DestinationOverlay } from '@/components/map/DestinationOverlay'

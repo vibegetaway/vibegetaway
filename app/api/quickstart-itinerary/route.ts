@@ -1,33 +1,9 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { generateText } from 'ai'
+import { stripMarkdownFences } from '@/lib/utils'
+import type { QuickstartRequest } from '@/types/api'
 
 export const maxDuration = 30
-
-interface QuickstartRequest {
-  activity: string
-  location: string
-  regenerateSlot?: 'morning' | 'midday' | 'evening'
-  currentItinerary?: {
-    morning: TimeSlotActivity
-    midday: TimeSlotActivity
-    evening: TimeSlotActivity
-  }
-  getAlternatives?: boolean
-  targetSlot?: 'morning' | 'midday' | 'evening'
-}
-
-interface TimeSlotActivity {
-  title: string
-  description: string
-  reason: string
-}
-
-function stripMarkdownFences(text: string): string {
-  let cleaned = text.trim()
-  cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  cleaned = cleaned.replace(/\n?```$/, '')
-  return cleaned.trim()
-}
 
 const SYSTEM_PROMPT = `You are an expert single-day itinerary planner. Create realistic activity recommendations for a full day (morning, midday, evening) based on a user's desired activity and location.
 

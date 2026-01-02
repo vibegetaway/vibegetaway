@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { UnsplashImage } from './types'
+import type { UnsplashImage } from '@/types/image'
 
 const MAX_LIMIT = 30
 const MAX_KEYWORD_LENGTH = 100
