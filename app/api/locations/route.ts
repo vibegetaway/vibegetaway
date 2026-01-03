@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { readFileSync } from 'fs'
-import { join } from 'path'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createGroq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
+import { searchRedditWithExa } from './exa-search'
 
 interface Location {
   location: string      // City/area
@@ -19,65 +19,36 @@ interface Location {
   image_url: string
 }
 
-// Allow up to 5 seconds for query expansion
-export const maxDuration = 5
+// Allow up to 30 seconds for Exa search + LLM processing
+export const maxDuration = 30
 
-/**
- * Expand a search query into multiple related search terms using Groq Qwen3-32B
- */
-async function expandQuery(query: string): Promise<string[]> {
-  try {
-    const groq = createGroq({
-      apiKey: process.env.GROQ_API_KEY,
-    })
+const SYSTEM_PROMPT = `You are a travel destination generator that analyzes Reddit recommendations.
 
-    const systemPrompt = `You are a travel search query expansion assistant. Your task is to take a user's search query and expand it into related search terms that would help find relevant travel locations.
+Given Reddit discussions about travel destinations, extract and generate a list of specific travel locations with accurate geographic coordinates.
 
-For example:
-- "beach" should expand to: beach, beaches, seaside, coastal, ocean, surf, swimming
-- "temple" should expand to: temple, temples, shrine, shrines, religious, sacred, buddhist, hindu, worship, monastery
-- "hiking" should expand to: hiking, trekking, trail, trails, mountain, mountains, nature walk, outdoor, adventure
-- "food" should expand to: food, cuisine, restaurant, restaurants, dining, culinary, market, markets, street food
+For each destination, provide:
+- location: City/area name (e.g., "Seminyak", "Ubud")
+- logical_location: Broader region travelers recognize (e.g., "Bali", "Tuscany")
+- spot: Specific landmark/attraction name (e.g., "Tanah Lot Temple", "Tegallalang Rice Terraces")
+- country: Full country name
+- latitude: Accurate decimal latitude
+- longitude: Accurate decimal longitude
+- activity: What to do there (e.g., "temple visit", "beach relaxation", "hiking")
+- description: 1-2 sentence compelling description
+- price_class: $ (budget), $$ (moderate), $$$ (upscale), $$$$ (luxury), $$$$$ (ultra-luxury)
+- prominence_score: 1-10 based on Reddit mention frequency, enthusiasm, and upvotes
+- tags: Comma-separated descriptive tags (e.g., "beach,surfing,sunset,romantic")
 
-Return ONLY a comma-separated list of expanded search terms. Include:
-1. The original term
-2. Plural/singular variations
-3. Synonyms and related concepts
-4. Common misspellings if applicable
+IMPORTANT INSTRUCTIONS:
+1. Base prominence_score on how frequently and enthusiastically the destination is mentioned in the Reddit discussions
+2. Include diverse destinations - mix popular spots with hidden gems mentioned by locals
+3. Ensure coordinates are accurate - use your knowledge of real geographic locations
+4. Make descriptions engaging and specific, not generic
+5. Generate AS MANY relevant destinations as you can based on the Reddit discussions - don't limit yourself
+6. If a destination is mentioned multiple times across posts, give it a higher prominence_score
+7. Include both explicitly mentioned destinations and related destinations that would interest the same audience
 
-ONLY add terms that are related to the original query and are not too general.
-
-Do not add explanations, just return the comma-separated terms.`
-
-    const { text } = await generateText({
-      model: groq('llama-3.1-8b-instant'),
-      system: systemPrompt,
-      prompt: query,
-      temperature: 0.3,
-    })
-
-    // Parse the response and clean up the terms
-    const expandedTerms = text
-      .split(',')
-      .map(term => term.trim().toLowerCase())
-      .filter(term => term.length > 0)
-
-    // Remove duplicates using Set
-    const uniqueTerms = Array.from(new Set(expandedTerms))
-
-    // Always include the original query
-    if (!uniqueTerms.includes(query.toLowerCase())) {
-      uniqueTerms.unshift(query.toLowerCase())
-    }
-
-    console.log(`Query expansion: "${query}" -> [${uniqueTerms.join(', ')}]`)
-    return uniqueTerms
-  } catch (error) {
-    console.error('Error expanding query:', error)
-    // Fallback to original query if expansion fails
-    return [query.toLowerCase()]
-  }
-}
+Return ONLY a valid JSON array of location objects. No markdown formatting, no explanation text, no code blocks - just the raw JSON array.`
 
 async function fetchPixabayImage(spot: string, location: string, tags: string): Promise<string> {
   try {
@@ -95,118 +66,113 @@ async function fetchPixabayImage(spot: string, location: string, tags: string): 
   }
 }
 
+function stripMarkdownFences(text: string): string {
+  // Remove markdown code fences if present
+  return text.replace(/^```(?:json)?\s*\n?/gm, '').replace(/\n?```\s*$/gm, '').trim()
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q') || ''
-    const viewport = searchParams.get('viewport') || ''
 
-    // Read CSV file from public directory
-    const csvPath = join(process.cwd(), 'public', 'data', 'global_locations_dataset_10k.csv')
-    const csvText = readFileSync(csvPath, 'utf-8')
-    
-    const lines = csvText.split('\n')
-    
-    // Parse CSV with proper handling of quoted fields
-    const parsedLocations = lines.slice(1)
-      .filter(line => line.trim())
-      .map(line => {
-        const values: string[] = []
-        let current = ''
-        let inQuotes = false
-        
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i]
-          
-          if (char === '"') {
-            inQuotes = !inQuotes
-          } else if (char === ',' && !inQuotes) {
-            values.push(current.trim())
-            current = ''
-          } else {
-            current += char
-          }
-        }
-        values.push(current.trim())
-        
-        return {
-          location: values[0] || '',
-          logical_location: values[1] || '',
-          country: values[2] || '',
-          spot: values[3] || '',
-          latitude: parseFloat(values[4]),
-          longitude: parseFloat(values[5]),
-          activity: values[6] || '',
-          description: values[7] || '',
-          price_class: values[8] || '',
-          prominence_score: parseInt(values[9]) || 0,
-          tags: values[10] || '',
-          image_url: values[11] || '',
-        }
-      })
-      .filter(loc => !isNaN(loc.latitude) && !isNaN(loc.longitude) && loc.image_url)
-
-    let filteredLocations: Location[] = []
-
-    if (query.trim()) {
-      // Search query: use AI to expand query and search across ALL columns
-      const expansionStartTime = Date.now()
-      const expandedTerms = await expandQuery(query)
-      const expansionEndTime = Date.now()
-      const expansionDuration = expansionEndTime - expansionStartTime
-      console.log(`Query expansion took ${expansionDuration}ms for query: "${query}"`)
-      
-      filteredLocations = parsedLocations.filter(loc => {
-        // Convert all searchable fields to lowercase strings
-        const searchableFields = [
-          loc.location || '',
-          loc.logical_location || '',
-          loc.spot || '',
-          loc.country || '',
-          loc.activity || '',
-          loc.description || '',
-          loc.price_class || '',
-          loc.tags || '',
-        ].map(field => field.toLowerCase())
-        
-        // Check if ANY of the expanded terms matches ANY of the fields
-        return expandedTerms.some(term => 
-          searchableFields.some(field => field.includes(term))
-        )
-      })
-      
-      console.log(`Search for "${query}" found ${filteredLocations.length} results`)
-    } else if (viewport.trim()) {
-      // No query but viewport provided: filter by viewport bounds
-      const [north, south, east, west] = viewport.split(',').map(parseFloat)
-      
-      if (!isNaN(north) && !isNaN(south) && !isNaN(east) && !isNaN(west)) {
-        filteredLocations = parsedLocations.filter(loc => {
-          return (
-            loc.latitude <= north &&
-            loc.latitude >= south &&
-            loc.longitude <= east &&
-            loc.longitude >= west
-          )
-        })
-      } else {
-        // Invalid viewport format, return all locations
-        filteredLocations = parsedLocations
-      }
-    } else {
-      // No query and no viewport: return all locations
-      filteredLocations = parsedLocations
+    // If no query, return empty array (user hasn't searched yet)
+    if (!query.trim()) {
+      console.log('[Locations API] No query provided, returning empty array')
+      return NextResponse.json({ locations: [] })
     }
 
-    // Always sort by prominence_score descending
-    filteredLocations.sort((a, b) => b.prominence_score - a.prominence_score)
+    console.log(`[Locations API] Processing query: "${query}"`)
 
-    // Limit to top 50 results
-    const limitedLocations = filteredLocations.slice(0, 50)
+    // Step 1: Search Reddit using Exa
+    const startTime = Date.now()
+    const redditPosts = await searchRedditWithExa(query)
+    const exaDuration = Date.now() - startTime
+    console.log(`[Locations API] Exa search completed in ${exaDuration}ms, found ${redditPosts.length} posts`)
 
-    // Fetch fresh images for each location in parallel
+    if (redditPosts.length === 0) {
+      console.log('[Locations API] No Reddit posts found, returning empty array')
+      return NextResponse.json({ locations: [] })
+    }
+
+    // Step 2: Prepare Reddit content for LLM
+    // Limit text length to avoid token limits (max ~2000 chars per post)
+    const redditContent = redditPosts.map((post, i) => {
+      const textPreview = post.text.slice(0, 2000)
+      return `=== Reddit Post ${i + 1}: ${post.title} ===
+URL: ${post.url}
+${textPreview}${post.text.length > 2000 ? '...' : ''}`
+    }).join('\n\n')
+
+    const userPrompt = `Reddit discussions about "${query}":
+
+${redditContent}
+
+Based on these Reddit recommendations, generate as many specific travel destinations as possible with accurate coordinates. Include all destinations mentioned directly, plus related destinations that would interest the same audience. Focus on variety and comprehensive coverage. Prioritize destinations with higher mention frequency and enthusiasm.`
+
+    // Step 3: Generate destinations using LLM
+    console.log('[Locations API] Calling LLM to generate destinations...')
+    
+    // Prefer Gemini for geographic accuracy
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    })
+    
+    const groq = createGroq({
+      apiKey: process.env.GROQ_API_KEY,
+    })
+
+    // Use Gemini 2.5 Flash for best geographic knowledge, fallback to Groq
+    const model = process.env.GOOGLE_GENERATIVE_AI_API_KEY
+      ? google('gemini-2.5-flash')
+      : groq('llama-3.3-70b-versatile')
+
+    const llmStartTime = Date.now()
+    const { text } = await generateText({
+      model,
+      system: SYSTEM_PROMPT,
+      prompt: userPrompt,
+      temperature: 0.3, // Lower temperature for more consistent/accurate coordinates
+    })
+    const llmDuration = Date.now() - llmStartTime
+    console.log(`[Locations API] LLM generation completed in ${llmDuration}ms`)
+
+    // Step 4: Parse LLM response
+    const cleanedText = stripMarkdownFences(text)
+    let parsedLocations: Location[] = []
+    
+    try {
+      parsedLocations = JSON.parse(cleanedText)
+      console.log(`[Locations API] Successfully parsed ${parsedLocations.length} locations`)
+    } catch (parseError) {
+      console.error('[Locations API] Failed to parse LLM response:', parseError)
+      console.error('[Locations API] Raw response:', cleanedText.slice(0, 500))
+      return NextResponse.json({ 
+        error: 'Failed to generate destinations',
+        locations: [] 
+      })
+    }
+
+    // Step 5: Validate and filter locations
+    const validLocations = parsedLocations.filter(loc => 
+      loc.latitude && 
+      loc.longitude && 
+      !isNaN(loc.latitude) && 
+      !isNaN(loc.longitude) &&
+      loc.spot &&
+      loc.country
+    )
+
+    console.log(`[Locations API] ${validLocations.length} valid locations after filtering`)
+
+    // Step 6: Sort by prominence score (no limit - return all)
+    validLocations.sort((a, b) => b.prominence_score - a.prominence_score)
+
+    // Step 7: Fetch images for each location in parallel
+    console.log('[Locations API] Fetching images...')
+    const imageStartTime = Date.now()
     const locationsWithImages = await Promise.all(
-      limitedLocations.map(async (loc) => {
+      validLocations.map(async (loc) => {
         const freshImageUrl = await fetchPixabayImage(loc.spot, loc.location, loc.tags)
         return {
           ...loc,
@@ -214,11 +180,19 @@ export async function GET(request: Request) {
         }
       })
     )
+    const imageDuration = Date.now() - imageStartTime
+    console.log(`[Locations API] Image fetching completed in ${imageDuration}ms`)
+
+    const totalDuration = Date.now() - startTime
+    console.log(`[Locations API] Total request duration: ${totalDuration}ms`)
+    console.log(`[Locations API] Returning ${locationsWithImages.length} locations`)
 
     return NextResponse.json({ locations: locationsWithImages })
   } catch (error) {
-    console.error('Error in locations API:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[Locations API] Error:', error)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      locations: [] 
+    }, { status: 500 })
   }
 }
-

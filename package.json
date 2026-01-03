@@ -19,6 +19,7 @@
     "@tailwindcss/postcss": "^4.1.17",
     "ai": "^5.0.98",
     "clsx": "^2.1.1",
+    "exa-js": "^2.0.12",
     "i18n-iso-countries": "^7.14.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.553.0",

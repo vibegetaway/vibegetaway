@@ -108,13 +108,11 @@ const createClusterPin = (imageUrl: string, locationName: string, count: number)
 function MapController({ 
   locations, 
   onMarkerClick,
-  searchBounds,
-  onViewportChange
+  searchBounds
 }: { 
   locations: Location[]
   onMarkerClick: (items: DrawerItem[], isCluster: boolean) => void
   searchBounds: L.LatLngBounds | null
-  onViewportChange: (bounds: L.LatLngBounds) => void
 }) {
   const map = useMap()
   const [bounds, setBounds] = useState<L.LatLngBounds | null>(null)
@@ -136,8 +134,6 @@ function MapController({
       setBounds(prevBounds => {
         if (!prevBounds || 
             !prevBounds.equals(newBounds)) {
-          // Notify parent of viewport change
-          onViewportChange(newBounds)
           return newBounds
         }
         return prevBounds
@@ -159,7 +155,7 @@ function MapController({
       map.off('moveend', updateBounds)
       map.off('zoomend', updateBounds)
     }
-  }, [map, onViewportChange])
+  }, [map])
 
   // Create supercluster instance
   const supercluster = useMemo(() => {
@@ -331,8 +327,6 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   const [isSearchActive, setIsSearchActive] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const [currentViewportBounds, setCurrentViewportBounds] = useState<L.LatLngBounds | null>(null)
 
 
   // Handle search submit (Enter key)
@@ -373,34 +367,23 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     setSearchBounds(null)
     setIsSearchFocused(false)
     setIsSearchActive(false)
-    // Fetch locations for current viewport immediately
-    if (currentViewportBounds) {
-      fetchLocations('', currentViewportBounds)
-    }
+    // Clear locations when search is cleared
+    setLocations([])
   }
 
-  // Fetch locations from API
-  const fetchLocations = async (query: string = '', bounds?: L.LatLngBounds) => {
+  // Fetch locations from API (search query only, no viewport filtering)
+  const fetchLocations = async (query: string = '') => {
     try {
       setIsLoading(true)
-      let url = '/api/locations'
-      const params = new URLSearchParams()
       
-      if (query.trim()) {
-        // Search query: ignore viewport
-        params.append('q', query)
-      } else if (bounds) {
-        // No search: use viewport bounds
-        const north = bounds.getNorth()
-        const south = bounds.getSouth()
-        const east = bounds.getEast()
-        const west = bounds.getWest()
-        params.append('viewport', `${north},${south},${east},${west}`)
+      if (!query.trim()) {
+        // No query means no search - just clear locations
+        setLocations([])
+        setIsLoading(false)
+        return
       }
       
-      if (params.toString()) {
-        url += `?${params.toString()}`
-      }
+      const url = `/api/locations?q=${encodeURIComponent(query)}`
       
       const response = await fetch(url)
       const data = await response.json()
@@ -412,27 +395,8 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     }
   }
 
-  // Debounced fetch for viewport changes
-  const debouncedFetchViewport = (bounds: L.LatLngBounds) => {
-    // Store the current viewport bounds
-    setCurrentViewportBounds(bounds)
-    
-    // Clear existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
-    
-    // Set new timer
-    debounceTimerRef.current = setTimeout(() => {
-      if (!isSearchActive) {
-        fetchLocations('', bounds)
-      }
-    }, 300)
-  }
-
   useEffect(() => {
     setIsClient(true)
-    // Initial locations will be loaded when map viewport is ready
   }, [])
 
   // Prevent body scroll and pull-to-refresh when drawer is open
@@ -688,7 +652,6 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           locations={locations} 
           onMarkerClick={handleMarkerClick}
           searchBounds={searchBounds}
-          onViewportChange={debouncedFetchViewport}
         />
       </MapContainer>
 
