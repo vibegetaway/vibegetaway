@@ -7,4 +7,3 @@ export interface UnsplashImage {
   }
   altDescription: string
 }
-

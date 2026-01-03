@@ -3,21 +3,7 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { createGroq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
-
-interface Location {
-  location: string      // City/area
-  logical_location: string  // Logical grouping (e.g., Bali)
-  spot: string         // Specific landmark
-  country: string
-  latitude: number
-  longitude: number
-  activity: string
-  description: string
-  price_class: string
-  prominence_score: number
-  tags: string
-  image_url: string
-}
+import type { Location } from '@/types/location'
 
 // Allow up to 5 seconds for query expansion
 export const maxDuration = 5
