@@ -9,28 +9,7 @@ import { InspirationModal } from "@/components/InspirationModal"
 import type { InspirationCard } from "@/components/SwipeCard"
 import { saveQuickstartToHistory, updateItineraryById, getItineraryById } from "@/lib/itineraryHistory"
 import { useRouter, useSearchParams } from "next/navigation"
-
-interface TimeSlotActivity {
-  title: string
-  description: string
-  reason: string
-  imageUrl?: string
-  imageUrls?: string[]
-}
-
-interface Itinerary {
-  morning: TimeSlotActivity
-  midday: TimeSlotActivity
-  evening: TimeSlotActivity
-}
-
-type TimeSlot = 'morning' | 'midday' | 'evening'
-
-interface LockedSlots {
-  morning: boolean
-  midday: boolean
-  evening: boolean
-}
+import type { TimeSlotActivity, TimeSlot, Itinerary, LockedSlots } from "@/types/itinerary"
 
 const ACTIVITY_PHRASES = [
   "swimming",
