@@ -23,7 +23,8 @@ interface Location {
 export const maxDuration = 5
 
 // Cache for Pixabay images to avoid repeated API calls
-const imageCache = new Map<string, string>()
+// Store with timestamp to allow expiration
+const imageCache = new Map<string, { url: string; timestamp: number }>()
 
 /**
  * Expand a search query into multiple related search terms using Groq Qwen3-32B
@@ -84,10 +85,18 @@ Do not add explanations, just return the comma-separated terms.`
 
 async function fetchPixabayImage(spot: string, location: string, tags: string): Promise<string> {
   const cacheKey = `${spot}-${location}`
+  const CACHE_DURATION_MS = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
   
-  // Check cache first
-  if (imageCache.has(cacheKey)) {
-    return imageCache.get(cacheKey)!
+  // Check cache first and validate it hasn't expired
+  const cached = imageCache.get(cacheKey)
+  if (cached) {
+    const age = Date.now() - cached.timestamp
+    if (age < CACHE_DURATION_MS) {
+      return cached.url
+    } else {
+      // Cache expired, remove it
+      imageCache.delete(cacheKey)
+    }
   }
   
   try {
@@ -121,15 +130,14 @@ async function fetchPixabayImage(spot: string, location: string, tags: string): 
         const imageUrl = data.hits[0].webformatURL || data.hits[0].previewURL
         // Wrap through caching proxy to comply with Pixabay terms
         const proxiedUrl = `/api/cached-images?url=${encodeURIComponent(imageUrl)}`
-        imageCache.set(cacheKey, proxiedUrl)
+        imageCache.set(cacheKey, { url: proxiedUrl, timestamp: Date.now() })
         return proxiedUrl
       }
     }
     
     // Fallback if no images found (no proxy needed for local assets)
-    const fallbackUrl = '/assets/icon-512.png'
-    imageCache.set(cacheKey, fallbackUrl)
-    return fallbackUrl
+    // Don't cache fallback - retry next time in case new images are available
+    return '/assets/icon-512.png'
   } catch (error) {
     console.error(`Error fetching image for ${spot}:`, error)
     return '/assets/icon-512.png'

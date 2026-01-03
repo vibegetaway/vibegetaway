@@ -33,11 +33,19 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch the image from Pixabay
-    const imageResponse = await fetch(imageUrl)
+    // Fetch the image from Pixabay with proper headers
+    const imageResponse = await fetch(imageUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; vibegetaway/1.0)',
+        'Accept': 'image/*',
+        'Referer': 'https://pixabay.com/'
+      }
+    })
 
     if (!imageResponse.ok) {
       console.error(`Failed to fetch image from Pixabay: ${imageResponse.status}`)
+      console.error(`URL that failed: ${imageUrl}`)
+      console.error(`Response: ${await imageResponse.text().catch(() => 'Could not read response')}`)
       // Return fallback image on error
       return NextResponse.redirect(new URL('/assets/icon-512.png', request.url))
     }
