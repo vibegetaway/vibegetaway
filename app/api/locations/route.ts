@@ -22,10 +22,6 @@ interface Location {
 // Allow up to 5 seconds for query expansion
 export const maxDuration = 5
 
-// Cache for Pixabay images to avoid repeated API calls
-// Store with timestamp to allow expiration
-const imageCache = new Map<string, { url: string; timestamp: number }>()
-
 /**
  * Expand a search query into multiple related search terms using Groq Qwen3-32B
  */
@@ -84,21 +80,6 @@ Do not add explanations, just return the comma-separated terms.`
 }
 
 async function fetchPixabayImage(spot: string, location: string, tags: string): Promise<string> {
-  const cacheKey = `${spot}-${location}`
-  const CACHE_DURATION_MS = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
-  
-  // Check cache first and validate it hasn't expired
-  const cached = imageCache.get(cacheKey)
-  if (cached) {
-    const age = Date.now() - cached.timestamp
-    if (age < CACHE_DURATION_MS) {
-      return cached.url
-    } else {
-      // Cache expired, remove it
-      imageCache.delete(cacheKey)
-    }
-  }
-  
   try {
     const PIXABAY_API_KEY = process.env.PIXABAY_API_KEY
     
@@ -130,7 +111,6 @@ async function fetchPixabayImage(spot: string, location: string, tags: string): 
         const imageUrl = data.hits[0].webformatURL || data.hits[0].previewURL
         // Wrap through caching proxy to comply with Pixabay terms
         const proxiedUrl = `/api/cached-images?url=${encodeURIComponent(imageUrl)}`
-        imageCache.set(cacheKey, { url: proxiedUrl, timestamp: Date.now() })
         return proxiedUrl
       }
     }
