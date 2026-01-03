@@ -81,45 +81,16 @@ Do not add explanations, just return the comma-separated terms.`
 
 async function fetchPixabayImage(spot: string, location: string, tags: string): Promise<string> {
   try {
-    const PIXABAY_API_KEY = process.env.PIXABAY_API_KEY
+    // Use the most specific search term as the cache key
+    // The cached-images endpoint will handle the Pixabay API call and fallback logic
+    const keywords = `${spot} ${location}`.trim()
     
-    if (!PIXABAY_API_KEY) {
-      console.error('PIXABAY_API_KEY not set')
-      return '/assets/icon-512.png' // Fallback image
-    }
-    
-    // Try different search strategies
-    const searchTerms = [
-      `${spot} ${location}`, // Most specific
-      spot, // Just the spot name
-      tags.split(',')[0]?.trim(), // First tag
-      location, // Just the location
-    ].filter(Boolean)
-    
-    for (const searchTerm of searchTerms) {
-      const url = `https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(searchTerm)}&image_type=photo&per_page=3&safesearch=true`
-      
-      const response = await fetch(url, { 
-        next: { revalidate: 86400 } // Cache for 24 hours
-      })
-      
-      if (!response.ok) continue
-      
-      const data = await response.json()
-      
-      if (data.hits && data.hits.length > 0) {
-        const imageUrl = data.hits[0].webformatURL || data.hits[0].previewURL
-        // Wrap through caching proxy to comply with Pixabay terms
-        const proxiedUrl = `/api/cached-images?url=${encodeURIComponent(imageUrl)}`
-        return proxiedUrl
-      }
-    }
-    
-    // Fallback if no images found (no proxy needed for local assets)
-    // Don't cache fallback - retry next time in case new images are available
-    return '/assets/icon-512.png'
+    // Route through caching proxy which uses keywords as cache key
+    // This ensures consistent caching even if Pixabay URLs expire
+    const proxiedUrl = `/api/cached-images?keywords=${encodeURIComponent(keywords)}`
+    return proxiedUrl
   } catch (error) {
-    console.error(`Error fetching image for ${spot}:`, error)
+    console.error(`Error generating cached image URL for ${spot}:`, error)
     return '/assets/icon-512.png'
   }
 }

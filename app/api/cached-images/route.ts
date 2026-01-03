@@ -4,33 +4,66 @@ import { NextRequest, NextResponse } from 'next/server'
  * Image proxy endpoint that caches Pixabay images for 24 hours
  * Complies with Pixabay terms: images are served from our domain with CDN caching
  * instead of permanent hotlinking
+ * 
+ * Uses search keywords as the cache key instead of the Pixabay URL itself,
+ * since Pixabay URLs can expire. Always returns small size images (previewURL)
+ * for efficiency and faster loading.
  */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const imageUrl = searchParams.get('url')
+    const keywords = searchParams.get('keywords')
 
-    if (!imageUrl) {
+    if (!keywords) {
       return NextResponse.json(
-        { error: 'URL parameter is required' },
+        { error: 'Keywords parameter is required' },
         { status: 400 }
       )
     }
 
-    // Validate that URL is from Pixabay for security
-    try {
-      const url = new URL(imageUrl)
-      if (!url.hostname.includes('pixabay.com')) {
-        return NextResponse.json(
-          { error: 'Invalid image source' },
-          { status: 400 }
-        )
+    const PIXABAY_API_KEY = process.env.PIXABAY_API_KEY
+
+    if (!PIXABAY_API_KEY) {
+      console.error('PIXABAY_API_KEY environment variable is not set')
+      return NextResponse.redirect(new URL('/assets/icon-512.png', request.url))
+    }
+
+    // Try progressive fallback strategy if initial search fails
+    const searchTerms = [
+      keywords, // Original search
+      keywords.split(' ').slice(0, 2).join(' '), // First 2 words
+      keywords.split(' ')[0], // First word only
+      'travel destination' // Ultimate fallback
+    ]
+
+    let imageUrl: string | null = null
+
+    for (const searchTerm of searchTerms) {
+      if (!searchTerm || searchTerm.trim().length === 0) continue
+
+      const apiUrl = `https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(searchTerm)}&image_type=photo&per_page=3&safesearch=true`
+
+      const response = await fetch(apiUrl, {
+        next: { revalidate: 86400 } // Cache API response for 24 hours
+      })
+
+      if (!response.ok) {
+        console.warn(`Pixabay API error for "${searchTerm}": ${response.status}`)
+        continue
       }
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Invalid URL format' },
-        { status: 400 }
-      )
+
+      const data = await response.json()
+
+      if (data.hits && data.hits.length > 0) {
+        // Always use small size (previewURL) for efficiency
+        imageUrl = data.hits[0].previewURL
+        break
+      }
+    }
+
+    if (!imageUrl) {
+      console.warn(`No images found for keywords: ${keywords}`)
+      return NextResponse.redirect(new URL('/assets/icon-512.png', request.url))
     }
 
     // Fetch the image from Pixabay with proper headers
@@ -55,6 +88,7 @@ export async function GET(request: NextRequest) {
     const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
 
     // Return image with 24-hour cache headers
+    // The cache key is based on keywords, not the Pixabay URL
     return new NextResponse(imageBuffer, {
       status: 200,
       headers: {
