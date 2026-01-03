@@ -119,12 +119,14 @@ async function fetchPixabayImage(spot: string, location: string, tags: string): 
       
       if (data.hits && data.hits.length > 0) {
         const imageUrl = data.hits[0].webformatURL || data.hits[0].previewURL
-        imageCache.set(cacheKey, imageUrl)
-        return imageUrl
+        // Wrap through caching proxy to comply with Pixabay terms
+        const proxiedUrl = `/api/cached-images?url=${encodeURIComponent(imageUrl)}`
+        imageCache.set(cacheKey, proxiedUrl)
+        return proxiedUrl
       }
     }
     
-    // Fallback if no images found
+    // Fallback if no images found (no proxy needed for local assets)
     const fallbackUrl = '/assets/icon-512.png'
     imageCache.set(cacheKey, fallbackUrl)
     return fallbackUrl

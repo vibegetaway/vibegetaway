@@ -14,6 +14,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/unsplash-images(.*)',
   '/api/city-search(.*)',
   '/api/locations(.*)',
+  '/api/cached-images(.*)',
 ])
 
 export default clerkMiddleware(async (auth, request) => {
