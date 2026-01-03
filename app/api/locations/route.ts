@@ -3,6 +3,7 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { createGroq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
+import { MAX_SEARCH_QUERY_LENGTH } from '@/lib/constants'
 
 interface Location {
   location: string      // City/area
@@ -142,6 +143,10 @@ export async function GET(request: Request) {
     const query = searchParams.get('q') || ''
     const viewport = searchParams.get('viewport') || ''
 
+    if (query.length > MAX_SEARCH_QUERY_LENGTH) {
+      return NextResponse.json({ error: `Query too long. Max ${MAX_SEARCH_QUERY_LENGTH} chars.` }, { status: 400 })
+    }
+
     // Read CSV file from public directory
     const csvPath = join(process.cwd(), 'public', 'data', 'global_locations_dataset_10k.csv')
     const csvText = readFileSync(csvPath, 'utf-8')
@@ -262,4 +267,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-
