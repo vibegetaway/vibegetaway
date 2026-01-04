@@ -314,7 +314,10 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   const [searchBounds, setSearchBounds] = useState<L.LatLngBounds | null>(null)
   const [isSearchActive, setIsSearchActive] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState(0)
+  const [loadingStage, setLoadingStage] = useState('')
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
 
   // Handle search submit (Enter key)
@@ -331,22 +334,6 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     
     // Fetch locations from backend with the search query (ignores viewport)
     await fetchLocations(query)
-    
-    // After fetching, calculate bounds from the returned locations
-    // The locations will be in the main state, so we use them directly
-    setTimeout(() => {
-      if (locations.length > 0) {
-        const lats = locations.map(loc => loc.latitude)
-        const lngs = locations.map(loc => loc.longitude)
-        
-        const bounds = L.latLngBounds(
-          [Math.min(...lats), Math.min(...lngs)],
-          [Math.max(...lats), Math.max(...lngs)]
-        )
-        
-        setSearchBounds(bounds)
-      }
-    }, 100)
   }
 
   // Clear search
@@ -355,14 +342,21 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     setSearchBounds(null)
     setIsSearchFocused(false)
     setIsSearchActive(false)
+    setLoadingProgress(0)
+    setLoadingStage('')
     // Clear locations when search is cleared
     setLocations([])
+    // Clear progress interval
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current)
+    }
   }
 
   // Fetch locations from API (search query only, no viewport filtering)
   const fetchLocations = async (query: string = '') => {
     try {
       setIsLoading(true)
+      setLoadingProgress(0)
       
       if (!query.trim()) {
         // No query means no search - just clear locations
@@ -371,20 +365,108 @@ export default function ExploreMap({ className }: ExploreMapProps) {
         return
       }
       
+      // Start progress simulation - 30 second duration
+      const stages = [
+        { progress: 15, message: 'Searching our sources...', duration: 5000 },
+        { progress: 35, message: 'Analyzing travel discussions...', duration: 8000 },
+        { progress: 60, message: 'Finding the best destinations...', duration: 10000 },
+        { progress: 80, message: 'Gathering location details...', duration: 5000 },
+        { progress: 95, message: 'Almost there...', duration: 2000 }
+      ]
+      
+      let currentStageIndex = 0
+      setLoadingStage(stages[0].message)
+      
+      // Clear any existing interval
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+      }
+      
+      // Smoothly animate progress
+      const startTime = Date.now()
+      progressIntervalRef.current = setInterval(() => {
+        const elapsed = Date.now() - startTime
+        
+        // Find current stage based on elapsed time
+        let cumulativeTime = 0
+        for (let i = 0; i < stages.length; i++) {
+          cumulativeTime += stages[i].duration
+          if (elapsed < cumulativeTime) {
+            if (i !== currentStageIndex) {
+              currentStageIndex = i
+              setLoadingStage(stages[i].message)
+            }
+            
+            // Interpolate progress within current stage
+            const stageStart = cumulativeTime - stages[i].duration
+            const stageProgress = (elapsed - stageStart) / stages[i].duration
+            const prevProgress = i > 0 ? stages[i - 1].progress : 0
+            const targetProgress = stages[i].progress
+            const interpolatedProgress = prevProgress + (targetProgress - prevProgress) * stageProgress
+            
+            setLoadingProgress(Math.min(interpolatedProgress, 95))
+            break
+          }
+        }
+        
+        // Cap at 95% until actual response
+        if (elapsed >= 30000) {
+          setLoadingProgress(95)
+          setLoadingStage('Almost there...')
+        }
+      }, 100)
+      
       const url = `/api/locations?q=${encodeURIComponent(query)}`
       
       const response = await fetch(url)
       const data = await response.json()
-      setLocations(data.locations || [])
+      
+      // Complete the progress
+      setLoadingProgress(100)
+      setLoadingStage('Complete!')
+      
+      // Small delay to show 100% before hiding
+      setTimeout(() => {
+        setLocations(data.locations || [])
+        setIsLoading(false)
+        if (progressIntervalRef.current) {
+          clearInterval(progressIntervalRef.current)
+        }
+      }, 300)
+      
     } catch (error) {
       console.error('Error loading locations:', error)
-    } finally {
       setIsLoading(false)
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+      }
     }
   }
 
+  // Calculate and set search bounds whenever locations change and search is active
+  useEffect(() => {
+    if (isSearchActive && locations.length > 0) {
+      const lats = locations.map(loc => loc.latitude)
+      const lngs = locations.map(loc => loc.longitude)
+      
+      const bounds = L.latLngBounds(
+        [Math.min(...lats), Math.min(...lngs)],
+        [Math.max(...lats), Math.max(...lngs)]
+      )
+      
+      setSearchBounds(bounds)
+    }
+  }, [locations, isSearchActive])
+
   useEffect(() => {
     setIsClient(true)
+    
+    // Cleanup progress interval on unmount
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+      }
+    }
   }, [])
 
   // Prevent body scroll and pull-to-refresh when drawer is open
@@ -499,7 +581,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
       {/* Search Bar */}
       <div className="absolute top-0 left-0 right-0 z-[1000] p-4">
         <div className="relative">
-          <div className="relative">
+          <div className="relative z-10">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
             <input
               ref={searchInputRef}
@@ -532,10 +614,21 @@ export default function ExploreMap({ className }: ExploreMapProps) {
             )}
           </div>
           
-          {/* Loading Spinner */}
+          {/* Loading Progress */}
           {isLoading && (
-            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-full shadow-lg p-2 flex items-center justify-center">
-              <Loader2 className="w-5 h-5 text-violet-600 animate-spin" />
+            <div className="-mt-3 mx-auto w-[calc(100%-16px)] bg-white/95 backdrop-blur-sm rounded-b-lg shadow-md px-4 pt-4 pb-2.5 border-l border-r border-b border-gray-200">
+              <div className="flex items-center gap-2.5">
+                <Loader2 className="w-4 h-4 text-gray-400 animate-spin flex-shrink-0" />
+                <div className="flex flex-col gap-1 flex-1">
+                  <p className="text-xs text-gray-600">{loadingStage}</p>
+                  <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-violet-500 rounded-full transition-all duration-300 ease-out"
+                      style={{ width: `${loadingProgress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
