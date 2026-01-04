@@ -55,6 +55,15 @@ interface DrawerItem {
   prominence_score: number
 }
 
+// Convert prominence score to star rating
+const getStarsFromProminence = (score: number): number => {
+  if (score >= 9) return 5
+  if (score >= 7) return 4
+  if (score >= 5) return 3
+  if (score >= 3) return 2
+  return 1
+}
+
 // Create circular image pin
 const createCircularPin = (imageUrl: string, locationName: string, size: number = 50) => {
   return L.divIcon({
@@ -813,6 +822,13 @@ export default function ExploreMap({ className }: ExploreMapProps) {
                         {item.description}
                       </p>
                       <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span className="flex items-center gap-0.5 text-yellow-500">
+                          {'★'.repeat(getStarsFromProminence(item.prominence_score))}
+                          <span className="text-gray-300">
+                            {'★'.repeat(5 - getStarsFromProminence(item.prominence_score))}
+                          </span>
+                        </span>
+                        <span className="text-gray-300">•</span>
                         <span className="font-medium">{item.price_class}</span>
                       </div>
                     </div>
