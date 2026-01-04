@@ -3,6 +3,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createGroq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
 import { searchRedditWithExa } from './exa-search'
+import { MAX_SEARCH_QUERY_LENGTH } from '@/lib/constants'
 
 interface Location {
   location: string      // City/area
@@ -121,6 +122,13 @@ export async function GET(request: Request) {
     if (!query.trim()) {
       console.log('[Locations API] No query provided, returning empty array')
       return NextResponse.json({ locations: [] })
+    }
+
+    if (query.length > MAX_SEARCH_QUERY_LENGTH) {
+      return NextResponse.json(
+        { error: `Query too long. Max length is ${MAX_SEARCH_QUERY_LENGTH} characters.` },
+        { status: 400 }
+      )
     }
 
     console.log(`[Locations API] Processing query: "${query}"`)
