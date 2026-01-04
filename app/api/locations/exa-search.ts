@@ -94,7 +94,13 @@ export async function searchRedditWithExa(query: string): Promise<ExaResult[]> {
     })
     
     console.log(`[Exa] Found ${results.results.length} Reddit posts`)
-    
+    // Log the URLs and page contents of the Reddit posts returned by Exa
+    results.results.forEach((result, idx) => {
+      console.log(`[Exa][Reddit Post ${idx + 1}] URL: ${result.url}`);
+      console.log(`[Exa][Reddit Post ${idx + 1}] Content Preview:`);
+      // Log a maximum of the first 500 characters for brevity
+      console.log(result.text ? result.text.slice(0, 500) : '[No text]');
+    });
     // Map results to our interface
     return results.results.map(result => ({
       url: result.url,
