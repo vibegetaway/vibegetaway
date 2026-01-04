@@ -71,6 +71,47 @@ function stripMarkdownFences(text: string): string {
   return text.replace(/^```(?:json)?\s*\n?/gm, '').replace(/\n?```\s*$/gm, '').trim()
 }
 
+async function filterLocationsByQuery(locations: Location[], originalQuery: string, model: any): Promise<Location[]> {
+  if (locations.length === 0) return []
+  
+  try {
+    const filterPrompt = `Given the user's original search query: "${originalQuery}"
+
+Analyze these destinations and determine which ones are truly relevant to the query.
+A destination is relevant if it matches the query's:
+- Geographic intent (location, country, region)
+- Activity/theme intent (beach, temple, hiking, etc.)
+- Vibe/style intent (budget, luxury, romantic, adventure, etc.)
+
+Be strict - if a destination doesn't clearly match the query intent, exclude it.
+
+Destinations to evaluate:
+${locations.map((loc, i) => `${i}. ${loc.spot} in ${loc.location}, ${loc.country} - ${loc.activity} - ${loc.description}`).join('\n')}
+
+Return ONLY a JSON array of indices (numbers) for the relevant destinations. Example: [0, 2, 5, 7]
+Return [] if none are relevant.`
+
+    const { text } = await generateText({
+      model,
+      prompt: filterPrompt,
+      temperature: 0.1,
+    })
+    
+    const cleanedText = stripMarkdownFences(text)
+    const relevantIndices = JSON.parse(cleanedText) as number[]
+    
+    console.log(`[Locations API] Query filter kept ${relevantIndices.length}/${locations.length} locations`)
+    
+    return relevantIndices
+      .filter(idx => idx >= 0 && idx < locations.length)
+      .map(idx => locations[idx])
+  } catch (error) {
+    console.error('[Locations API] Error filtering locations by query:', error)
+    // On error, return all locations (fail open)
+    return locations
+  }
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -163,16 +204,20 @@ Based on these Reddit recommendations, generate as many specific travel destinat
       loc.country
     )
 
-    console.log(`[Locations API] ${validLocations.length} valid locations after filtering`)
+    console.log(`[Locations API] ${validLocations.length} valid locations after basic filtering`)
+
+    // Step 5b: Filter locations to match original query intent
+    const relevantLocations = await filterLocationsByQuery(validLocations, query, model)
+    console.log(`[Locations API] ${relevantLocations.length} relevant locations after query filtering`)
 
     // Step 6: Sort by prominence score (no limit - return all)
-    validLocations.sort((a, b) => b.prominence_score - a.prominence_score)
+    relevantLocations.sort((a, b) => b.prominence_score - a.prominence_score)
 
     // Step 7: Fetch images for each location in parallel
     console.log('[Locations API] Fetching images...')
     const imageStartTime = Date.now()
     const locationsWithImages = await Promise.all(
-      validLocations.map(async (loc) => {
+      relevantLocations.map(async (loc) => {
         const freshImageUrl = await fetchPixabayImage(loc.spot, loc.location, loc.tags)
         return {
           ...loc,
