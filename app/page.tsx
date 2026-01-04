@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Map, Calendar, CalendarDays, Users, Sparkles, ArrowRight, Menu, X } from "lucide-react"
 import { LockedBanner } from "@/components/LockedBanner"
@@ -22,13 +23,10 @@ interface OptionCardProps {
 }
 
 function OptionCard({ title, description, icon, href, locked = false, accentColor = 'primary', backgroundPattern = 'world-map' }: OptionCardProps) {
-  const router = useRouter()
   const posthog = usePostHog()
 
   const handleClick = () => {
-    if (locked) return
     posthog?.capture("landing_option_clicked", { option: title, href })
-    router.push(href)
   }
 
   const colorClasses = {
@@ -60,28 +58,15 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
   const colors = colorClasses[accentColor]
   const bgPattern = backgroundPatterns[backgroundPattern]
 
-  return (
-    <div
-      onClick={handleClick}
-      className={`
-        group relative ${locked ? "overflow-visible" : "overflow-hidden"}
-        rounded-2xl bg-card backdrop-blur-sm
-        transition-all duration-300
-        ${locked
-          ? "cursor-not-allowed opacity-60"
-          : "cursor-pointer hover:shadow-2xl hover:-translate-y-2 active:scale-98"
-        }
-        border ${colors.border}
-        p-6 sm:p-8
-      `}
-    >
+  const content = (
+    <>
       {/* Background pattern */}
       <div
         className={`absolute inset-0 pointer-events-none ${backgroundPattern === 'world-map'
-            ? 'opacity-[0.15]'
-            : backgroundPattern === 'calendar'
-              ? 'opacity-[0.10]'
-              : 'opacity-[0.04]'
+          ? 'opacity-[0.15]'
+          : backgroundPattern === 'calendar'
+            ? 'opacity-[0.10]'
+            : 'opacity-[0.04]'
           }`}
         style={{
           backgroundImage: typeof bgPattern === 'string' && bgPattern.startsWith('/')
@@ -132,7 +117,29 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
           </div>
         )}
       </div>
-    </div>
+    </>
+  )
+
+  const className = `
+    group relative ${locked ? "overflow-visible" : "overflow-hidden"}
+    rounded-2xl bg-card backdrop-blur-sm
+    transition-all duration-300
+    ${locked
+      ? "cursor-not-allowed opacity-60"
+      : "cursor-pointer hover:shadow-2xl hover:-translate-y-2 active:scale-98"
+    }
+    border ${colors.border}
+    p-6 sm:p-8 block text-left
+  `
+
+  if (locked) {
+    return <div className={className}>{content}</div>
+  }
+
+  return (
+    <Link href={href} onClick={handleClick} className={className}>
+      {content}
+    </Link>
   )
 }
 
