@@ -9,16 +9,14 @@ import { Search, X, Loader2 } from 'lucide-react'
 
 interface Location {
   location: string      // City/area
-  logical_location: string  // Logical grouping (e.g., Bali)
   spot: string         // Specific landmark
   country: string
   latitude: number
   longitude: number
-  activity: string
   description: string
   price_class: string
   prominence_score: number
-  tags: string
+  reddit_source_urls: string[]
   image_url: string
 }
 
@@ -31,11 +29,9 @@ interface LocationProperties {
   location: string     // City/area
   spot: string        // Specific landmark
   country: string
-  activity: string
   description: string
   price_class: string
   prominence_score: number
-  tags: string
   image_url: string
 }
 
@@ -54,9 +50,7 @@ interface DrawerItem {
   location: string
   country: string
   description: string
-  tags: string
   image_url: string
-  activity: string
   price_class: string
   prominence_score: number
 }
@@ -173,11 +167,9 @@ function MapController({
         location: loc.location,
         spot: loc.spot,
         country: loc.country,
-        activity: loc.activity,
         description: loc.description,
         price_class: loc.price_class,
         prominence_score: loc.prominence_score,
-        tags: loc.tags,
         image_url: loc.image_url,
       },
       geometry: {
@@ -263,9 +255,7 @@ function MapController({
                       location: point.properties.location,
                       country: point.properties.country,
                       description: point.properties.description,
-                      tags: point.properties.tags,
                       image_url: point.properties.image_url,
-                      activity: point.properties.activity,
                       price_class: point.properties.price_class,
                       prominence_score: point.properties.prominence_score,
                     }))
@@ -289,9 +279,7 @@ function MapController({
                     location: marker.location!.location,
                     country: marker.location!.country,
                     description: marker.location!.description,
-                    tags: marker.location!.tags,
                     image_url: marker.location!.image_url,
-                    activity: marker.location!.activity,
                     price_class: marker.location!.price_class,
                     prominence_score: marker.location!.prominence_score,
                   }]
@@ -731,15 +719,8 @@ export default function ExploreMap({ className }: ExploreMapProps) {
                       <p className="text-sm text-gray-700 mb-2 line-clamp-2">
                         {item.description}
                       </p>
-                      <div className="flex gap-1.5 flex-wrap">
-                        {item.tags.split(',').slice(0, 3).map((tag, i) => (
-                          <span 
-                            key={i}
-                            className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full"
-                          >
-                            {tag.trim()}
-                          </span>
-                        ))}
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span className="font-medium">{item.price_class}</span>
                       </div>
                     </div>
                   </div>
