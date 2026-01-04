@@ -19,8 +19,8 @@ interface Location {
   image_url: string
 }
 
-// Allow up to 30 seconds for Exa search + LLM processing
-export const maxDuration = 30
+// Allow up to 120 seconds for Exa search + LLM processing
+export const maxDuration = 120
 
 const SYSTEM_PROMPT = `You are a travel destination generator that analyzes Reddit recommendations.
 
