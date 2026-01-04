@@ -62,7 +62,27 @@ const getStarsFromProminence = (score: number): number => {
 }
 
 // Create circular image pin
-const createCircularPin = (imageUrl: string, locationName: string, size: number = 50) => {
+const createCircularPin = (imageUrl: string, locationName: string, prominenceScore: number = 0, size: number = 50) => {
+  const isSpecialPin = prominenceScore === 10
+  const starBadge = isSpecialPin ? `
+    <div class="star-badge" style="
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border: 2px solid #FFD700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    ">⭐</div>
+  ` : ''
+  
   return L.divIcon({
     className: 'custom-circular-marker',
     html: `
@@ -71,6 +91,7 @@ const createCircularPin = (imageUrl: string, locationName: string, size: number 
           <div class="pin-image-wrapper" style="width: ${size}px; height: ${size}px;">
             <img src="${imageUrl}" alt="location" class="pin-image" />
           </div>
+          ${starBadge}
         </div>
         <div class="pin-label">${locationName}</div>
       </div>
@@ -82,8 +103,28 @@ const createCircularPin = (imageUrl: string, locationName: string, size: number 
 }
 
 // Create cluster icon (looks same as leaf pin - white border, no number)
-const createClusterPin = (imageUrl: string, locationName: string, count: number) => {
+const createClusterPin = (imageUrl: string, locationName: string, count: number, prominenceScore: number = 0) => {
   const size = 50
+  const isSpecialPin = prominenceScore === 10
+  const starBadge = isSpecialPin ? `
+    <div class="star-badge" style="
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border: 2px solid #FFD700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    ">⭐</div>
+  ` : ''
+  
   return L.divIcon({
     className: 'custom-circular-marker',
     html: `
@@ -92,6 +133,7 @@ const createClusterPin = (imageUrl: string, locationName: string, count: number)
           <div class="pin-image-wrapper" style="width: ${size}px; height: ${size}px;">
             <img src="${imageUrl}" alt="location" class="pin-image" />
           </div>
+          ${starBadge}
         </div>
         <div class="pin-label-wrapper">
           <div class="pin-label">${locationName}</div>
@@ -250,7 +292,7 @@ function MapController({
             <Marker
               key={marker.id}
               position={marker.position}
-              icon={createClusterPin(marker.topLocation.image_url, marker.topLocation.spot, marker.count || 0)}
+              icon={createClusterPin(marker.topLocation.image_url, marker.topLocation.spot, marker.count || 0, marker.topLocation.prominence_score)}
               eventHandlers={{
                 click: () => {
                   // Get all items in the cluster
@@ -276,7 +318,7 @@ function MapController({
             <Marker
               key={marker.id}
               position={marker.position}
-              icon={createCircularPin(marker.location.image_url, marker.location.spot)}
+              icon={createCircularPin(marker.location.image_url, marker.location.spot, marker.location.prominence_score)}
               eventHandlers={{
                 click: () => {
                   // Single item
