@@ -590,7 +590,10 @@ export default function ExploreMap({ className }: ExploreMapProps) {
       {/* Search Bar */}
       <div className="absolute top-0 left-0 right-0 z-[1000] p-4">
         <div className="relative">
-          <div className="relative z-10">
+          {/* Shadow layer - matches search bar dimensions only */}
+          <div className="absolute top-0 left-0 right-0 h-12 z-[1] rounded-xl shadow-lg pointer-events-none" />
+          
+          <div className="relative z-[20]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
             <input
               ref={searchInputRef}
@@ -611,7 +614,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
                 }
               }}
               placeholder="Search places, activities, countries..."
-              className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 shadow-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
             {searchQuery && (
               <button
@@ -623,9 +626,9 @@ export default function ExploreMap({ className }: ExploreMapProps) {
             )}
           </div>
           
-          {/* Loading Progress */}
+          {/* Loading Progress - above shadow, below search bar */}
           {isLoading && (
-            <div className="-mt-3 mx-auto w-[calc(100%-16px)] bg-white/95 backdrop-blur-sm rounded-b-lg shadow-md px-4 pt-4 pb-2.5 border-l border-r border-b border-gray-200">
+            <div className="relative z-[10] -mt-3 mx-auto w-[calc(100%-16px)] bg-white/95 backdrop-blur-sm rounded-b-lg shadow-md px-4 pt-4 pb-2.5 border-l border-r border-b border-gray-200">
               <div className="flex items-center gap-2.5">
                 <Loader2 className="w-4 h-4 text-gray-400 animate-spin flex-shrink-0" />
                 <div className="flex flex-col gap-1 flex-1">
