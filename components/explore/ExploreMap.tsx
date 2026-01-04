@@ -55,13 +55,10 @@ interface DrawerItem {
   prominence_score: number
 }
 
-// Convert prominence score to star rating
+// Convert prominence score to star rating (supports half stars)
 const getStarsFromProminence = (score: number): number => {
-  if (score >= 9) return 5
-  if (score >= 7) return 4
-  if (score >= 5) return 3
-  if (score >= 3) return 2
-  return 1
+  // 10: 5 stars, 9: 4.5, 8: 4, 7: 3.5, etc.
+  return score / 2
 }
 
 // Create circular image pin
@@ -826,10 +823,25 @@ export default function ExploreMap({ className }: ExploreMapProps) {
                       </p>
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <span className="flex items-center gap-0.5 text-yellow-500">
-                          {'★'.repeat(getStarsFromProminence(item.prominence_score))}
-                          <span className="text-gray-300">
-                            {'★'.repeat(5 - getStarsFromProminence(item.prominence_score))}
-                          </span>
+                          {(() => {
+                            const rating = getStarsFromProminence(item.prominence_score)
+                            const fullStars = Math.floor(rating)
+                            const hasHalfStar = rating % 1 !== 0
+                            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0)
+                            
+                            return (
+                              <>
+                                {'★'.repeat(fullStars)}
+                                {hasHalfStar && <span className="relative inline-block">
+                                  <span className="text-gray-300">★</span>
+                                  <span className="absolute left-0 top-0 overflow-hidden" style={{ width: '50%' }}>★</span>
+                                </span>}
+                                <span className="text-gray-300">
+                                  {'★'.repeat(emptyStars)}
+                                </span>
+                              </>
+                            )
+                          })()}
                         </span>
                         <span className="text-gray-300">•</span>
                         <span className="font-medium">{item.price_class}</span>
