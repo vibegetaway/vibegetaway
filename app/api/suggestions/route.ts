@@ -1,6 +1,11 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText } from 'ai';
+import {
+    ALLOWED_SUGGESTION_TYPES,
+    MAX_SUGGESTION_CONTEXT_LENGTH,
+    MAX_SUGGESTION_INPUT_LENGTH
+} from '@/lib/constants';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -10,6 +15,19 @@ export async function POST(req: Request) {
 
     if (!input || typeof input !== 'string') {
         return new Response('Input is required', { status: 400 });
+    }
+
+    if (input.length > MAX_SUGGESTION_INPUT_LENGTH) {
+        return new Response(`Input too long (max ${MAX_SUGGESTION_INPUT_LENGTH} chars)`, { status: 400 });
+    }
+
+    if (context && context.length > MAX_SUGGESTION_CONTEXT_LENGTH) {
+        return new Response(`Context too long (max ${MAX_SUGGESTION_CONTEXT_LENGTH} chars)`, { status: 400 });
+    }
+
+    // @ts-ignore - Validating type against constant array
+    if (!ALLOWED_SUGGESTION_TYPES.includes(type)) {
+        return new Response(`Invalid type. Allowed: ${ALLOWED_SUGGESTION_TYPES.join(', ')}`, { status: 400 });
     }
 
     // Prioritize Groq for speed, fallback to Gemini
