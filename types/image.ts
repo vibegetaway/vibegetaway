@@ -1,10 +1,12 @@
 export interface UnsplashImage {
   id: string
   urls: {
-    small: string
     regular: string
-    full: string
+    small: string
+    full?: string
   }
   altDescription: string
+  user: {
+    name: string
+  }
 }
-

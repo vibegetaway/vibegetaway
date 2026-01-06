@@ -3,9 +3,8 @@
 import {
   generateDestinationNames,
   generateDestinationInfo,
-  type Destination,
-  type GenerateDestinationParams
 } from './generateDestinationInfo'
+import type { Destination, GenerateDestinationParams } from '@/types/location'
 
 export interface FetchDestinationsCallbacks {
   onInitialDestinations?: (destinations: Destination[]) => void

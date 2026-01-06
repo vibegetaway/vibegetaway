@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { UnsplashImage } from './types'
+import type { UnsplashImage } from '@/types/image'
 
 const MAX_LIMIT = 30
 const MAX_KEYWORD_LENGTH = 100
@@ -47,7 +47,10 @@ async function fetchUnsplashImages(
         regular: photo.urls.regular,
         full: photo.urls.full
       },
-      altDescription: photo.alt_description || 'Destination image'
+      altDescription: photo.alt_description || 'Destination image',
+      user: {
+        name: photo.user.name
+      }
     }))
   } catch (error) {
     console.error('Error fetching Unsplash images:', error)

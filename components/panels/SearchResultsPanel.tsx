@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Destination } from '@/lib/generateDestinationInfo'
+import { Destination } from '@/types/location'
 import { MapPin, X, Loader2, CalendarPlus, CalendarCheck, ChevronRight } from 'lucide-react'
 import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
