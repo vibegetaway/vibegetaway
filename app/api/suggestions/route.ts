@@ -1,18 +1,46 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText } from 'ai';
+import {
+    ALLOWED_SUGGESTION_TYPES,
+    MAX_SUGGESTION_CONTEXT_LENGTH,
+    MAX_SUGGESTION_INPUT_LENGTH,
+    type SuggestionType
+} from '@/lib/constants';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-    const { input, context, type = 'vibe' } = await req.json();
+    try {
+        const { input, context, type = 'vibe' } = await req.json();
 
-    if (!input || typeof input !== 'string') {
-        return new Response('Input is required', { status: 400 });
-    }
+        if (!input || typeof input !== 'string') {
+            return new Response('Input is required', { status: 400 });
+        }
 
-    // Prioritize Groq for speed, fallback to Gemini
+        if (input.length > MAX_SUGGESTION_INPUT_LENGTH) {
+            return new Response('Input is too long', { status: 400 });
+        }
+
+        let safeContext = '';
+        if (context) {
+            if (typeof context !== 'string') {
+                return new Response('Context must be a string', { status: 400 });
+            }
+            if (context.length > MAX_SUGGESTION_CONTEXT_LENGTH) {
+                // Truncate instead of erroring for context, or just error.
+                // Erroring is safer to signal misuse.
+                return new Response('Context is too long', { status: 400 });
+            }
+            safeContext = context;
+        }
+
+        if (!ALLOWED_SUGGESTION_TYPES.includes(type as SuggestionType)) {
+             return new Response('Invalid type', { status: 400 });
+        }
+
+        // Prioritize Groq for speed, fallback to Gemini
     const groq = createGroq({
         apiKey: process.env.GROQ_API_KEY,
     });
@@ -38,7 +66,7 @@ export async function POST(req: Request) {
       Input: "Jazz" -> Output: " Festival" (Jazz Festival)
       Input: "Food" -> Output: " market" (Food market)
       
-      Context (already selected events): ${context || 'none'}
+      Context (already selected events): ${safeContext || 'none'}
       Current Input: "${input}"
       Output only the completion suffix.`;
             break;
@@ -52,7 +80,7 @@ export async function POST(req: Request) {
       Input: "Crow" -> Output: "ds" (Crowds)
       Input: "Mosq" -> Output: "uitoes" (Mosquitoes)
       
-      Context (already selected exclusions): ${context || 'none'}
+      Context (already selected exclusions): ${safeContext || 'none'}
       Current Input: "${input}"
       Output only the completion suffix.`;
             break;
@@ -67,7 +95,7 @@ export async function POST(req: Request) {
       Input: "JF" -> Output: "K" (JFK)
       Input: "South East A" -> Output: "sia" (South East Asia)
       
-      Context (already selected locations): ${context || 'none'}
+      Context (already selected locations): ${safeContext || 'none'}
       Current Input: "${input}"
       Output only the completion suffix.`;
             break;
@@ -84,7 +112,7 @@ export async function POST(req: Request) {
       Input: "chi" -> Output: "ll" (chill)
       Input: "food" -> Output: "ie tour" (foodie tour)
       
-      Context (already selected vibes): ${context || 'none'}
+      Context (already selected vibes): ${safeContext || 'none'}
       Current Input: "${input}"
       Output only the completion suffix.`;
             break;
@@ -108,4 +136,11 @@ export async function POST(req: Request) {
             headers: { 'Content-Type': 'application/json' },
         });
     }
+} catch (error) {
+    console.error('Unexpected error in Suggestion API:', error);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+    });
+}
 }
