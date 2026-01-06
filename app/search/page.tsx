@@ -1,7 +1,7 @@
 'use client'
 
 import { SearchBar } from '@/components/user-input/SearchBar'
-import { InspirationChips } from '@/components/user-input/InspirationChips'
+import { InspirationChips } from '@/components/inspiration/InspirationChips'
 import { LeftSidebar } from '@/components/LeftSidebar'
 import { MobileNav } from '@/components/MobileNav'
 import { RecentSearchPanel } from '@/components/panels/RecentSearchPanel'
@@ -361,7 +361,7 @@ export default function Home() {
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
       />
-      <MobileNav activePage="inspire" hidePlanButton />
+      <MobileNav activePage="search" hidePlanButton />
       <RecentSearchPanel
         isOpen={activePanel === 'recent'}
         onClose={() => setActivePanel('none')}

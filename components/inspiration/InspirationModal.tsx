@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { X, Loader2, RefreshCw, Sparkles, ArrowLeft, ArrowRight, ArrowUp, Heart, Star, ThumbsDown } from "lucide-react"
-import { SwipeCard, InspirationCard, SwipeDirection } from "./SwipeCard"
+import { SwipeCard, InspirationCard, SwipeDirection } from "../SwipeCard"
 
 interface InspirationModalProps {
   isOpen: boolean

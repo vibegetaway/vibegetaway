@@ -5,7 +5,7 @@ import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X, Hear
 import { Header } from "@/components/Header"
 import { MobileNav } from "@/components/MobileNav"
 import { useTypingAnimation } from "@/hooks/useTypingAnimation"
-import { InspirationModal } from "@/components/InspirationModal"
+import { InspirationModal } from "@/components/inspiration/InspirationModal"
 import type { InspirationCard } from "@/components/SwipeCard"
 import { saveQuickstartToHistory, updateItineraryById, getItineraryById } from "@/lib/itineraryHistory"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -86,20 +86,20 @@ function QuickStartContent() {
       const savedItinerary = getItineraryById(id)
       if (savedItinerary && savedItinerary.generatedPlan.length > 0) {
         setSavedItineraryId(id)
-        
+
         const plan = savedItinerary.generatedPlan[0]
         setLocation(plan.location)
-        
+
         const itineraryName = savedItinerary.name
         const activityMatch = itineraryName.match(/^(.+) in /)
         if (activityMatch) {
           setActivity(activityMatch[1].toLowerCase())
         }
-        
+
         const loadedItinerary: Itinerary = {
           morning: {
             title: plan.morning.activity,
-            description: plan.morning.description.split(' ')[0] === plan.morning.activity 
+            description: plan.morning.description.split(' ')[0] === plan.morning.activity
               ? plan.morning.description.substring(plan.morning.activity.length).trim()
               : plan.morning.description,
             reason: '',
@@ -125,7 +125,7 @@ function QuickStartContent() {
             imageUrls: plan.evening.imageUrls
           }
         }
-        
+
         setItinerary(loadedItinerary)
         setIsFormCollapsed(true)
       }
@@ -296,13 +296,13 @@ function QuickStartContent() {
         midday: itineraryWithImages[1],
         evening: itineraryWithImages[2],
       }
-      
+
       setItinerary(newItinerary)
       setIsFormCollapsed(true)
 
       const itineraryId = saveQuickstartToHistory(newItinerary, activity, location)
       setSavedItineraryId(itineraryId)
-      
+
       if (itineraryId) {
         console.log('Trip automatically saved to history')
       }
@@ -369,7 +369,7 @@ function QuickStartContent() {
         midday: itineraryWithImages[1],
         evening: itineraryWithImages[2],
       }
-      
+
       setItinerary(newItinerary)
 
       if (savedItineraryId) {
@@ -429,7 +429,7 @@ function QuickStartContent() {
         ...itinerary,
         [slot]: newActivity,
       }
-      
+
       setItinerary(updatedItinerary)
 
       if (savedItineraryId) {
@@ -515,7 +515,7 @@ function QuickStartContent() {
         midday: itineraryWithImages[1],
         evening: itineraryWithImages[2],
       }
-      
+
       setItinerary(newItinerary)
 
       if (savedItineraryId) {
@@ -571,14 +571,14 @@ function QuickStartContent() {
         ...itinerary,
         [detailView.slot]: alternative,
       }
-      
+
       setItinerary(updatedItinerary)
-      
+
       if (savedItineraryId) {
         updateItineraryById(savedItineraryId, updatedItinerary, activity, location)
         console.log('Trip updated in history (alternative selected)')
       }
-      
+
       setDetailView(null)
       setAlternatives([])
     }
@@ -857,8 +857,8 @@ function QuickStartContent() {
                             <button
                               onClick={() => toggleLock(slot)}
                               className={`p-2 rounded-lg transition-all hover:scale-110 ${lockedSlots[slot]
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
                                 }`}
                               title={lockedSlots[slot] ? 'Unlock' : 'Lock'}
                             >

@@ -25,7 +25,7 @@ export default function ItinerariesPage() {
 
   const handleDeleteItinerary = (e: React.MouseEvent, itineraryId: string) => {
     e.stopPropagation()
-    
+
     if (confirm('Are you sure you want to delete this trip? This action cannot be undone.')) {
       deleteItineraryFromHistory(itineraryId)
       const updatedHistory = getItineraryHistory()
@@ -136,7 +136,7 @@ export default function ItinerariesPage() {
                       className="w-full text-left px-4 py-3 rounded-lg hover:bg-secondary/10 text-foreground hover:text-secondary transition-colors flex items-center gap-3"
                     >
                       <Sparkles className="w-5 h-5" />
-                      Inspire
+                      Search
                     </button>
                   </li>
                   <li>
@@ -241,10 +241,10 @@ export default function ItinerariesPage() {
                   </button>
                   <div className="relative h-48 overflow-hidden bg-muted">
                     {(() => {
-                      const firstImageUrl = itinerary.generatedPlan[0]?.morning?.imageUrl || 
-                                          itinerary.generatedPlan[0]?.midday?.imageUrl || 
-                                          itinerary.generatedPlan[0]?.evening?.imageUrl
-                      
+                      const firstImageUrl = itinerary.generatedPlan[0]?.morning?.imageUrl ||
+                        itinerary.generatedPlan[0]?.midday?.imageUrl ||
+                        itinerary.generatedPlan[0]?.evening?.imageUrl
+
                       return firstImageUrl ? (
                         <Image
                           src={firstImageUrl}

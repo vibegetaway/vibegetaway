@@ -5,7 +5,7 @@ import { Home, Sparkles, Plus, BookOpen } from "lucide-react"
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 
 interface MobileNavProps {
-  activePage?: 'home' | 'inspire' | 'plan' | 'itineraries'
+  activePage?: 'home' | 'search' | 'plan' | 'itineraries'
   hidePlanButton?: boolean
 }
 
@@ -20,37 +20,33 @@ export function MobileNav({ activePage, hidePlanButton = false }: MobileNavProps
         {/* Home */}
         <button
           onClick={() => router.push("/")}
-          className={`group flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 flex-1 ${
-            activePage === 'home'
-              ? 'bg-primary/20 text-primary'
-              : 'hover:bg-primary/15 active:bg-primary/20'
-          } active:scale-95`}
+          className={`group flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 flex-1 ${activePage === 'home'
+            ? 'bg-primary/20 text-primary'
+            : 'hover:bg-primary/15 active:bg-primary/20'
+            } active:scale-95`}
         >
-          <Home className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-            activePage === 'home' ? 'text-primary' : 'text-primary'
-          }`} />
+          <Home className={`w-5 h-5 transition-transform group-hover:scale-110 ${activePage === 'home' ? 'text-primary' : 'text-primary'
+            }`} />
           <span className="text-xs text-muted-foreground">Home</span>
         </button>
 
-        {/* Inspire */}
+        {/* Search */}
         <button
-          onClick={() => router.push("/explore")}
-          className={`group flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 flex-1 ${
-            activePage === 'inspire'
-              ? 'bg-secondary/20 text-secondary'
-              : 'hover:bg-secondary/15 active:bg-secondary/20'
-          } active:scale-95`}
+          onClick={() => router.push("/search")}
+          className={`group flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 flex-1 ${activePage === 'search'
+            ? 'bg-secondary/20 text-secondary'
+            : 'hover:bg-secondary/15 active:bg-secondary/20'
+            } active:scale-95`}
         >
-          <Sparkles className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-            activePage === 'inspire' ? 'text-secondary' : 'text-secondary'
-          }`} />
-          <span className="text-xs text-muted-foreground">Inspire</span>
+          <Sparkles className={`w-5 h-5 transition-transform group-hover:scale-110 ${activePage === 'search' ? 'text-secondary' : 'text-secondary'
+            }`} />
+          <span className="text-xs text-muted-foreground">Search</span>
         </button>
 
         {/* Create Day Trip - Elevated Center Button - Only shown on home page */}
         {!hidePlanButton && (
           <button
-            onClick={() => router.push("/quickstart")}
+            onClick={() => router.push("/plan")}
             className="flex flex-col items-center -mt-6 flex-1"
           >
             <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-primary to-secondary shadow-2xl flex items-center justify-center border-2 border-primary/40 active:scale-95 transition-transform hover:shadow-[0_0_30px_rgba(139,92,246,0.6)] hover:scale-105 ring-4 ring-primary/20">
@@ -63,15 +59,13 @@ export function MobileNav({ activePage, hidePlanButton = false }: MobileNavProps
         {/* Itineraries History */}
         <button
           onClick={() => router.push("/itineraries")}
-          className={`group flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 flex-1 ${
-            activePage === 'itineraries'
-              ? 'bg-accent/20 text-accent'
-              : 'hover:bg-accent/15 active:bg-accent/20'
-          } active:scale-95`}
+          className={`group flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 flex-1 ${activePage === 'itineraries'
+            ? 'bg-accent/20 text-accent'
+            : 'hover:bg-accent/15 active:bg-accent/20'
+            } active:scale-95`}
         >
-          <BookOpen className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-            activePage === 'itineraries' ? 'text-accent' : 'text-accent'
-          }`} />
+          <BookOpen className={`w-5 h-5 transition-transform group-hover:scale-110 ${activePage === 'itineraries' ? 'text-accent' : 'text-accent'
+            }`} />
           <span className="text-xs text-muted-foreground">Trips</span>
         </button>
 

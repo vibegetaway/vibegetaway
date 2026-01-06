@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 const isPublicRoute = createRouteMatcher([
   '/',
   '/explore(.*)',
+  '/search(.*)',
   '/plan(.*)',
   '/quickstart(.*)',
   '/api/suggestions(.*)',
@@ -18,13 +19,6 @@ const isPublicRoute = createRouteMatcher([
 ])
 
 export default clerkMiddleware(async (auth, request) => {
-  // Redirect /inspire to /explore
-  if (request.nextUrl.pathname.startsWith('/inspire')) {
-    const url = request.nextUrl.clone()
-    url.pathname = url.pathname.replace(/^\/inspire/, '/explore')
-    return NextResponse.redirect(url)
-  }
-
   if (!isPublicRoute(request)) {
     await auth.protect()
   }

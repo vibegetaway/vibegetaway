@@ -48,7 +48,7 @@ export function Header() {
                   </SignInButton>
                 )}
               </div>
-              
+
               <button
                 onClick={() => setShowMenu(!showMenu)}
                 className="p-2 hover:bg-muted rounded-lg transition-colors"
@@ -67,7 +67,7 @@ export function Header() {
 
       {showMenu && (
         <div className="fixed inset-0 z-50 md:z-[60]">
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowMenu(false)}
           />
@@ -82,7 +82,7 @@ export function Header() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <nav className="flex-1 overflow-y-auto p-6">
                 <ul className="space-y-2">
                   <li>
@@ -100,13 +100,13 @@ export function Header() {
                   <li>
                     <button
                       onClick={() => {
-                        router.push("/explore")
+                        router.push("/search")
                         setShowMenu(false)
                       }}
                       className="w-full text-left px-4 py-3 rounded-lg hover:bg-secondary/10 text-foreground hover:text-secondary transition-colors flex items-center gap-3"
                     >
                       <Sparkles className="w-5 h-5" />
-                      Inspire
+                      Search
                     </button>
                   </li>
                   <li>
@@ -161,7 +161,7 @@ export function Header() {
                   </div>
                 ) : (
                   <SignInButton mode="modal">
-                    <button 
+                    <button
                       onClick={() => setShowMenu(false)}
                       className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground py-3 rounded-xl font-semibold transition-all duration-200"
                     >

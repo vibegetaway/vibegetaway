@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useRouter } from "next/navigation"
-import { Map, Calendar, CalendarDays, Users, Sparkles, ArrowRight, Menu, X } from "lucide-react"
+import { Map, Calendar, CalendarDays, Users, Sparkles, ArrowRight, Menu, X, Globe } from "lucide-react"
 import { LockedBanner } from "@/components/LockedBanner"
 import { MobileNav } from "@/components/MobileNav"
 import { usePostHog } from "posthog-js/react"
@@ -78,10 +78,10 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
       {/* Background pattern */}
       <div
         className={`absolute inset-0 pointer-events-none ${backgroundPattern === 'world-map'
-            ? 'opacity-[0.15]'
-            : backgroundPattern === 'calendar'
-              ? 'opacity-[0.10]'
-              : 'opacity-[0.04]'
+          ? 'opacity-[0.15]'
+          : backgroundPattern === 'calendar'
+            ? 'opacity-[0.10]'
+            : 'opacity-[0.04]'
           }`}
         style={{
           backgroundImage: typeof bgPattern === 'string' && bgPattern.startsWith('/')
@@ -399,13 +399,13 @@ export default function Home() {
                   <li>
                     <button
                       onClick={() => {
-                        router.push("/explore")
+                        router.push("/search")
                         setShowMenu(false)
                       }}
                       className="w-full text-left px-4 py-3 rounded-lg hover:bg-secondary/10 text-foreground hover:text-secondary transition-colors flex items-center gap-3"
                     >
                       <Sparkles className="w-5 h-5" />
-                      Inspire
+                      Search
                     </button>
                   </li>
                   <li>
@@ -581,42 +581,32 @@ export default function Home() {
         )}
 
         <section className="space-y-8 sm:space-y-10 relative">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 max-w-7xl mx-auto">
             <OptionCard
-              title="Inspire"
+              title="Search"
               description="Find your next adventure with AI-powered destination recommendations"
               icon={<Map className="w-full h-full" />}
-              href="/explore"
+              href="/search"
               accentColor="chart-3"
               backgroundPattern="world-map"
             />
 
             <OptionCard
-              title="Day Trip"
-              description="Perfect for single day adventures"
-              icon={<Calendar className="w-full h-full" />}
-              href="/quickstart"
+              title="Explore"
+              description="Discover destinations on an interactive world map"
+              icon={<Globe className="w-full h-full" />}
+              href="/explore"
+              accentColor="primary"
+              backgroundPattern="world-map"
+            />
+
+            <OptionCard
+              title="Plan My Trip"
+              description="Create your perfect adventure"
+              icon={<Sparkles className="w-full h-full" />}
+              href="/plan"
               accentColor="secondary"
               backgroundPattern="calendar"
-            />
-
-            <OptionCard
-              title="Multi-Day"
-              description="Extended journeys and vacations"
-              icon={<CalendarDays className="w-full h-full" />}
-              href="/plan"
-              accentColor="primary"
-              backgroundPattern="calendar"
-            />
-
-            <OptionCard
-              title="Group Trip"
-              description="Coordinate with friends and family"
-              icon={<Users className="w-full h-full" />}
-              href="/plan-group"
-              locked={true}
-              accentColor="chart-3"
-              backgroundPattern="group"
             />
           </div>
         </section>
