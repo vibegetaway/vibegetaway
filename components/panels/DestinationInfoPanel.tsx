@@ -1,42 +1,21 @@
 'use client'
 
 import { X, ArrowRight, CalendarPlus, CalendarCheck } from 'lucide-react'
-import type { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/types/location'
 import { getCountryName } from '@/lib/countryCodeMapping'
-import type { UnsplashImage } from '@/app/api/unsplash-images/types'
+import type { UnsplashImage } from '@/types/image'
 import type { SimplifiedFlight } from '@/lib/getRapidApiFlights'
 import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useEffect, useState } from 'react'
+import { formatDuration, formatDateTime, formatDate } from '@/lib/dateUtils'
 
 interface DestinationInfoPanelProps {
   destination: Destination | null
   isOpen: boolean
   onClose: () => void
   isSidebarOpen?: boolean
-}
-
-// Helper to format duration from minutes to "Xh Ym" format
-function formatDuration(minutes: number): string {
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  return `${hours}h ${mins}m`
-}
-
-// Helper to format date/time from ISO string
-function formatDateTime(isoString: string): string {
-  const date = new Date(isoString)
-  const hours = date.getHours().toString().padStart(2, '0')
-  const mins = date.getMinutes().toString().padStart(2, '0')
-  return `${hours}:${mins}`
-}
-
-// Helper to format date from ISO string (e.g., "Mon, Dec 10")
-function formatDate(isoString: string): string {
-  const date = new Date(isoString)
-  const options: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' }
-  return date.toLocaleDateString('en-US', options)
 }
 
 export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOpen = false }: DestinationInfoPanelProps) {

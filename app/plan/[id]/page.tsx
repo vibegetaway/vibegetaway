@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ChevronDown, ChevronUp, ArrowLeft, Sun, Cloud, Moon, MapPin, Sparkles } from 'lucide-react'
 import { getItineraryById, type DayBreakdown } from '@/lib/itineraryHistory'
-import type { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/types/location'
 
 export default function ViewItineraryPage() {
   const router = useRouter()

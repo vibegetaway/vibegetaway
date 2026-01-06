@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { generateText } from 'ai'
+import { stripMarkdownFences } from '@/lib/utils'
 
 export const maxDuration = 30
 
@@ -20,13 +21,6 @@ interface TimeSlotActivity {
   title: string
   description: string
   reason: string
-}
-
-function stripMarkdownFences(text: string): string {
-  let cleaned = text.trim()
-  cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  cleaned = cleaned.replace(/\n?```$/, '')
-  return cleaned.trim()
 }
 
 const SYSTEM_PROMPT = `You are an expert single-day itinerary planner. Create realistic activity recommendations for a full day (morning, midday, evening) based on a user's desired activity and location.
