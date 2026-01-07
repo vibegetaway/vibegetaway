@@ -1,15 +1,36 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText } from 'ai';
+import { ALLOWED_SUGGESTION_TYPES, MAX_SUGGESTION_CONTEXT_LENGTH, MAX_SUGGESTION_INPUT_LENGTH } from '@/lib/constants';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-    const { input, context, type = 'vibe' } = await req.json();
+    let body;
+    try {
+        body = await req.json();
+    } catch {
+        return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
 
+    const { input, context, type = 'vibe' } = body;
+
+    // Security: Input validation
     if (!input || typeof input !== 'string') {
-        return new Response('Input is required', { status: 400 });
+        return new Response(JSON.stringify({ error: 'Input is required and must be a string' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (input.length > MAX_SUGGESTION_INPUT_LENGTH) {
+        return new Response(JSON.stringify({ error: 'Input too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (context && typeof context === 'string' && context.length > MAX_SUGGESTION_CONTEXT_LENGTH) {
+        return new Response(JSON.stringify({ error: 'Context too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (!ALLOWED_SUGGESTION_TYPES.includes(type)) {
+        return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
     // Prioritize Groq for speed, fallback to Gemini
@@ -72,7 +93,6 @@ export async function POST(req: Request) {
       Output only the completion suffix.`;
             break;
         case 'vibe':
-        default:
             systemPrompt = `You are a fast autocomplete engine for travel vibes. 
       User is typing a "vibe" for their trip.
       Complete their input with a single word or short phrase.
