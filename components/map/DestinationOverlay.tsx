@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import type { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/types/destination'
 import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'

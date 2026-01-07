@@ -11,7 +11,7 @@ import { saveItineraryToHistory, getItineraryById, getItineraryHistory, deleteIt
 import type { DayBreakdown } from "@/lib/itineraryHistory"
 import { useRouter, useSearchParams } from "next/navigation"
 import dynamic from 'next/dynamic'
-import type { Destination } from "@/lib/generateDestinationInfo"
+import type { Destination } from "@/types/destination"
 
 const TripMap = dynamic(() => import('@/components/TripMap'), { ssr: false })
 
