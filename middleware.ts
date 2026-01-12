@@ -13,6 +13,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/plan-trip(.*)',
   '/api/quickstart-itinerary(.*)',
   '/api/unsplash-images(.*)',
+  '/api/pixabay-images(.*)',
+  '/api/inspiration-cards(.*)',
   '/api/city-search(.*)',
   '/api/locations(.*)',
   '/api/cached-images(.*)',
