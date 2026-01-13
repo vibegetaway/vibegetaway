@@ -6,19 +6,7 @@ import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
 import { Search, X, Loader2 } from 'lucide-react'
-
-interface Location {
-  location: string      // City/area
-  spot: string         // Specific landmark
-  country: string
-  latitude: number
-  longitude: number
-  description: string
-  price_class: string
-  prominence_score: number
-  reddit_source_urls: string[]
-  image_url: string
-}
+import { Location } from '../../types/location'
 
 interface ExploreMapProps {
   className?: string

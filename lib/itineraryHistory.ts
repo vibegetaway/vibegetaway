@@ -1,6 +1,6 @@
 'use client'
 
-import type { Destination } from './generateDestinationInfo'
+import type { Destination } from '@/types/destination'
 
 export interface DayActivity {
   activity: string
