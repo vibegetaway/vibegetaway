@@ -22,6 +22,9 @@ interface Location {
 
 interface ExploreMapProps {
   className?: string
+  origin?: string
+  destinations?: string[]
+  budget?: number
 }
 
 interface LocationProperties {
@@ -82,7 +85,7 @@ const createCircularPin = (imageUrl: string, locationName: string, prominenceSco
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     ">⭐</div>
   ` : ''
-  
+
   return L.divIcon({
     className: 'custom-circular-marker',
     html: `
@@ -124,7 +127,7 @@ const createClusterPin = (imageUrl: string, locationName: string, count: number,
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     ">⭐</div>
   ` : ''
-  
+
   return L.divIcon({
     className: 'custom-circular-marker',
     html: `
@@ -147,11 +150,11 @@ const createClusterPin = (imageUrl: string, locationName: string, count: number,
   })
 }
 
-function MapController({ 
-  locations, 
+function MapController({
+  locations,
   onMarkerClick,
   searchBounds
-}: { 
+}: {
   locations: Location[]
   onMarkerClick: (items: DrawerItem[], isCluster: boolean) => void
   searchBounds: L.LatLngBounds | null
@@ -171,16 +174,16 @@ function MapController({
     const updateBounds = () => {
       const newBounds = map.getBounds()
       const newZoom = map.getZoom()
-      
+
       // Only update if bounds or zoom actually changed
       setBounds(prevBounds => {
-        if (!prevBounds || 
-            !prevBounds.equals(newBounds)) {
+        if (!prevBounds ||
+          !prevBounds.equals(newBounds)) {
           return newBounds
         }
         return prevBounds
       })
-      
+
       setZoom(prevZoom => {
         if (prevZoom !== newZoom) {
           return newZoom
@@ -254,7 +257,7 @@ function MapController({
         // Get all points in this cluster
         const clusterId = cluster.id as number
         const points = supercluster.getLeaves(clusterId, Infinity)
-        
+
         // Find the point with highest prominence_score
         const topLocation = points.reduce((max: any, point: any) => {
           return point.properties.prominence_score > max.properties.prominence_score ? point : max
@@ -344,7 +347,7 @@ function MapController({
   )
 }
 
-export default function ExploreMap({ className }: ExploreMapProps) {
+export default function ExploreMap({ className, origin, destinations, budget }: ExploreMapProps) {
   const [locations, setLocations] = useState<Location[]>([])
   const [isClient, setIsClient] = useState(false)
   const [drawerItems, setDrawerItems] = useState<DrawerItem[]>([])
@@ -355,7 +358,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   const [dragStart, setDragStart] = useState<number | null>(null)
   const [dragOffset, setDragOffset] = useState(0)
   const [canDragDrawer, setCanDragDrawer] = useState(false)
-  
+
   // Search state
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchFocused, setIsSearchFocused] = useState(false)
@@ -371,15 +374,15 @@ export default function ExploreMap({ className }: ExploreMapProps) {
   // Handle search submit (Enter key)
   const handleSearchSubmit = async () => {
     const query = searchQuery
-    
+
     if (!query.trim()) return
-    
+
     // Mark search as active to disable viewport fetching
     setIsSearchActive(true)
-    
+
     // Remove search focus immediately so map appears while loading
     setIsSearchFocused(false)
-    
+
     // Fetch locations from backend with the search query (ignores viewport)
     await fetchLocations(query)
   }
@@ -400,20 +403,17 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     }
   }
 
-  // Fetch locations from API (search query only, no viewport filtering)
   const fetchLocations = async (query: string = '') => {
     try {
       setIsLoading(true)
       setLoadingProgress(0)
-      
+
       if (!query.trim()) {
-        // No query means no search - just clear locations
         setLocations([])
         setIsLoading(false)
         return
       }
-      
-      // Start progress simulation - 30 second duration
+
       const stages = [
         { progress: 15, message: 'Searching our sources...', duration: 5000 },
         { progress: 35, message: 'Analyzing travel discussions...', duration: 8000 },
@@ -421,21 +421,18 @@ export default function ExploreMap({ className }: ExploreMapProps) {
         { progress: 80, message: 'Gathering location details...', duration: 5000 },
         { progress: 95, message: 'Almost there...', duration: 2000 }
       ]
-      
+
       let currentStageIndex = 0
       setLoadingStage(stages[0].message)
-      
-      // Clear any existing interval
+
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current)
       }
-      
-      // Smoothly animate progress
+
       const startTime = Date.now()
       progressIntervalRef.current = setInterval(() => {
         const elapsed = Date.now() - startTime
-        
-        // Find current stage based on elapsed time
+
         let cumulativeTime = 0
         for (let i = 0; i < stages.length; i++) {
           cumulativeTime += stages[i].duration
@@ -444,36 +441,37 @@ export default function ExploreMap({ className }: ExploreMapProps) {
               currentStageIndex = i
               setLoadingStage(stages[i].message)
             }
-            
-            // Interpolate progress within current stage
+
             const stageStart = cumulativeTime - stages[i].duration
             const stageProgress = (elapsed - stageStart) / stages[i].duration
             const prevProgress = i > 0 ? stages[i - 1].progress : 0
             const targetProgress = stages[i].progress
             const interpolatedProgress = prevProgress + (targetProgress - prevProgress) * stageProgress
-            
+
             setLoadingProgress(Math.min(interpolatedProgress, 95))
             break
           }
         }
-        
-        // Cap at 95% until actual response
+
         if (elapsed >= 30000) {
           setLoadingProgress(95)
           setLoadingStage('Almost there...')
         }
       }, 100)
-      
-      const url = `/api/locations?q=${encodeURIComponent(query)}`
-      
+
+      const params = new URLSearchParams({ q: query })
+      if (origin) params.append('origin', origin)
+      if (destinations && destinations.length > 0) params.append('destinations', destinations.join(','))
+      if (budget && budget !== 2000) params.append('budget', budget.toString())
+
+      const url = `/api/locations?${params.toString()}`
+
       const response = await fetch(url)
       const data = await response.json()
-      
-      // Complete the progress
+
       setLoadingProgress(100)
       setLoadingStage('Complete!')
-      
-      // Small delay to show 100% before hiding
+
       setTimeout(() => {
         setLocations(data.locations || [])
         setIsLoading(false)
@@ -481,7 +479,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           clearInterval(progressIntervalRef.current)
         }
       }, 300)
-      
+
     } catch (error) {
       console.error('Error loading locations:', error)
       setIsLoading(false)
@@ -496,19 +494,19 @@ export default function ExploreMap({ className }: ExploreMapProps) {
     if (isSearchActive && locations.length > 0) {
       const lats = locations.map(loc => loc.latitude)
       const lngs = locations.map(loc => loc.longitude)
-      
+
       const bounds = L.latLngBounds(
         [Math.min(...lats), Math.min(...lngs)],
         [Math.max(...lats), Math.max(...lngs)]
       )
-      
+
       setSearchBounds(bounds)
     }
   }, [locations, isSearchActive])
 
   useEffect(() => {
     setIsClient(true)
-    
+
     // Cleanup progress interval on unmount
     return () => {
       if (progressIntervalRef.current) {
@@ -524,7 +522,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
       document.body.style.overflow = 'hidden'
       // Prevent pull-to-refresh on mobile
       document.body.style.overscrollBehavior = 'none'
-      
+
       return () => {
         document.body.style.overflow = ''
         document.body.style.overscrollBehavior = ''
@@ -557,7 +555,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
       const startY = e.touches[0].clientY
       localDragStart = startY
       setDragStart(startY)
-      
+
       // Check if content is at the top
       const content = contentRef.current
       if (content) {
@@ -569,14 +567,14 @@ export default function ExploreMap({ className }: ExploreMapProps) {
 
     const handleTouchMove = (e: TouchEvent) => {
       if (localDragStart === null) return
-      
+
       const currentY = e.touches[0].clientY
       const diff = currentY - localDragStart
-      
+
       // Check if content is at top
       const content = contentRef.current
       const isAtTop = content ? content.scrollTop === 0 : false
-      
+
       // Only allow dragging the drawer down if:
       // 1. User is swiping down (diff > 0)
       // 2. Content was at top when touch started (localCanDragDrawer)
@@ -631,7 +629,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
         <div className="relative">
           {/* Shadow layer - matches search bar dimensions only */}
           <div className="absolute top-0 left-0 right-0 h-12 z-[1] rounded-xl shadow-lg pointer-events-none" />
-          
+
           <div className="relative z-[20]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
             <input
@@ -664,7 +662,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
               </button>
             )}
           </div>
-          
+
           {/* Loading Progress - above shadow, below search bar */}
           {isLoading && (
             <div className="relative z-[10] -mt-3 mx-auto w-[calc(100%-16px)] bg-white/95 backdrop-blur-sm rounded-b-lg shadow-md px-4 pt-4 pb-2.5 border-l border-r border-b border-gray-200">
@@ -673,7 +671,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
                 <div className="flex flex-col gap-1 flex-1">
                   <p className="text-xs text-gray-600">{loadingStage}</p>
                   <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-violet-500 rounded-full transition-all duration-300 ease-out"
                       style={{ width: `${loadingProgress}%` }}
                     />
@@ -687,7 +685,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
 
       {/* Overlay to hide map when search is focused */}
       {isSearchFocused && (
-        <div 
+        <div
           className="absolute inset-0 bg-gray-100 z-[999]"
           onClick={() => setIsSearchFocused(false)}
         />
@@ -761,7 +759,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           white-space: nowrap;
         }
       `}</style>
-      
+
       <MapContainer
         center={[20, 0]}
         zoom={2}
@@ -779,9 +777,9 @@ export default function ExploreMap({ className }: ExploreMapProps) {
           subdomains="abcd"
           maxZoom={20}
         />
-        
-        <MapController 
-          locations={locations} 
+
+        <MapController
+          locations={locations}
           onMarkerClick={handleMarkerClick}
           searchBounds={searchBounds}
         />
@@ -791,14 +789,14 @@ export default function ExploreMap({ className }: ExploreMapProps) {
       {isDrawerOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/40 z-[9998] transition-opacity"
             onClick={closeDrawer}
-            style={{ 
-              opacity: dragOffset > 0 ? Math.max(0, 1 - dragOffset / 300) : 1 
+            style={{
+              opacity: dragOffset > 0 ? Math.max(0, 1 - dragOffset / 300) : 1
             }}
           />
-          
+
           {/* Drawer */}
           <div
             ref={drawerRef}
@@ -810,7 +808,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
             }}
           >
             {/* Handle bar */}
-            <div 
+            <div
               className="pt-3 pb-2 flex justify-center"
             >
               <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
@@ -819,8 +817,8 @@ export default function ExploreMap({ className }: ExploreMapProps) {
             {/* Header */}
             <div className="px-5 pb-3 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900">
-                {isClusterView 
-                  ? `${drawerItems.length} Places` 
+                {isClusterView
+                  ? `${drawerItems.length} Places`
                   : drawerItems[0]?.spot
                 }
               </h2>
@@ -832,21 +830,21 @@ export default function ExploreMap({ className }: ExploreMapProps) {
             </div>
 
             {/* Content */}
-            <div 
+            <div
               ref={contentRef}
               className="flex-1 overflow-y-auto"
               style={{ overscrollBehavior: 'contain' }}
             >
               {drawerItems.map((item, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="border-b border-gray-100 last:border-b-0"
                 >
                   <div className="p-4 flex gap-3">
                     {/* Image */}
                     <div className="flex-shrink-0">
-                      <img 
-                        src={item.image_url} 
+                      <img
+                        src={item.image_url}
                         alt={item.spot}
                         className="w-24 h-24 object-cover rounded-lg"
                       />
@@ -870,7 +868,7 @@ export default function ExploreMap({ className }: ExploreMapProps) {
                             const fullStars = Math.floor(rating)
                             const hasHalfStar = rating % 1 !== 0
                             const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0)
-                            
+
                             return (
                               <>
                                 {'★'.repeat(fullStars)}

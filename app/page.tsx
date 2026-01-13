@@ -2,8 +2,7 @@
 
 import type React from "react"
 import { useRouter } from "next/navigation"
-import { Map, Calendar, CalendarDays, Users, Sparkles, ArrowRight, Menu, X, Globe } from "lucide-react"
-import { LockedBanner } from "@/components/LockedBanner"
+import { Sparkles, Menu, X, Globe, Home as HomeIcon, Calendar } from "lucide-react"
 import { MobileNav } from "@/components/MobileNav"
 import { usePostHog } from "posthog-js/react"
 import Image from "next/image"
@@ -93,8 +92,6 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
         }}
       />
 
-      {locked && <LockedBanner />}
-
       <div className="relative z-10 flex flex-col space-y-4">
         <div
           className={`
@@ -136,82 +133,7 @@ function OptionCard({ title, description, icon, href, locked = false, accentColo
   )
 }
 
-interface ItineraryCardProps {
-  destination: string
-  date: string
-  image: string
-  type: string
-  keywords?: string
-}
 
-function ItineraryCard({ destination, date, image, type, keywords }: ItineraryCardProps) {
-  const [imageUrl, setImageUrl] = useState<string>(image)
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (keywords) {
-      setLoading(true)
-      fetch(`/api/pixabay-images?keywords=${encodeURIComponent(keywords)}&single=true&size=regular`)
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`)
-          }
-          return res.json()
-        })
-        .then(data => {
-          if (data.url) {
-            setImageUrl(data.url)
-          }
-        })
-        .catch(err => {
-          console.error('Error fetching image:', err)
-        })
-        .finally(() => {
-          setLoading(false)
-        })
-    }
-  }, [keywords])
-
-  // Extract destination name without emoji for fallback
-  const destinationName = destination.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim()
-
-  return (
-    <div className="group cursor-pointer bg-card backdrop-blur-sm rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 border border-border/50">
-      <div className="relative h-48 sm:h-56 overflow-hidden bg-muted">
-        {loading ? (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <Image
-            src={imageUrl}
-            alt={destination}
-            width={400}
-            height={224}
-            className="object-cover w-full h-full group-hover:scale-105 transition-all duration-500"
-            onError={() => {
-              // Fallback to placeholder if image fails to load
-              setImageUrl("/assets/branding/banner.png")
-            }}
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/95 via-foreground/30 to-transparent" />
-        <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-card/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-border/50 shadow-sm">
-          <span className="text-xs font-semibold text-card-foreground">{type}</span>
-        </div>
-        <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
-          <h3 className="text-lg sm:text-xl font-bold text-background mb-1 text-balance drop-shadow-lg">{destination}</h3>
-          <p className="text-sm text-background/90 drop-shadow">{date}</p>
-        </div>
-      </div>
-      <div className="p-4 sm:p-5">
-        <button className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground text-sm font-semibold py-2.5 sm:py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow">
-          View Itinerary
-        </button>
-      </div>
-    </div>
-  )
-}
 
 export default function Home() {
   const router = useRouter()
@@ -275,32 +197,7 @@ export default function Home() {
     }
   }
 
-  const previousItineraries = [
-    {
-      id: 1,
-      destination: "Paris, France 🇫🇷",
-      date: "December 15-18, 2024",
-      image: "/assets/branding/banner.png",
-      type: "3 Days",
-      keywords: "paris france eiffel tower",
-    },
-    {
-      id: 2,
-      destination: "Tokyo, Japan 🇯🇵",
-      date: "November 28 - Dec 5, 2024",
-      image: "/assets/branding/banner.png",
-      type: "7 Days",
-      keywords: "tokyo japan shibuya",
-    },
-    {
-      id: 3,
-      destination: "Barcelona, Spain 🇪🇸",
-      date: "October 10, 2024",
-      image: "/assets/branding/banner.png",
-      type: "1 Day",
-      keywords: "barcelona spain sagrada familia",
-    },
-  ]
+
 
   return (
     <main className="min-h-screen bg-background relative overflow-hidden">
@@ -392,20 +289,20 @@ export default function Home() {
                       }}
                       className="w-full text-left px-4 py-3 rounded-lg hover:bg-primary/10 text-foreground hover:text-primary transition-colors flex items-center gap-3"
                     >
-                      <Map className="w-5 h-5" />
+                      <HomeIcon className="w-5 h-5" />
                       Home
                     </button>
                   </li>
                   <li>
                     <button
                       onClick={() => {
-                        router.push("/search")
+                        router.push("/explore")
                         setShowMenu(false)
                       }}
                       className="w-full text-left px-4 py-3 rounded-lg hover:bg-secondary/10 text-foreground hover:text-secondary transition-colors flex items-center gap-3"
                     >
-                      <Sparkles className="w-5 h-5" />
-                      Search
+                      <Globe className="w-5 h-5" />
+                      Explorer
                     </button>
                   </li>
                   <li>
@@ -476,7 +373,7 @@ export default function Home() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 space-y-12 sm:space-y-16 lg:space-y-20 pb-24 md:pb-16 relative z-10">
         {/* Hero Section */}
-        <section className="text-center py-8 sm:py-12 lg:py-16 space-y-6">
+        <section className="text-center py-6 sm:py-8 lg:py-10 space-y-4">
           <div className="space-y-4">
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
               <span className="text-foreground">Plan your perfect</span>
@@ -580,20 +477,11 @@ export default function Home() {
           </div>
         )}
 
-        <section className="space-y-8 sm:space-y-10 relative">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 max-w-7xl mx-auto">
+        <section className="space-y-6 relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
             <OptionCard
-              title="Search"
-              description="Find your next adventure with AI-powered destination recommendations"
-              icon={<Map className="w-full h-full" />}
-              href="/search"
-              accentColor="chart-3"
-              backgroundPattern="world-map"
-            />
-
-            <OptionCard
-              title="Explore"
-              description="Discover destinations on an interactive world map"
+              title="Explorer"
+              description="Discover destinations on an interactive world map with curated locations from around the globe"
               icon={<Globe className="w-full h-full" />}
               href="/explore"
               accentColor="primary"
@@ -602,7 +490,7 @@ export default function Home() {
 
             <OptionCard
               title="Plan My Trip"
-              description="Create your perfect adventure"
+              description="Create your perfect adventure with AI-powered itineraries tailored to your travel style"
               icon={<Sparkles className="w-full h-full" />}
               href="/plan"
               accentColor="secondary"
@@ -611,31 +499,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="space-y-8 sm:space-y-10 relative">
-          <div className="px-4 sm:px-0">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-2">
-              <div className="inline-block">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Travel Plans</h2>
-                  <button className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 hover:gap-3">
-                    View All
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-transparent rounded-full mt-2" />
-              </div>
-            </div>
-            <p className="text-sm sm:text-base text-muted-foreground">Your recently planned adventures</p>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto">
-            {previousItineraries.map((itinerary) => (
-              <ItineraryCard key={itinerary.id} {...itinerary} />
-            ))}
-          </div>
-        </section>
       </div>
 
       <MobileNav activePage="home" />

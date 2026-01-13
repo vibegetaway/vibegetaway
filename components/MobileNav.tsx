@@ -5,7 +5,7 @@ import { Home, Sparkles, Plus, BookOpen } from "lucide-react"
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 
 interface MobileNavProps {
-  activePage?: 'home' | 'search' | 'plan' | 'itineraries'
+  activePage?: 'home' | 'search' | 'plan' | 'itineraries' | 'explore'
   hidePlanButton?: boolean
 }
 

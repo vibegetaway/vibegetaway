@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { CalendarDays, ArrowLeft, Lock, Sparkles } from 'lucide-react'
-import { LockedBanner } from '@/components/LockedBanner'
 
 export default function PlanMultiday() {
     const router = useRouter()
@@ -10,8 +9,6 @@ export default function PlanMultiday() {
     return (
         <main className="min-h-screen bg-gradient-to-br from-pink-900 via-rose-900 to-purple-900 flex items-center justify-center p-4">
             <div className="relative max-w-2xl w-full bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 md:p-12">
-                <LockedBanner />
-
                 <div className="flex flex-col items-center text-center space-y-6">
                     <div className="p-6 rounded-full bg-white/20 backdrop-blur-sm">
                         <CalendarDays className="w-16 h-16 md:w-20 md:h-20 text-white" />
