@@ -257,4 +257,3 @@ Return JSON in this exact format:
     )
   }
 }
-

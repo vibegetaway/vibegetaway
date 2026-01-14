@@ -3,7 +3,7 @@
 import { X, ArrowRight, CalendarPlus, CalendarCheck } from 'lucide-react'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
-import type { UnsplashImage } from '@/app/api/unsplash-images/types'
+import type { UnsplashImage } from '@/app/api/images/unsplash-images/types'
 import type { SimplifiedFlight } from '@/lib/getRapidApiFlights'
 import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
@@ -53,7 +53,7 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
         setLoadingImages(true)
         try {
           const response = await fetch(
-            `/api/unsplash-images?keywords=${encodeURIComponent(destination.imagesKeywords.gallery)}&limit=10`
+            `/api/images/unsplash-images?keywords=${encodeURIComponent(destination.imagesKeywords.gallery)}&limit=10`
           )
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`)
@@ -76,7 +76,7 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
         setLoadingCover(true)
         try {
           const response = await fetch(
-            `/api/unsplash-images?keywords=${encodeURIComponent(destination.imagesKeywords.cover)}&limit=1`
+            `/api/images/unsplash-images?keywords=${encodeURIComponent(destination.imagesKeywords.cover)}&limit=1`
           )
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`)

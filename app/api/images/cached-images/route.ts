@@ -105,4 +105,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/assets/icon-512.png', request.url))
   }
 }
-

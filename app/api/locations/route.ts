@@ -12,7 +12,7 @@ async function fetchPixabayImage(spot: string, location: string): Promise<string
     
     // Route through caching proxy which uses keywords as cache key
     // This ensures consistent caching even if Pixabay URLs expire
-    const proxiedUrl = `/api/cached-images?keywords=${encodeURIComponent(keywords)}`
+    const proxiedUrl = `/api/images/cached-images?keywords=${encodeURIComponent(keywords)}`
     return proxiedUrl
   } catch (error) {
     console.error(`Error generating cached image URL for ${spot}:`, error)

@@ -255,7 +255,7 @@ function QuickStartContent() {
 
     setIsGenerating(true)
     try {
-      const response = await fetch("/api/quickstart-itinerary", {
+      const response = await fetch("/api/planning/quickstart-itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ activity, location }),
@@ -273,7 +273,7 @@ function QuickStartContent() {
           const activity = itineraryData[slot]
           try {
             const imageResponse = await fetch(
-              `/api/pixabay-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&limit=4`
+              `/api/images/pixabay-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&limit=4`
             )
             if (imageResponse.ok) {
               const imageData = await imageResponse.json()
@@ -319,7 +319,7 @@ function QuickStartContent() {
 
     setIsGenerating(true)
     try {
-      const response = await fetch("/api/quickstart-itinerary", {
+      const response = await fetch("/api/planning/quickstart-itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -346,7 +346,7 @@ function QuickStartContent() {
           if (activity.imageUrl) return activity
           try {
             const imageResponse = await fetch(
-              `/api/pixabay-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&limit=4`
+              `/api/images/pixabay-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&limit=4`
             )
             if (imageResponse.ok) {
               const imageData = await imageResponse.json()
@@ -393,7 +393,7 @@ function QuickStartContent() {
 
     setRegeneratingSlot(slot)
     try {
-      const response = await fetch("/api/quickstart-itinerary", {
+      const response = await fetch("/api/planning/quickstart-itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -413,7 +413,7 @@ function QuickStartContent() {
 
       try {
         const imageResponse = await fetch(
-          `/api/pixabay-images?keywords=${encodeURIComponent(`${newActivity.title} ${location}`)}&limit=4`
+          `/api/images/pixabay-images?keywords=${encodeURIComponent(`${newActivity.title} ${location}`)}&limit=4`
         )
         if (imageResponse.ok) {
           const imageData = await imageResponse.json()
@@ -465,7 +465,7 @@ function QuickStartContent() {
         ? `${activity} (User preferences: ${preferenceContext})`
         : activity
 
-      const response = await fetch("/api/quickstart-itinerary", {
+      const response = await fetch("/api/planning/quickstart-itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -492,7 +492,7 @@ function QuickStartContent() {
           if (activity.imageUrl) return activity
           try {
             const imageResponse = await fetch(
-              `/api/pixabay-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&limit=4`
+              `/api/images/pixabay-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&limit=4`
             )
             if (imageResponse.ok) {
               const imageData = await imageResponse.json()
@@ -539,7 +539,7 @@ function QuickStartContent() {
     setLoadingAlternatives(true)
 
     try {
-      const response = await fetch("/api/quickstart-itinerary", {
+      const response = await fetch("/api/planning/quickstart-itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

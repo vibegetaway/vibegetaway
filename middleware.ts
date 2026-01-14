@@ -9,15 +9,16 @@ const isPublicRoute = createRouteMatcher([
   '/quickstart(.*)',
   '/api/suggestions(.*)',
   '/api/generate-itinerary(.*)',
-  '/api/generate-itinerary-name(.*)',
-  '/api/plan-trip(.*)',
-  '/api/quickstart-itinerary(.*)',
-  '/api/unsplash-images(.*)',
-  '/api/pixabay-images(.*)',
+  '/api/planning/generate-itinerary-name(.*)',
+  '/api/planning/plan-trip(.*)',
+  '/api/planning/quickstart-itinerary(.*)',
+  '/api/images/unsplash-images(.*)',
+  '/api/images/pixabay-images(.*)',
+  '/api/images/cached-images(.*)',
   '/api/inspiration-cards(.*)',
   '/api/city-search(.*)',
   '/api/locations(.*)',
-  '/api/cached-images(.*)',
+  '/api/explore/search(.*)',
 ])
 
 export default clerkMiddleware(async (auth, request) => {

@@ -384,7 +384,7 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
     setIsSearchFocused(false)
 
     // Fetch locations from backend with the search query (ignores viewport)
-    await fetchLocations(query)
+    await streamExploreSearch(query)
   }
 
   // Clear search
@@ -403,89 +403,96 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
     }
   }
 
-  const fetchLocations = async (query: string = '') => {
-    try {
-      setIsLoading(true)
-      setLoadingProgress(0)
+  const streamExploreSearch = async (query: string = '') => {
+    if (!query.trim()) {
+      setLocations([])
+      setIsLoading(false)
+      return
+    }
 
-      if (!query.trim()) {
-        setLocations([])
+    setIsLoading(true)
+    setLoadingProgress(0)
+    setLoadingStage('Connecting to search...')
+    setLocations([])
+
+    const params = new URLSearchParams({ q: query })
+    if (origin) params.append('origin', origin)
+    if (destinations && destinations.length > 0) params.append('destinations', destinations.join(','))
+    if (budget && budget !== 2000) params.append('budget', budget.toString())
+
+    const url = `/api/explore/search?${params.toString()}`
+
+    try {
+      const response = await fetch(url)
+      const reader = response.body?.getReader()
+      if (!reader) {
         setIsLoading(false)
         return
       }
 
-      const stages = [
-        { progress: 15, message: 'Searching our sources...', duration: 5000 },
-        { progress: 35, message: 'Analyzing travel discussions...', duration: 8000 },
-        { progress: 60, message: 'Finding the best destinations...', duration: 10000 },
-        { progress: 80, message: 'Gathering location details...', duration: 5000 },
-        { progress: 95, message: 'Almost there...', duration: 2000 }
-      ]
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let locationCount = 0
 
-      let currentStageIndex = 0
-      setLoadingStage(stages[0].message)
+      setLoadingStage('Searching Reddit discussions...')
 
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current)
-      }
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
 
-      const startTime = Date.now()
-      progressIntervalRef.current = setInterval(() => {
-        const elapsed = Date.now() - startTime
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
 
-        let cumulativeTime = 0
-        for (let i = 0; i < stages.length; i++) {
-          cumulativeTime += stages[i].duration
-          if (elapsed < cumulativeTime) {
-            if (i !== currentStageIndex) {
-              currentStageIndex = i
-              setLoadingStage(stages[i].message)
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+
+          const data = line.slice(6).trim()
+          if (!data) continue
+
+          try {
+            const event = JSON.parse(data)
+
+            if (event.type === 'location' && event.data) {
+              const loc = event.data
+              const imageUrl = `/api/images/cached-images?keywords=${encodeURIComponent(`${loc.spot} ${loc.location}`)}`
+
+              const location: Location = {
+                location: loc.location || '',
+                spot: loc.spot || '',
+                country: loc.country || '',
+                latitude: loc.latitude || 0,
+                longitude: loc.longitude || 0,
+                description: loc.description || '',
+                price_class: loc.price_class || '$$',
+                prominence_score: loc.prominence_score || 5,
+                reddit_source_urls: loc.reddit_source_urls || [],
+                image_url: imageUrl
+              }
+
+              locationCount++
+              setLocations(prev => [...prev, location])
+              setLoadingProgress(Math.min(90, locationCount * 6))
+              setLoadingStage(`Found ${locationCount} destination${locationCount > 1 ? 's' : ''}...`)
+            } else if (event.type === 'complete') {
+              setLoadingProgress(100)
+              setLoadingStage(`Complete! Found ${event.count} destinations`)
+            } else if (event.type === 'error') {
+              console.error('Stream error:', event.message)
             }
-
-            const stageStart = cumulativeTime - stages[i].duration
-            const stageProgress = (elapsed - stageStart) / stages[i].duration
-            const prevProgress = i > 0 ? stages[i - 1].progress : 0
-            const targetProgress = stages[i].progress
-            const interpolatedProgress = prevProgress + (targetProgress - prevProgress) * stageProgress
-
-            setLoadingProgress(Math.min(interpolatedProgress, 95))
-            break
+          } catch {
+            // Skip unparseable lines
           }
         }
-
-        if (elapsed >= 30000) {
-          setLoadingProgress(95)
-          setLoadingStage('Almost there...')
-        }
-      }, 100)
-
-      const params = new URLSearchParams({ q: query })
-      if (origin) params.append('origin', origin)
-      if (destinations && destinations.length > 0) params.append('destinations', destinations.join(','))
-      if (budget && budget !== 2000) params.append('budget', budget.toString())
-
-      const url = `/api/locations?${params.toString()}`
-
-      const response = await fetch(url)
-      const data = await response.json()
-
-      setLoadingProgress(100)
-      setLoadingStage('Complete!')
+      }
 
       setTimeout(() => {
-        setLocations(data.locations || [])
         setIsLoading(false)
-        if (progressIntervalRef.current) {
-          clearInterval(progressIntervalRef.current)
-        }
-      }, 300)
+      }, 500)
 
     } catch (error) {
-      console.error('Error loading locations:', error)
+      console.error('Error streaming locations:', error)
       setIsLoading(false)
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current)
-      }
     }
   }
 

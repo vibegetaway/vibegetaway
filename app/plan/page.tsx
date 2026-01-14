@@ -311,7 +311,7 @@ function PlanContent() {
 
     setIsGenerating(true)
     try {
-      const response = await fetch("/api/plan-trip", {
+      const response = await fetch("/api/planning/plan-trip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -364,7 +364,7 @@ function PlanContent() {
   const fetchImages = async (activityTitle: string, location: string) => {
     try {
       const imageResponse = await fetch(
-        `/api/pixabay-images?keywords=${encodeURIComponent(`${activityTitle} ${location}`)}&limit=4`
+        `/api/images/pixabay-images?keywords=${encodeURIComponent(`${activityTitle} ${location}`)}&limit=4`
       )
       if (imageResponse.ok) {
         const imageData = await imageResponse.json()
@@ -400,7 +400,7 @@ function PlanContent() {
 
     setRegeneratingSlot(slot)
     try {
-      const response = await fetch("/api/quickstart-itinerary", {
+      const response = await fetch("/api/planning/quickstart-itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -480,7 +480,7 @@ function PlanContent() {
         ? `${activity} (User preferences: ${preferenceContext})`
         : activity
 
-      const response = await fetch("/api/plan-trip", {
+      const response = await fetch("/api/planning/plan-trip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -541,7 +541,7 @@ function PlanContent() {
 
     const currentDay = itineraries[selectedDayTab - 1]
     try {
-      const response = await fetch("/api/quickstart-itinerary", {
+      const response = await fetch("/api/planning/quickstart-itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
