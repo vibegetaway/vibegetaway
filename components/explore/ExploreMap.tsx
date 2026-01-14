@@ -6,6 +6,8 @@ import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
 import { Search, X, Loader2, Home } from 'lucide-react'
+import { SearchProgressIndicator } from './SearchProgressIndicator'
+import { useExploreTyping } from '@/hooks/useExploreTyping'
 
 interface Location {
   location: string      // City/area
@@ -391,6 +393,10 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
   const searchInputRef = useRef<HTMLInputElement>(null)
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
+  const typingPlaceholder = useExploreTyping({
+    enabled: !searchQuery && !isSearchFocused
+  })
+
 
   // Handle search submit (Enter key)
   const handleSearchSubmit = async () => {
@@ -660,9 +666,15 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
                   searchInputRef.current?.blur()
                 }
               }}
-              placeholder="Search places, activities, countries..."
-              className="w-full pl-10 pr-10 py-3 rounded-full border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              placeholder=""
+              className="w-full pl-10 pr-10 py-3 rounded-full border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
+            {/* Typing animated placeholder */}
+            {!searchQuery && !isSearchFocused && typingPlaceholder && (
+              <div className="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-none">
+                <span className="text-gray-400 text-base">{typingPlaceholder}</span>
+              </div>
+            )}
             {searchQuery && (
               <button
                 onClick={handleClearSearch}
@@ -685,25 +697,11 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
       )}
 
       {/* Floating progress indicator - bottom right above mobile nav */}
-      {(isLoading || locations.length > 0) && isSearchActive && (
-        <div className="fixed bottom-24 right-4 z-[1001] transition-all duration-300">
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-white/95 backdrop-blur-sm rounded-full shadow-lg border border-gray-200">
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 text-violet-600 animate-spin" />
-            ) : (
-              <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            )}
-            <span className="text-sm font-medium text-gray-700">
-              {locations.length} destination{locations.length !== 1 ? 's' : ''}
-              {isLoading && <span className="text-gray-400 ml-1">...</span>}
-            </span>
-          </div>
-        </div>
-      )}
+      <SearchProgressIndicator
+        isLoading={isLoading}
+        destinationCount={locations.length}
+        isSearchActive={isSearchActive}
+      />
 
       <style jsx global>{`
         .custom-circular-marker {
