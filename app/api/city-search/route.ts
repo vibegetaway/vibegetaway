@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     }
 
     const response = await fetch(
-      `https://api.locationiq.com/v1/autocomplete?key=${apiKey}&q=${encodeURIComponent(query)}&limit=5&accept-language=en`
+      `https://api.locationiq.com/v1/autocomplete?key=${apiKey}&q=${encodeURIComponent(query)}&limit=10&accept-language=en`
     )
 
     if (!response.ok) {
@@ -43,24 +43,24 @@ export async function GET(request: Request) {
       return NextResponse.json({ suggestions: [] })
     }
 
-    const suggestions = data.map((place: any) => {
+    const allSuggestions = data.map((place: any) => {
       const nameParts = place.display_name?.split(',') || []
       const cityName = nameParts[0]?.trim() || ''
       const regionName = nameParts[1]?.trim() || place.address?.state || ''
       const countryName = place.address?.country || ''
-      
+
       let finalCountryName = countryName
       if (!finalCountryName && place.display_name) {
         const parts = place.display_name.split(',').map((p: string) => p.trim())
         finalCountryName = parts[parts.length - 1] || ''
       }
-      
+
       if (!finalCountryName) {
         finalCountryName = place.address?.country_code || ''
       }
-      
+
       const firstThreeParts = nameParts.slice(0, 3).map((p: string) => p.trim()).join(', ')
-      
+
       return {
         name: cityName,
         country: finalCountryName,
@@ -72,6 +72,15 @@ export async function GET(request: Request) {
         } : undefined
       }
     })
+
+    // Deduplicate by city name + country combination
+    const seen = new Set<string>()
+    const suggestions = allSuggestions.filter((s: { name: string; country: string }) => {
+      const key = `${s.name.toLowerCase()}|${s.country.toLowerCase()}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    }).slice(0, 5)
 
     return NextResponse.json({ suggestions })
   } catch (error) {
