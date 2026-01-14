@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
-import { Search, X, Loader2 } from 'lucide-react'
+import { Search, X, Loader2, Home } from 'lucide-react'
 
 interface Location {
   location: string      // City/area
@@ -23,6 +23,7 @@ interface Location {
 interface ExploreMapProps {
   className?: string
   origin?: string
+  originCoords?: { lat: number; lng: number } | null
   destinations?: string[]
   budget?: number | null
 }
@@ -347,7 +348,27 @@ function MapController({
   )
 }
 
-export default function ExploreMap({ className, origin, destinations, budget }: ExploreMapProps) {
+const createOriginPin = (originName: string) => {
+  return L.divIcon({
+    className: 'origin-home-marker',
+    html: `
+      <div class="origin-pin-container">
+        <div class="origin-pin">
+          <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </div>
+        <div class="origin-label">${originName}</div>
+      </div>
+    `,
+    iconSize: [60, 70],
+    iconAnchor: [30, 50],
+    popupAnchor: [0, -50],
+  })
+}
+
+export default function ExploreMap({ className, origin, originCoords, destinations, budget }: ExploreMapProps) {
   const [locations, setLocations] = useState<Location[]>([])
   const [isClient, setIsClient] = useState(false)
   const [drawerItems, setDrawerItems] = useState<DrawerItem[]>([])
@@ -632,12 +653,7 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => {
-                // If user clicks away with a query, trigger search
-                if (searchQuery.trim() && !isSearchActive) {
-                  handleSearchSubmit()
-                }
-              }}
+              onBlur={() => setIsSearchFocused(false)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleSearchSubmit()
@@ -756,6 +772,59 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
           text-align: center;
           white-space: nowrap;
         }
+
+        /* Origin/Home Pin Styles */
+        .origin-home-marker {
+          background: transparent !important;
+          border: none !important;
+        }
+
+        .origin-pin-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .origin-pin {
+          width: 44px;
+          height: 44px;
+          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+          border: 3px solid white;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .origin-pin:hover {
+          transform: rotate(-45deg) scale(1.1);
+          box-shadow: 0 6px 16px rgba(139, 92, 246, 0.5), 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .origin-pin .home-icon {
+          width: 20px;
+          height: 20px;
+          transform: rotate(45deg);
+        }
+
+        .origin-label {
+          font-family: 'Geist', sans-serif;
+          font-size: 11px;
+          font-weight: 600;
+          color: #6d28d9;
+          background: white;
+          padding: 2px 8px;
+          border-radius: 10px;
+          white-space: nowrap;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+          max-width: 100px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       `}</style>
 
       <MapContainer
@@ -775,6 +844,14 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
           subdomains="abcd"
           maxZoom={20}
         />
+
+        {/* Origin/Home marker */}
+        {originCoords && origin && (
+          <Marker
+            position={[originCoords.lat, originCoords.lng]}
+            icon={createOriginPin(origin)}
+          />
+        )}
 
         <MapController
           locations={locations}

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { MobileNav } from '@/components/MobileNav'
 import { ExploreFilterChips, type FilterType } from '@/components/explore/ExploreFilterChips'
-import { ExploreFilterPanel } from '@/components/explore/ExploreFilterPanel'
+import { ExploreFilterPanel, type OriginCoordinates } from '@/components/explore/ExploreFilterPanel'
 
 const ExploreMap = dynamic(() => import('@/components/explore/ExploreMap'), {
   ssr: false,
@@ -17,6 +17,7 @@ const ExploreMap = dynamic(() => import('@/components/explore/ExploreMap'), {
 
 export default function ExplorePage() {
   const [origin, setOrigin] = useState('')
+  const [originCoords, setOriginCoords] = useState<OriginCoordinates | null>(null)
   const [destinations, setDestinations] = useState<string[]>([])
   const [budget, setBudget] = useState<number | null>(null)
   const [activeFilterType, setActiveFilterType] = useState<FilterType | null>(null)
@@ -33,11 +34,17 @@ export default function ExplorePage() {
     setActiveFilterType(null)
   }
 
+  const handleOriginChange = (value: string, coords: OriginCoordinates | null) => {
+    setOrigin(value)
+    setOriginCoords(coords)
+  }
+
   return (
     <main className="fixed inset-0">
       <ExploreMap
         className="w-full h-full"
         origin={origin}
+        originCoords={originCoords}
         destinations={destinations}
         budget={budget}
       />
@@ -55,9 +62,10 @@ export default function ExplorePage() {
         isOpen={activeFilterType !== null}
         filterType={activeFilterType}
         origin={origin}
+        originCoords={originCoords}
         destinations={destinations}
         budget={budget}
-        onOriginChange={setOrigin}
+        onOriginChange={handleOriginChange}
         onDestinationsChange={setDestinations}
         onBudgetChange={setBudget}
         onClose={handleFilterClose}
@@ -70,5 +78,3 @@ export default function ExplorePage() {
     </main>
   )
 }
-
-

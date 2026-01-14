@@ -4,13 +4,19 @@ import { X, Navigation, MapPin, DollarSign, Check } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import type { FilterType } from './ExploreFilterChips'
 
+export interface OriginCoordinates {
+    lat: number
+    lng: number
+}
+
 interface ExploreFilterPanelProps {
     isOpen: boolean
     filterType: FilterType | null
     origin: string
+    originCoords: OriginCoordinates | null
     destinations: string[]
     budget: number | null
-    onOriginChange: (value: string) => void
+    onOriginChange: (value: string, coords: OriginCoordinates | null) => void
     onDestinationsChange: (values: string[]) => void
     onBudgetChange: (value: number | null) => void
     onClose: () => void
@@ -29,6 +35,7 @@ export function ExploreFilterPanel({
     isOpen,
     filterType,
     origin,
+    originCoords,
     destinations,
     budget,
     onOriginChange,
@@ -41,7 +48,7 @@ export function ExploreFilterPanel({
     const [localDestinations, setLocalDestinations] = useState<string[]>(destinations)
     const [localBudget, setLocalBudget] = useState(budget)
     const [destinationInput, setDestinationInput] = useState('')
-    const [citySuggestions, setCitySuggestions] = useState<Array<{ name: string; country: string }>>([])
+    const [citySuggestions, setCitySuggestions] = useState<Array<{ name: string; country: string; coordinates?: { lat: number; lng: number } }>>([])
     const [isSearching, setIsSearching] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
 
@@ -86,7 +93,7 @@ export function ExploreFilterPanel({
     }, [localOrigin, destinationInput, filterType])
 
     const handleApply = () => {
-        onOriginChange(localOrigin)
+        onOriginChange(localOrigin, null)
         onDestinationsChange(localDestinations)
         onBudgetChange(localBudget)
         onApply()
@@ -196,8 +203,9 @@ export function ExploreFilterPanel({
                                                 onClick={() => {
                                                     setLocalOrigin(city.name)
                                                     setCitySuggestions([])
+                                                    const coords = city.coordinates ? { lat: city.coordinates.lat, lng: city.coordinates.lng } : null
                                                     setTimeout(() => {
-                                                        onOriginChange(city.name)
+                                                        onOriginChange(city.name, coords)
                                                         onApply()
                                                     }, 0)
                                                 }}
