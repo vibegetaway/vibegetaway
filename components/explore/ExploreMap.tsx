@@ -496,20 +496,7 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
     }
   }
 
-  // Calculate and set search bounds whenever locations change and search is active
-  useEffect(() => {
-    if (isSearchActive && locations.length > 0) {
-      const lats = locations.map(loc => loc.latitude)
-      const lngs = locations.map(loc => loc.longitude)
 
-      const bounds = L.latLngBounds(
-        [Math.min(...lats), Math.min(...lngs)],
-        [Math.max(...lats), Math.max(...lngs)]
-      )
-
-      setSearchBounds(bounds)
-    }
-  }, [locations, isSearchActive])
 
   useEffect(() => {
     setIsClient(true)
@@ -670,23 +657,6 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
             )}
           </div>
 
-          {/* Loading Progress - above shadow, below search bar */}
-          {isLoading && (
-            <div className="relative z-[10] -mt-3 mx-auto w-[calc(100%-16px)] bg-white/95 backdrop-blur-sm rounded-b-lg shadow-md px-4 pt-4 pb-2.5 border-l border-r border-b border-gray-200">
-              <div className="flex items-center gap-2.5">
-                <Loader2 className="w-4 h-4 text-gray-400 animate-spin flex-shrink-0" />
-                <div className="flex flex-col gap-1 flex-1">
-                  <p className="text-xs text-gray-600">{loadingStage}</p>
-                  <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-violet-500 rounded-full transition-all duration-300 ease-out"
-                      style={{ width: `${loadingProgress}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -696,6 +666,27 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
           className="absolute inset-0 bg-gray-100 z-[999]"
           onClick={() => setIsSearchFocused(false)}
         />
+      )}
+
+      {/* Floating progress indicator - bottom right above mobile nav */}
+      {(isLoading || locations.length > 0) && isSearchActive && (
+        <div className="fixed bottom-24 right-4 z-[1001] transition-all duration-300">
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-white/95 backdrop-blur-sm rounded-full shadow-lg border border-gray-200">
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 text-violet-600 animate-spin" />
+            ) : (
+              <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
+            <span className="text-sm font-medium text-gray-700">
+              {locations.length} destination{locations.length !== 1 ? 's' : ''}
+              {isLoading && <span className="text-gray-400 ml-1">...</span>}
+            </span>
+          </div>
+        </div>
       )}
 
       <style jsx global>{`
@@ -807,7 +798,7 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
           {/* Drawer */}
           <div
             ref={drawerRef}
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-[9999] max-h-[80vh] flex flex-col"
+            className="fixed bottom-[84px] md:bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-[9999] max-h-[80vh] flex flex-col"
             style={{
               transform: `translateY(${dragOffset}px)`,
               transition: dragStart === null ? 'transform 0.3s ease-out' : 'none',
