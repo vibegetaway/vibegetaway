@@ -18,7 +18,7 @@ const ExploreMap = dynamic(() => import('@/components/explore/ExploreMap'), {
 export default function ExplorePage() {
   const [origin, setOrigin] = useState('')
   const [destinations, setDestinations] = useState<string[]>([])
-  const [budget, setBudget] = useState(2000)
+  const [budget, setBudget] = useState<number | null>(null)
   const [activeFilterType, setActiveFilterType] = useState<FilterType | null>(null)
 
   const handleFilterClick = (filterType: FilterType) => {

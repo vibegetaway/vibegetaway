@@ -24,7 +24,7 @@ interface ExploreMapProps {
   className?: string
   origin?: string
   destinations?: string[]
-  budget?: number
+  budget?: number | null
 }
 
 interface LocationProperties {
@@ -418,7 +418,7 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
     const params = new URLSearchParams({ q: query })
     if (origin) params.append('origin', origin)
     if (destinations && destinations.length > 0) params.append('destinations', destinations.join(','))
-    if (budget && budget !== 2000) params.append('budget', budget.toString())
+    if (budget !== null && budget !== undefined) params.append('budget', budget.toString())
 
     const url = `/api/explore/search?${params.toString()}`
 
@@ -622,7 +622,7 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
       <div className="absolute top-0 left-0 right-0 z-[1000] p-4">
         <div className="relative">
           {/* Shadow layer - matches search bar dimensions only */}
-          <div className="absolute top-0 left-0 right-0 h-12 z-[1] rounded-xl shadow-lg pointer-events-none" />
+          <div className="absolute top-0 left-0 right-0 h-12 z-[1] rounded-full shadow-lg pointer-events-none" />
 
           <div className="relative z-[20]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
@@ -645,7 +645,7 @@ export default function ExploreMap({ className, origin, destinations, budget }: 
                 }
               }}
               placeholder="Search places, activities, countries..."
-              className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full pl-10 pr-10 py-3 rounded-full border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
             {searchQuery && (
               <button

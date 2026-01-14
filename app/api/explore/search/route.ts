@@ -19,12 +19,12 @@ function buildFilterContext(filters: ExploreFilters): string {
         parts.push(`• Interested in visiting: ${filters.destinations.join(', ')}`)
     }
 
-    if (filters.budget && filters.budget !== 2000) {
-        const budgetLabel = filters.budget <= 500 ? 'Budget-friendly (under $500)'
-            : filters.budget <= 1000 ? 'Budget to mid-range ($500-$1000)'
-                : filters.budget <= 2000 ? 'Mid-range ($1000-$2000)'
-                    : filters.budget <= 3500 ? 'Mid to high-end ($2000-$3500)'
-                        : 'Luxury/premium ($3500+)'
+    if (filters.budget) {
+        const budgetLabel = filters.budget <= 500 ? 'Budget-friendly (under $500/day)'
+            : filters.budget <= 1000 ? 'Budget to mid-range ($500-$1000/day)'
+                : filters.budget <= 2000 ? 'Mid-range ($1000-$2000/day)'
+                    : filters.budget <= 3500 ? 'Mid to high-end ($2000-$3500/day)'
+                        : 'Luxury/premium ($3500+/day)'
         parts.push(`• Budget preference: ${budgetLabel}`)
     }
 
