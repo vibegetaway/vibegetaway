@@ -8,14 +8,26 @@ import 'leaflet/dist/leaflet.css'
 import { Search, X, Loader2, Home } from 'lucide-react'
 import { SearchProgressIndicator } from './SearchProgressIndicator'
 import { useExploreTyping } from '@/hooks/useExploreTyping'
+import Image from 'next/image'
+import { LocationOverviewDrawer } from './LocationOverviewDrawer'
+import { LocationDetailsDrawer } from './LocationDetailsDrawer'
 
-interface Location {
+export interface Location {
   location: string      // City/area
   spot: string         // Specific landmark
   country: string
   latitude: number
   longitude: number
   description: string
+  extended_description?: string
+  best_time_to_visit?: string
+  why_now?: string
+  top_activities?: string[]
+  nearby_attractions?: string[]
+  practical_tips?: string
+  travel_from_origin?: string
+  image_keywords?: string
+  match_reason?: string
   price_class: string
   prominence_score: number
   reddit_source_urls: string[]
@@ -28,6 +40,7 @@ interface ExploreMapProps {
   originCoords?: { lat: number; lng: number } | null
   destinations?: string[]
   budget?: number | null
+  travelMonth?: string | null
 }
 
 interface LocationProperties {
@@ -36,6 +49,15 @@ interface LocationProperties {
   spot: string        // Specific landmark
   country: string
   description: string
+  extended_description?: string
+  best_time_to_visit?: string
+  why_now?: string
+  top_activities?: string[]
+  nearby_attractions?: string[]
+  practical_tips?: string
+  travel_from_origin?: string
+  image_keywords?: string
+  match_reason?: string
   price_class: string
   prominence_score: number
   image_url: string
@@ -51,11 +73,20 @@ interface ProcessedMarker {
   clusterId?: number
 }
 
-interface DrawerItem {
+export interface DrawerItem {
   spot: string
   location: string
   country: string
   description: string
+  extended_description?: string
+  best_time_to_visit?: string
+  why_now?: string
+  top_activities?: string[]
+  nearby_attractions?: string[]
+  practical_tips?: string
+  travel_from_origin?: string
+  image_keywords?: string
+  match_reason?: string
   image_url: string
   price_class: string
   prominence_score: number
@@ -309,6 +340,15 @@ function MapController({
                       location: point.properties.location,
                       country: point.properties.country,
                       description: point.properties.description,
+                      extended_description: point.properties.extended_description,
+                      best_time_to_visit: point.properties.best_time_to_visit,
+                      why_now: point.properties.why_now,
+                      top_activities: point.properties.top_activities,
+                      nearby_attractions: point.properties.nearby_attractions,
+                      practical_tips: point.properties.practical_tips,
+                      travel_from_origin: point.properties.travel_from_origin,
+                      image_keywords: point.properties.image_keywords,
+                      match_reason: point.properties.match_reason,
                       image_url: point.properties.image_url,
                       price_class: point.properties.price_class,
                       prominence_score: point.properties.prominence_score,
@@ -333,6 +373,15 @@ function MapController({
                     location: marker.location!.location,
                     country: marker.location!.country,
                     description: marker.location!.description,
+                    extended_description: marker.location!.extended_description,
+                    best_time_to_visit: marker.location!.best_time_to_visit,
+                    why_now: marker.location!.why_now,
+                    top_activities: marker.location!.top_activities,
+                    nearby_attractions: marker.location!.nearby_attractions,
+                    practical_tips: marker.location!.practical_tips,
+                    travel_from_origin: marker.location!.travel_from_origin,
+                    image_keywords: marker.location!.image_keywords,
+                    match_reason: marker.location!.match_reason,
                     image_url: marker.location!.image_url,
                     price_class: marker.location!.price_class,
                     prominence_score: marker.location!.prominence_score,
@@ -370,17 +419,13 @@ const createOriginPin = (originName: string) => {
   })
 }
 
-export default function ExploreMap({ className, origin, originCoords, destinations, budget }: ExploreMapProps) {
+export default function ExploreMap({ className, origin, originCoords, destinations, budget, travelMonth }: ExploreMapProps) {
   const [locations, setLocations] = useState<Location[]>([])
   const [isClient, setIsClient] = useState(false)
   const [drawerItems, setDrawerItems] = useState<DrawerItem[]>([])
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isClusterView, setIsClusterView] = useState(false)
-  const drawerRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
-  const [dragStart, setDragStart] = useState<number | null>(null)
-  const [dragOffset, setDragOffset] = useState(0)
-  const [canDragDrawer, setCanDragDrawer] = useState(false)
+  const [selectedDetailLocation, setSelectedDetailLocation] = useState<DrawerItem | null>(null)
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('')
@@ -446,6 +491,7 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
     if (origin) params.append('origin', origin)
     if (destinations && destinations.length > 0) params.append('destinations', destinations.join(','))
     if (budget !== null && budget !== undefined) params.append('budget', budget.toString())
+    if (travelMonth) params.append('travelMonth', travelMonth)
 
     const url = `/api/explore/search?${params.toString()}`
 
@@ -555,89 +601,11 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
     setDrawerItems(items)
     setIsClusterView(isCluster)
     setIsDrawerOpen(true)
-    setDragOffset(0)
   }
 
   const closeDrawer = () => {
     setIsDrawerOpen(false)
-    setDragOffset(0)
   }
-
-  // Attach native touch event listeners with passive: false
-  useEffect(() => {
-    const drawer = drawerRef.current
-    if (!drawer || !isDrawerOpen) return
-
-    let localDragStart: number | null = null
-    let localCanDragDrawer = false
-    let localDragOffset = 0
-
-    const handleTouchStart = (e: TouchEvent) => {
-      const startY = e.touches[0].clientY
-      localDragStart = startY
-      setDragStart(startY)
-
-      // Check if content is at the top
-      const content = contentRef.current
-      if (content) {
-        const isAtTop = content.scrollTop === 0
-        localCanDragDrawer = isAtTop
-        setCanDragDrawer(isAtTop)
-      }
-    }
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (localDragStart === null) return
-
-      const currentY = e.touches[0].clientY
-      const diff = currentY - localDragStart
-
-      // Check if content is at top
-      const content = contentRef.current
-      const isAtTop = content ? content.scrollTop === 0 : false
-
-      // Only allow dragging the drawer down if:
-      // 1. User is swiping down (diff > 0)
-      // 2. Content was at top when touch started (localCanDragDrawer)
-      // 3. Content is still at top (isAtTop)
-      if (diff > 0 && localCanDragDrawer && isAtTop) {
-        // Prevent pull-to-refresh when dragging the drawer down
-        e.preventDefault()
-        localDragOffset = diff
-        setDragOffset(diff)
-      } else if (diff < 0) {
-        // Reset if user starts swiping up
-        localDragOffset = 0
-        setDragOffset(0)
-      }
-    }
-
-    const handleTouchEnd = () => {
-      if (localDragOffset > 100) {
-        // Close if dragged down more than 100px
-        closeDrawer()
-      } else {
-        // Snap back
-        setDragOffset(0)
-      }
-      localDragStart = null
-      localCanDragDrawer = false
-      localDragOffset = 0
-      setDragStart(null)
-      setCanDragDrawer(false)
-    }
-
-    // Add event listeners with passive: false to allow preventDefault
-    drawer.addEventListener('touchstart', handleTouchStart, { passive: false })
-    drawer.addEventListener('touchmove', handleTouchMove, { passive: false })
-    drawer.addEventListener('touchend', handleTouchEnd)
-
-    return () => {
-      drawer.removeEventListener('touchstart', handleTouchStart)
-      drawer.removeEventListener('touchmove', handleTouchMove)
-      drawer.removeEventListener('touchend', handleTouchEnd)
-    }
-  }, [isDrawerOpen])
 
   if (!isClient) {
     return <div className={className} />
@@ -651,8 +619,19 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
           {/* Shadow layer - matches search bar dimensions only */}
           <div className="absolute top-0 left-0 right-0 h-12 z-[1] rounded-full shadow-lg pointer-events-none" />
 
-          <div className="relative z-[20]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+          <div className="relative z-[20] flex items-center gap-2 bg-white rounded-full border border-gray-200 focus-within:ring-2 focus-within:ring-violet-500">
+            {/* App icon on mobile */}
+            <div className="md:hidden flex-shrink-0 pl-2">
+              <Image
+                src="/assets/icon.png"
+                width={36}
+                height={36}
+                alt="VibeGetaway"
+                className="rounded-lg"
+              />
+            </div>
+            {/* Search icon on desktop */}
+            <Search className="hidden md:block absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
             <input
               ref={searchInputRef}
               type="text"
@@ -667,11 +646,11 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
                 }
               }}
               placeholder=""
-              className="w-full pl-10 pr-10 py-3 rounded-full border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="flex-1 md:pl-10 pr-10 py-3 bg-transparent text-gray-900 focus:outline-none"
             />
             {/* Typing animated placeholder */}
             {!searchQuery && !isSearchFocused && typingPlaceholder && (
-              <div className="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="absolute left-14 md:left-10 top-1/2 -translate-y-1/2 pointer-events-none">
                 <span className="text-gray-400 text-base">{typingPlaceholder}</span>
               </div>
             )}
@@ -858,115 +837,20 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
         />
       </MapContainer>
 
-      {/* Bottom Drawer */}
-      {isDrawerOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/40 z-[9998] transition-opacity"
-            onClick={closeDrawer}
-            style={{
-              opacity: dragOffset > 0 ? Math.max(0, 1 - dragOffset / 300) : 1
-            }}
-          />
+      {/* Result Drawered */}
+      <LocationOverviewDrawer
+        isOpen={isDrawerOpen}
+        items={drawerItems}
+        isClusterView={isClusterView}
+        onClose={closeDrawer}
+        onItemClick={(item) => setSelectedDetailLocation(item)}
+      />
 
-          {/* Drawer */}
-          <div
-            ref={drawerRef}
-            className="fixed bottom-[84px] md:bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-[9999] max-h-[80vh] flex flex-col"
-            style={{
-              transform: `translateY(${dragOffset}px)`,
-              transition: dragStart === null ? 'transform 0.3s ease-out' : 'none',
-              overscrollBehavior: 'contain',
-            }}
-          >
-            {/* Handle bar */}
-            <div
-              className="pt-3 pb-2 flex justify-center"
-            >
-              <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
-            </div>
-
-            {/* Header */}
-            <div className="px-5 pb-3 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">
-                {isClusterView
-                  ? `${drawerItems.length} Places`
-                  : drawerItems[0]?.spot
-                }
-              </h2>
-              {!isClusterView && drawerItems[0] && (
-                <p className="text-sm text-gray-500">
-                  {drawerItems[0].location}, {drawerItems[0].country}
-                </p>
-              )}
-            </div>
-
-            {/* Content */}
-            <div
-              ref={contentRef}
-              className="flex-1 overflow-y-auto"
-              style={{ overscrollBehavior: 'contain' }}
-            >
-              {drawerItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="border-b border-gray-100 last:border-b-0"
-                >
-                  <div className="p-4 flex gap-3">
-                    {/* Image */}
-                    <div className="flex-shrink-0">
-                      <img
-                        src={item.image_url}
-                        alt={item.spot}
-                        className="w-24 h-24 object-cover rounded-lg"
-                      />
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base text-gray-900 mb-1 line-clamp-1">
-                        {item.spot}
-                      </h3>
-                      <p className="text-xs text-gray-500 mb-2">
-                        {item.location}, {item.country}
-                      </p>
-                      <p className="text-sm text-gray-700 mb-2 line-clamp-2">
-                        {item.description}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span className="flex items-center gap-0.5 text-yellow-500">
-                          {(() => {
-                            const rating = getStarsFromProminence(item.prominence_score)
-                            const fullStars = Math.floor(rating)
-                            const hasHalfStar = rating % 1 !== 0
-                            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0)
-
-                            return (
-                              <>
-                                {'★'.repeat(fullStars)}
-                                {hasHalfStar && <span className="relative inline-block">
-                                  <span className="text-gray-300">★</span>
-                                  <span className="absolute left-0 top-0 overflow-hidden" style={{ width: '50%' }}>★</span>
-                                </span>}
-                                <span className="text-gray-300">
-                                  {'★'.repeat(emptyStars)}
-                                </span>
-                              </>
-                            )
-                          })()}
-                        </span>
-                        <span className="text-gray-300">•</span>
-                        <span className="font-medium">{item.price_class}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+      <LocationDetailsDrawer
+        isOpen={selectedDetailLocation !== null}
+        location={selectedDetailLocation}
+        onClose={() => setSelectedDetailLocation(null)}
+      />
     </div>
   )
 }

@@ -20,6 +20,7 @@ export default function ExplorePage() {
   const [originCoords, setOriginCoords] = useState<OriginCoordinates | null>(null)
   const [destinations, setDestinations] = useState<string[]>([])
   const [budget, setBudget] = useState<number | null>(null)
+  const [travelMonth, setTravelMonth] = useState<string | null>(null)
   const [activeFilterType, setActiveFilterType] = useState<FilterType | null>(null)
 
   const handleFilterClick = (filterType: FilterType) => {
@@ -47,6 +48,7 @@ export default function ExplorePage() {
         originCoords={originCoords}
         destinations={destinations}
         budget={budget}
+        travelMonth={travelMonth}
       />
 
       <div className="absolute top-20 left-0 right-0 z-[1001] px-4 md:px-8">
@@ -54,6 +56,7 @@ export default function ExplorePage() {
           origin={origin}
           destinations={destinations}
           budget={budget}
+          travelMonth={travelMonth}
           onFilterClick={handleFilterClick}
         />
       </div>
@@ -65,9 +68,11 @@ export default function ExplorePage() {
         originCoords={originCoords}
         destinations={destinations}
         budget={budget}
+        travelMonth={travelMonth}
         onOriginChange={handleOriginChange}
         onDestinationsChange={setDestinations}
         onBudgetChange={setBudget}
+        onTravelMonthChange={setTravelMonth}
         onClose={handleFilterClose}
         onApply={handleFilterApply}
       />

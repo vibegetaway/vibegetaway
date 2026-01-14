@@ -16,9 +16,11 @@ interface ExploreFilterPanelProps {
     originCoords: OriginCoordinates | null
     destinations: string[]
     budget: number | null
+    travelMonth: string | null
     onOriginChange: (value: string, coords: OriginCoordinates | null) => void
     onDestinationsChange: (values: string[]) => void
     onBudgetChange: (value: number | null) => void
+    onTravelMonthChange: (value: string | null) => void
     onClose: () => void
     onApply: () => void
 }
@@ -38,15 +40,18 @@ export function ExploreFilterPanel({
     originCoords,
     destinations,
     budget,
+    travelMonth,
     onOriginChange,
     onDestinationsChange,
     onBudgetChange,
+    onTravelMonthChange,
     onClose,
     onApply
 }: ExploreFilterPanelProps) {
     const [localOrigin, setLocalOrigin] = useState(origin)
     const [localDestinations, setLocalDestinations] = useState<string[]>(destinations)
     const [localBudget, setLocalBudget] = useState(budget)
+    const [localTravelMonth, setLocalTravelMonth] = useState(travelMonth)
     const [destinationInput, setDestinationInput] = useState('')
     const [citySuggestions, setCitySuggestions] = useState<Array<{ name: string; country: string; coordinates?: { lat: number; lng: number } }>>([])
     const [isSearching, setIsSearching] = useState(false)
@@ -56,7 +61,8 @@ export function ExploreFilterPanel({
         setLocalOrigin(origin)
         setLocalDestinations(destinations)
         setLocalBudget(budget)
-    }, [origin, destinations, budget, isOpen])
+        setLocalTravelMonth(travelMonth)
+    }, [origin, destinations, budget, travelMonth, isOpen])
 
     useEffect(() => {
         if (isOpen && inputRef.current) {
@@ -96,6 +102,7 @@ export function ExploreFilterPanel({
         onOriginChange(localOrigin, null)
         onDestinationsChange(localDestinations)
         onBudgetChange(localBudget)
+        onTravelMonthChange(localTravelMonth)
         onApply()
     }
 
@@ -103,6 +110,7 @@ export function ExploreFilterPanel({
         setLocalOrigin('')
         setLocalDestinations([])
         setLocalBudget(null)
+        setLocalTravelMonth(null)
     }
 
     const addDestination = (city: string) => {
@@ -135,6 +143,8 @@ export function ExploreFilterPanel({
                 return 'Where do you want to go?'
             case 'budget':
                 return 'What\'s your daily budget?'
+            case 'when':
+                return 'When do you want to travel?'
         }
     }
 
@@ -146,6 +156,15 @@ export function ExploreFilterPanel({
                 return <MapPin className="w-5 h-5 text-pink-600" />
             case 'budget':
                 return <DollarSign className="w-5 h-5 text-amber-600" />
+            case 'when':
+                return (
+                    <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" strokeWidth="2" />
+                        <line x1="8" y1="2" x2="8" y2="6" strokeWidth="2" />
+                        <line x1="3" y1="10" x2="21" y2="10" strokeWidth="2" />
+                    </svg>
+                )
         }
     }
 
@@ -312,6 +331,50 @@ export function ExploreFilterPanel({
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {filterType === 'when' && (
+                            <div className="space-y-6">
+                                {/* Presets */}
+                                <div className="flex flex-wrap gap-2">
+                                    {['Any time', 'Spring', 'Summer', 'Fall', 'Winter'].map((preset) => (
+                                        <button
+                                            key={preset}
+                                            onClick={() => setLocalTravelMonth(preset === 'Any time' ? null : preset)}
+                                            className="px-4 py-2 rounded-full border transition-all active:scale-95 text-sm font-medium"
+                                            style={{
+                                                borderColor: (preset === 'Any time' && localTravelMonth === null) || localTravelMonth === preset ? '#10b981' : '#e5e7eb',
+                                                backgroundColor: (preset === 'Any time' && localTravelMonth === null) || localTravelMonth === preset ? '#ecfdf5' : '#ffffff',
+                                                color: (preset === 'Any time' && localTravelMonth === null) || localTravelMonth === preset ? '#059669' : '#374151',
+                                            }}
+                                        >
+                                            {preset}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Month Grid */}
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                    {[
+                                        'January', 'February', 'March', 'April',
+                                        'May', 'June', 'July', 'August',
+                                        'September', 'October', 'November', 'December'
+                                    ].map((month) => (
+                                        <button
+                                            key={month}
+                                            onClick={() => setLocalTravelMonth(month)}
+                                            className="p-3 text-center rounded-xl border transition-all active:scale-95 text-sm font-medium"
+                                            style={{
+                                                borderColor: localTravelMonth === month ? '#10b981' : '#f3f4f6',
+                                                backgroundColor: localTravelMonth === month ? '#ecfdf5' : '#f9fafb',
+                                                color: localTravelMonth === month ? '#059669' : '#374151',
+                                            }}
+                                        >
+                                            {month.slice(0, 3)}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>

@@ -6,6 +6,7 @@ interface ExploreFilters {
     origin?: string
     destinations?: string[]
     budget?: number
+    travelMonth?: string
 }
 
 function buildFilterContext(filters: ExploreFilters): string {
@@ -28,6 +29,10 @@ function buildFilterContext(filters: ExploreFilters): string {
         parts.push(`• Budget preference: ${budgetLabel}`)
     }
 
+    if (filters.travelMonth) {
+        parts.push(`• Planning to visit in: ${filters.travelMonth}`)
+    }
+
     return parts.length > 0
         ? `\nTraveler preferences:\n${parts.join('\n')}`
         : ''
@@ -36,7 +41,7 @@ function buildFilterContext(filters: ExploreFilters): string {
 function buildExplorePrompt(query: string, filters: ExploreFilters): string {
     const filterContext = buildFilterContext(filters)
 
-    return `Search Reddit for travel destinations matching: "${query}"
+    return `Search Reddit travel discussions for destinations matching: "${query}"
 ${filterContext}
 
 OUTPUT FORMAT - CRITICAL:
@@ -45,10 +50,28 @@ Do NOT wrap destinations in an array or add any other text.
 Each line must be valid JSON that can be parsed independently.
 
 Format for each line:
-{"spot":"Landmark Name","location":"City","country":"Country","latitude":0.0,"longitude":0.0,"description":"Brief compelling description","price_class":"$$","prominence_score":8}
+{
+  "spot": "Landmark Name",
+  "location": "City",
+  "country": "Country",
+  "latitude": 0.0,
+  "longitude": 0.0,
+  "description": "Brief one-liner for overview",
+  "match_reason": "Explain WHY this matches their specific query, origin, and travel month. Max 200 chars.",
+  "extended_description": "2-3 paragraphs with historical/cultural context and what makes it special.",
+  "best_time_to_visit": "Briefly state best months/seasons.",
+  "why_now": "If traveler specified a month, explain why it's good (or what to expect) then.",
+  "top_activities": ["Activity 1", "Activity 2", "Activity 3"],
+  "nearby_attractions": ["Nearby Place 1", "Nearby Place 2"],
+  "practical_tips": "Useful advice on transport, local etiquette, or safety.",
+  "travel_from_origin": "Approximate travel time/mode from their origin if provided.",
+  "image_keywords": "3-4 keywords for Unsplash image search",
+  "price_class": "$$",
+  "prominence_score": 8
+}
 
 Requirements:
-- Output as many relevant destinations as you find
+- Output as many relevant destinations as you find (aim for 5-10)
 - Most relevant destinations first
 - Ensure coordinates are accurate
 - Include diverse options (popular + hidden gems)
@@ -66,6 +89,7 @@ export async function GET(request: NextRequest) {
     const destinations = destinationsParam ? destinationsParam.split(',').filter(Boolean) : undefined
     const budgetParam = searchParams.get('budget')
     const budget = budgetParam ? parseInt(budgetParam, 10) : undefined
+    const travelMonth = searchParams.get('travelMonth') || undefined
 
     if (!query.trim()) {
         return new Response('data: {"type":"error","message":"No query provided"}\n\n', {
@@ -88,7 +112,7 @@ export async function GET(request: NextRequest) {
         })
     }
 
-    const prompt = buildExplorePrompt(query, { origin, destinations, budget })
+    const prompt = buildExplorePrompt(query, { origin, destinations, budget, travelMonth })
 
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
