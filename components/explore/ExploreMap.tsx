@@ -45,19 +45,10 @@ interface ExploreMapProps {
 
 interface LocationProperties {
   cluster: boolean
-  location: string     // City/area
-  spot: string        // Specific landmark
+  location: string
+  spot: string
   country: string
   description: string
-  extended_description?: string
-  best_time_to_visit?: string
-  why_now?: string
-  top_activities?: string[]
-  nearby_attractions?: string[]
-  practical_tips?: string
-  travel_from_origin?: string
-  image_keywords?: string
-  match_reason?: string
   price_class: string
   prominence_score: number
   image_url: string
@@ -78,15 +69,6 @@ export interface DrawerItem {
   location: string
   country: string
   description: string
-  extended_description?: string
-  best_time_to_visit?: string
-  why_now?: string
-  top_activities?: string[]
-  nearby_attractions?: string[]
-  practical_tips?: string
-  travel_from_origin?: string
-  image_keywords?: string
-  match_reason?: string
   image_url: string
   price_class: string
   prominence_score: number
@@ -373,15 +355,6 @@ function MapController({
                     location: marker.location!.location,
                     country: marker.location!.country,
                     description: marker.location!.description,
-                    extended_description: marker.location!.extended_description,
-                    best_time_to_visit: marker.location!.best_time_to_visit,
-                    why_now: marker.location!.why_now,
-                    top_activities: marker.location!.top_activities,
-                    nearby_attractions: marker.location!.nearby_attractions,
-                    practical_tips: marker.location!.practical_tips,
-                    travel_from_origin: marker.location!.travel_from_origin,
-                    image_keywords: marker.location!.image_keywords,
-                    match_reason: marker.location!.match_reason,
                     image_url: marker.location!.image_url,
                     price_class: marker.location!.price_class,
                     prominence_score: marker.location!.prominence_score,
@@ -562,8 +535,8 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
             } else if (event.type === 'error') {
               console.error('Stream error:', event.message)
             }
-          } catch {
-            // Skip unparseable lines
+          } catch (e) {
+            console.error('Failed to parse SSE event data:', data, e)
           }
         }
       }
@@ -609,6 +582,27 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
   const handleMarkerClick = (items: DrawerItem[], isCluster: boolean) => {
     setDrawerItems(items)
     setIsClusterView(isCluster)
+    setIsDrawerOpen(true)
+  }
+
+  const handleShowAllLocations = () => {
+    if (locations.length === 0) return
+
+    const allDrawerItems: DrawerItem[] = locations
+      .map(loc => ({
+        spot: loc.spot,
+        location: loc.location,
+        country: loc.country,
+        description: loc.description,
+        extended_description: loc.extended_description,
+        image_url: loc.image_url,
+        price_class: loc.price_class,
+        prominence_score: loc.prominence_score,
+      }))
+      .sort((a, b) => b.prominence_score - a.prominence_score)
+
+    setDrawerItems(allDrawerItems)
+    setIsClusterView(true)
     setIsDrawerOpen(true)
   }
 
@@ -689,6 +683,7 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
         isLoading={isLoading}
         destinationCount={locations.length}
         isSearchActive={isSearchActive}
+        onClick={handleShowAllLocations}
       />
 
       <style jsx global>{`

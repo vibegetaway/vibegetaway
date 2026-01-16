@@ -44,41 +44,27 @@ function buildExplorePrompt(query: string, filters: ExploreFilters): string {
     return `Search Reddit travel discussions for destinations matching: "${query}"
 ${filterContext}
 
-OUTPUT FORMAT - CRITICAL:
-You MUST output each destination as a separate, complete JSON object on its own line.
-Do NOT wrap destinations in an array or add any other text.
-Each line must be valid JSON that can be parsed independently.
+CRITICAL OUTPUT FORMAT - READ CAREFULLY:
+You MUST output ONLY valid NDJSON (newline-delimited JSON).
+Each line contains ONE complete, valid JSON object for ONE destination.
+Do NOT output any other text, explanations, or markdown.
+Do NOT wrap in an array or add brackets.
 
-Format for each line:
-{
-  "spot": "Landmark Name",
-  "location": "City",
-  "country": "Country",
-  "latitude": 0.0,
-  "longitude": 0.0,
-  "description": "Brief one-liner for overview",
-  "match_reason": "Explain WHY this matches their specific query, origin, and travel month. Max 200 chars.",
-  "extended_description": "2-3 paragraphs with historical/cultural context and what makes it special.",
-  "best_time_to_visit": "Briefly state best months/seasons.",
-  "why_now": "If traveler specified a month, explain why it's good (or what to expect) then.",
-  "top_activities": ["Activity 1", "Activity 2", "Activity 3"],
-  "nearby_attractions": ["Nearby Place 1", "Nearby Place 2"],
-  "practical_tips": "Useful advice on transport, local etiquette, or safety.",
-  "travel_from_origin": "Approximate travel time/mode from their origin if provided.",
-  "image_keywords": "3-4 keywords for Unsplash image search",
-  "price_class": "$$",
-  "prominence_score": 8
-}
+Each JSON object MUST use this EXACT structure with NO missing fields:
+{"spot":"Landmark Name","location":"City","country":"Country","latitude":0.0,"longitude":0.0,"description":"One sentence summary","price_class":"$$","prominence_score":7}
 
-Requirements:
-- Output as many relevant destinations as you find (aim for 5-10)
-- Most relevant destinations first
-- Ensure coordinates are accurate
-- Include diverse options (popular + hidden gems)
-- Base prominence_score (1-10) on Reddit mention frequency
-- price_class: $ (budget) to $$$$$ (luxury)
+RULES:
+- Output 5-10 destinations, one per line
+- Each line is a complete, valid JSON object with NO line breaks inside
+- Use double quotes for ALL string values
+- Escape quotes inside strings with backslash
+- latitude/longitude must be valid numbers (not strings)
+- prominence_score: integer from 1-10 based on Reddit mentions
+- price_class: exactly one of: $, $$, $$$, $$$$, $$$$$
+- NO trailing commas
+- NO explanatory text before or after
 
-Start outputting destinations now:`
+Start outputting NDJSON now (one destination per line):`
 }
 
 export async function GET(request: NextRequest) {
@@ -192,11 +178,11 @@ export async function GET(request: NextRequest) {
                                             locationCount++
                                             controller.enqueue(encoder.encode(`data: {"type":"location","data":${JSON.stringify(location)}}\n\n`))
                                         }
-                                    } catch {
-                                        // Skip invalid JSON lines
+                                    } catch (e) {
+                                        console.error('Failed to parse NDJSON line:', trimmed, e)
                                     }
                                 }
-                            } catch {
+                            } catch (e) {
                                 // Skip unparseable SSE data
                             }
                         }
@@ -205,14 +191,15 @@ export async function GET(request: NextRequest) {
 
                 // Process remaining buffer
                 if (buffer.trim() && buffer.trim().startsWith('{')) {
+                    const trimmed = buffer.trim()
                     try {
-                        const location = JSON.parse(buffer.trim())
+                        const location = JSON.parse(trimmed)
                         if (location.spot && location.latitude && location.longitude) {
                             locationCount++
                             controller.enqueue(encoder.encode(`data: {"type":"location","data":${JSON.stringify(location)}}\n\n`))
                         }
-                    } catch {
-                        // Skip invalid JSON
+                    } catch (e) {
+                        console.error('Failed to parse final NDJSON buffer:', trimmed, e)
                     }
                 }
 

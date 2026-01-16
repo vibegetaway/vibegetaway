@@ -7,12 +7,14 @@ interface SearchProgressIndicatorProps {
   isLoading: boolean
   destinationCount: number
   isSearchActive: boolean
+  onClick?: () => void
 }
 
 export function SearchProgressIndicator({
   isLoading,
   destinationCount,
-  isSearchActive
+  isSearchActive,
+  onClick
 }: SearchProgressIndicatorProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [showNewGemAnimation, setShowNewGemAnimation] = useState(false)
@@ -44,49 +46,6 @@ export function SearchProgressIndicator({
     prevCountRef.current = destinationCount
   }, [destinationCount])
 
-  useEffect(() => {
-    if (!isLoading && destinationCount > 0 && isSearchActive) {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current)
-      }
-
-      hideTimeoutRef.current = setTimeout(() => {
-        setIsVisible(false)
-      }, 3000)
-    }
-
-    return () => {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current)
-        hideTimeoutRef.current = null
-      }
-    }
-  }, [isLoading, destinationCount, isSearchActive])
-
-  useEffect(() => {
-    if (isLoading || destinationCount === 0) return
-
-    const handleInteraction = () => {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current)
-        hideTimeoutRef.current = null
-      }
-      setTimeout(() => {
-        setIsVisible(false)
-      }, 500)
-    }
-
-    const events = ['click', 'touchstart', 'scroll', 'keydown']
-    events.forEach(event => {
-      document.addEventListener(event, handleInteraction, { once: true, passive: true })
-    })
-
-    return () => {
-      events.forEach(event => {
-        document.removeEventListener(event, handleInteraction)
-      })
-    }
-  }, [isLoading, destinationCount])
 
   if (!isVisible || !isSearchActive) {
     return null
@@ -167,13 +126,19 @@ export function SearchProgressIndicator({
             </>
           )}
           
-          <div className={`
-            relative flex items-center gap-2.5 px-4 py-3 
-            bg-white/95 backdrop-blur-md rounded-full 
-            shadow-xl border border-gray-200/80
-            transition-all duration-300
-            ${showNewGemAnimation ? 'scale-110 shadow-2xl shadow-pink-200/50 border-pink-300' : ''}
-          `}>
+          <button
+            onClick={onClick}
+            disabled={isLoading || destinationCount === 0}
+            className={`
+              relative flex items-center gap-2.5 px-4 py-3 
+              bg-white/95 backdrop-blur-md rounded-full 
+              shadow-xl border border-gray-200/80
+              transition-all duration-300
+              ${showNewGemAnimation ? 'scale-110 shadow-2xl shadow-pink-200/50 border-pink-300' : ''}
+              ${onClick && !isLoading && destinationCount > 0 ? 'cursor-pointer hover:shadow-2xl hover:scale-105 active:scale-95' : ''}
+              ${isLoading || destinationCount === 0 ? 'cursor-default' : ''}
+            `}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 text-violet-600 animate-spin" />
@@ -202,7 +167,7 @@ export function SearchProgressIndicator({
                 </div>
               </>
             )}
-          </div>
+          </button>
         </div>
       </div>
     </>

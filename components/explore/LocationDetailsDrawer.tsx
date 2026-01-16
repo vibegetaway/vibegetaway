@@ -20,7 +20,6 @@ export function LocationDetailsDrawer({
 
     const [dragOffset, setDragOffset] = useState(0)
     const [dragStart, setDragStart] = useState<number | null>(null)
-    const [activeTab, setActiveTab] = useState<'info' | 'activities' | 'tips'>('info')
 
     useEffect(() => {
         if (isOpen) {
@@ -134,159 +133,20 @@ export function LocationDetailsDrawer({
                 <div ref={contentRef} className="flex-1 overflow-y-auto">
                     <div className="p-6 space-y-8">
 
-                        {/* 1. Relevance Card (Match Reason) */}
-                        {location.match_reason && (
-                            <div className="bg-gradient-to-br from-violet-50 to-pink-50 border border-violet-100 rounded-2xl p-5">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <div className="p-1.5 bg-violet-100 rounded-lg">
-                                        <Zap className="w-4 h-4 text-violet-600" />
-                                    </div>
-                                    <h3 className="text-sm font-bold text-violet-900 uppercase tracking-wider">Why it matches</h3>
-                                </div>
-                                <p className="text-violet-800 text-sm leading-relaxed font-medium">
-                                    {location.match_reason}
-                                </p>
-                            </div>
-                        )}
 
-                        {/* 2. Key Insights Row */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-2">
-                                <div className="flex items-center gap-2 text-gray-500">
-                                    <Calendar className="w-4 h-4" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Best Time</span>
-                                </div>
-                                <p className="text-sm font-semibold text-gray-900 line-clamp-2">
-                                    {location.best_time_to_visit || "Year-round"}
-                                </p>
-                            </div>
-                            <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-2">
-                                <div className="flex items-center gap-2 text-gray-500">
-                                    <Star className="w-4 h-4 text-amber-500" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Vibe Level</span>
-                                </div>
-                                <p className="text-sm font-semibold text-gray-900">
-                                    {location.prominence_score}/10 Prominence
-                                </p>
-                            </div>
-                        </div>
 
-                        {/* 3. Accessibility / Flight Info */}
-                        {location.travel_from_origin && (
-                            <div className="flex items-center gap-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl p-4">
-                                <div className="p-2 bg-emerald-100 rounded-xl">
-                                    <Navigation className="w-5 h-5 text-emerald-600" />
-                                </div>
-                                <div className="flex-1">
-                                    <h4 className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">From your origin</h4>
-                                    <p className="text-sm font-medium text-emerald-900">{location.travel_from_origin}</p>
-                                </div>
-                            </div>
-                        )}
 
-                        {/* 4. Tabs for deeper info */}
+
+                        {/* About Section */}
                         <div className="space-y-6">
-                            <div className="flex border-b border-gray-100">
-                                {(['info', 'activities', 'tips'] as const).map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setActiveTab(tab)}
-                                        className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === tab ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
-                                            }`}
-                                    >
-                                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                                        {activeTab === tab && (
-                                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-600 rounded-full" />
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                {activeTab === 'info' && (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                                                <Info className="w-5 h-5 text-gray-400" />
-                                                About {location.spot}
-                                            </h3>
-                                            <div className="text-gray-600 text-sm leading-relaxed space-y-4">
-                                                {location.extended_description ? (
-                                                    location.extended_description.split('\n').map((para, i) => (
-                                                        <p key={i}>{para}</p>
-                                                    ))
-                                                ) : (
-                                                    <p>{location.description}</p>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {location.why_now && (
-                                            <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100">
-                                                <h4 className="text-sm font-bold text-amber-900 mb-2 flex items-center gap-2">
-                                                    <Zap className="w-4 h-4" />
-                                                    Timing Insight
-                                                </h4>
-                                                <p className="text-sm text-amber-800 leading-relaxed font-medium">
-                                                    {location.why_now}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {activeTab === 'activities' && (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                                <Zap className="w-5 h-5 text-yellow-500" />
-                                                Top Things to Do
-                                            </h3>
-                                            <div className="grid gap-3">
-                                                {location.top_activities?.map((activity, i) => (
-                                                    <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                                                        <div className="w-6 h-6 flex-shrink-0 bg-white rounded-full flex items-center justify-center text-[10px] font-bold text-gray-400 border border-gray-100">
-                                                            {i + 1}
-                                                        </div>
-                                                        <span className="text-sm font-medium text-gray-700">{activity}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {location.nearby_attractions && (
-                                            <div>
-                                                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                                    <MapIcon className="w-5 h-5 text-pink-500" />
-                                                    Nearby Attractions
-                                                </h3>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {location.nearby_attractions.map((place, i) => (
-                                                        <span key={i} className="bg-pink-50 text-pink-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-pink-100">
-                                                            {place}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {activeTab === 'tips' && (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                                <Info className="w-5 h-5 text-blue-500" />
-                                                Practical Tips
-                                            </h3>
-                                            <div className="bg-blue-50/50 rounded-2xl p-5 border border-blue-100">
-                                                <p className="text-sm text-blue-900 leading-relaxed font-medium">
-                                                    {location.practical_tips || "Stay tuned for local tips from Reddit travelers!"}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <Info className="w-5 h-5 text-gray-400" />
+                                    About {location.spot}
+                                </h3>
+                                <p className="text-gray-600 text-sm leading-relaxed">
+                                    {location.description}
+                                </p>
                             </div>
                         </div>
 
