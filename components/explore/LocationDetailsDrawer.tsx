@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Calendar, MapPin, Navigation, Info, Zap, Map as MapIcon, Star } from 'lucide-react'
 import type { DrawerItem } from './ExploreMap'
+import PixabayGallery from './PixabayGallery'
 
 interface LocationDetailsDrawerProps {
     isOpen: boolean
@@ -150,17 +151,16 @@ export function LocationDetailsDrawer({
                             </div>
                         </div>
 
-                        {/* Gallery Placeholder / Info */}
-                        <div className="pt-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-bold text-gray-900">Experience the Vibe</h3>
-                                <span className="text-xs font-medium text-gray-400">Photos via Unsplash</span>
+                        {/* Pixabay Gallery */}
+                        {location.image_keywords && (
+                            <div className="pt-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-bold text-gray-900">Experience the Vibe</h3>
+                                    <span className="text-xs font-medium text-gray-400">Photos via Pixabay</span>
+                                </div>
+                                <PixabayGallery keywords={location.image_keywords} imageCount={6} />
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
-                                <div className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 

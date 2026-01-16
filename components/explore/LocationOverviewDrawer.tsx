@@ -112,7 +112,7 @@ export function LocationOverviewDrawer({
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/40 z-[9998] transition-opacity"
+                className="fixed inset-0 bg-black/40 z-[10000] transition-opacity"
                 onClick={onClose}
                 style={{
                     opacity: dragOffset > 0 ? Math.max(0, 1 - dragOffset / 300) : 1
@@ -122,7 +122,7 @@ export function LocationOverviewDrawer({
             {/* Drawer */}
             <div
                 ref={drawerRef}
-                className="fixed bottom-[84px] md:bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-[9999] max-h-[80vh] flex flex-col"
+                className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-[10001] max-h-[85vh] flex flex-col"
                 style={{
                     transform: `translateY(${dragOffset}px)`,
                     transition: dragStart === null ? 'transform 0.3s ease-out' : 'none',
@@ -130,22 +130,22 @@ export function LocationOverviewDrawer({
                 }}
             >
                 {/* Handle bar */}
-                <div className="pt-3 pb-2 flex justify-center">
+                <div className="pt-4 pb-3 flex justify-center flex-shrink-0">
                     <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
                 </div>
 
                 {/* Header */}
-                <div className="px-5 pb-3 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">
+                <div className="px-6 pb-4 border-b border-gray-100 flex-shrink-0">
+                    <h2 className="text-xl font-bold text-gray-900 mb-1">
                         {isClusterView
                             ? `${items.length} Places`
                             : items[0]?.spot
                         }
                     </h2>
                     {!isClusterView && items[0] && (
-                        <p className="text-sm text-gray-500">
-                            {items[0].location}, {items[0].country}
-                        </p>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span>{items[0].location}, {items[0].country}</span>
+                        </div>
                     )}
                 </div>
 
@@ -184,41 +184,10 @@ export function LocationOverviewDrawer({
                                         {item.location}, {item.country}
                                     </p>
 
-                                    {item.match_reason && (
-                                        <div className="bg-violet-50 text-violet-700 text-[11px] px-2 py-1 rounded-md mb-2 font-medium line-clamp-1">
-                                            ✨ {item.match_reason}
-                                        </div>
-                                    )}
-
-                                    <p className="text-sm text-gray-600 mb-2 line-clamp-1">
+                                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">
                                         {item.description}
                                     </p>
 
-                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                        <span className="flex items-center gap-0.5 text-yellow-500">
-                                            {(() => {
-                                                const rating = getStarsFromProminence(item.prominence_score)
-                                                const fullStars = Math.floor(rating)
-                                                const hasHalfStar = rating % 1 !== 0
-                                                const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0)
-
-                                                return (
-                                                    <>
-                                                        {'★'.repeat(fullStars)}
-                                                        {hasHalfStar && <span className="relative inline-block">
-                                                            <span className="text-gray-300">★</span>
-                                                            <span className="absolute left-0 top-0 overflow-hidden" style={{ width: '50%' }}>★</span>
-                                                        </span>}
-                                                        <span className="text-gray-300">
-                                                            {'★'.repeat(emptyStars)}
-                                                        </span>
-                                                    </>
-                                                )
-                                            })()}
-                                        </span>
-                                        <span className="text-gray-300">•</span>
-                                        <span className="font-medium">{item.price_class}</span>
-                                    </div>
                                 </div>
                             </div>
                         </button>

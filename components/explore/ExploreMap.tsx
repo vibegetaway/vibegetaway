@@ -28,7 +28,6 @@ export interface Location {
   travel_from_origin?: string
   image_keywords?: string
   match_reason?: string
-  price_class: string
   prominence_score: number
   reddit_source_urls: string[]
   image_url: string
@@ -49,7 +48,7 @@ interface LocationProperties {
   spot: string
   country: string
   description: string
-  price_class: string
+  image_keywords?: string
   prominence_score: number
   image_url: string
 }
@@ -69,8 +68,8 @@ export interface DrawerItem {
   location: string
   country: string
   description: string
+  image_keywords?: string
   image_url: string
-  price_class: string
   prominence_score: number
 }
 
@@ -235,7 +234,6 @@ function MapController({
         spot: loc.spot,
         country: loc.country,
         description: loc.description,
-        price_class: loc.price_class,
         prominence_score: loc.prominence_score,
         image_url: loc.image_url,
       },
@@ -332,7 +330,6 @@ function MapController({
                       image_keywords: point.properties.image_keywords,
                       match_reason: point.properties.match_reason,
                       image_url: point.properties.image_url,
-                      price_class: point.properties.price_class,
                       prominence_score: point.properties.prominence_score,
                     }))
                     .sort((a, b) => b.prominence_score - a.prominence_score)
@@ -355,8 +352,8 @@ function MapController({
                     location: marker.location!.location,
                     country: marker.location!.country,
                     description: marker.location!.description,
+                    image_keywords: marker.location!.image_keywords,
                     image_url: marker.location!.image_url,
-                    price_class: marker.location!.price_class,
                     prominence_score: marker.location!.prominence_score,
                   }]
                   onMarkerClick(items, false)
@@ -519,7 +516,6 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
                 travel_from_origin: loc.travel_from_origin,
                 image_keywords: loc.image_keywords,
                 match_reason: loc.match_reason,
-                price_class: loc.price_class || '$$',
                 prominence_score: loc.prominence_score || 5,
                 reddit_source_urls: loc.reddit_source_urls || [],
                 image_url: imageUrl
@@ -594,9 +590,8 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
         location: loc.location,
         country: loc.country,
         description: loc.description,
-        extended_description: loc.extended_description,
+        image_keywords: loc.image_keywords,
         image_url: loc.image_url,
-        price_class: loc.price_class,
         prominence_score: loc.prominence_score,
       }))
       .sort((a, b) => b.prominence_score - a.prominence_score)

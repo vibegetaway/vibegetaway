@@ -41,30 +41,19 @@ function buildFilterContext(filters: ExploreFilters): string {
 function buildExplorePrompt(query: string, filters: ExploreFilters): string {
     const filterContext = buildFilterContext(filters)
 
-    return `Search Reddit travel discussions for destinations matching: "${query}"
+    return `Find travel destinations for: "${query}"
 ${filterContext}
 
-CRITICAL OUTPUT FORMAT - READ CAREFULLY:
-You MUST output ONLY valid NDJSON (newline-delimited JSON).
-Each line contains ONE complete, valid JSON object for ONE destination.
-Do NOT output any other text, explanations, or markdown.
-Do NOT wrap in an array or add brackets.
-
-Each JSON object MUST use this EXACT structure with NO missing fields:
-{"spot":"Landmark Name","location":"City","country":"Country","latitude":0.0,"longitude":0.0,"description":"One sentence summary","price_class":"$$","prominence_score":7}
+OUTPUT FORMAT (NDJSON - one JSON per line):
+{"spot":"Name","location":"City","country":"Country","latitude":0.0,"longitude":0.0,"description":"Brief description","image_keywords":"search keywords","prominence_score":7}
 
 RULES:
-- Output 5-10 destinations, one per line
-- Each line is a complete, valid JSON object with NO line breaks inside
-- Use double quotes for ALL string values
-- Escape quotes inside strings with backslash
-- latitude/longitude must be valid numbers (not strings)
-- prominence_score: integer from 1-10 based on Reddit mentions
-- price_class: exactly one of: $, $$, $$$, $$$$, $$$$$
-- NO trailing commas
-- NO explanatory text before or after
+- Output 5-10 destinations
+- One complete JSON object per line
+- prominence_score: 1-10 (popularity)
+- No extra text
 
-Start outputting NDJSON now (one destination per line):`
+Output now:`
 }
 
 export async function GET(request: NextRequest) {
