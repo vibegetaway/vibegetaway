@@ -61,12 +61,12 @@ export default function ExplorerHero() {
                     </h1>
                 </motion.div>
 
-                {/* Bottom Right: Call to Action */}
+                {/* Bottom Center/Right: Call to Action */}
                 <motion.div
                     initial={{ opacity: 0, y: 50, scale: 0.9 }}
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-                    className="self-end text-right max-w-lg"
+                    className="self-center sm:self-end text-center sm:text-right max-w-lg w-full"
                 >
                     <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-6 text-white drop-shadow-2xl">
                         Find your next
@@ -76,7 +76,7 @@ export default function ExplorerHero() {
                         </span>
                     </h3>
 
-                    <div className="flex flex-col items-end gap-4">
+                    <div className="flex flex-col items-center sm:items-end gap-4">
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -85,7 +85,7 @@ export default function ExplorerHero() {
                         >
                             <span className="relative z-10 flex items-center gap-2">
                                 Explore Now
-                                <ArrowDown className="w-5 h-5 -rotate-90 group-hover:rotate-0 transition-transform duration-300" />
+                                <ArrowDown className="w-5 h-5 -rotate-90" />
                             </span>
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-200 to-blue-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </motion.button>
@@ -95,7 +95,7 @@ export default function ExplorerHero() {
                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                             className="flex items-center gap-2 text-white/50 text-sm font-medium"
                         >
-                            <span>Scroll to Plan</span>
+                            <span>Start Planning</span>
                             <ArrowDown className="w-4 h-4" />
                         </motion.div>
                     </div>
