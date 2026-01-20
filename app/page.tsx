@@ -4,7 +4,6 @@ import SnapContainer from "@/components/homepage/SnapContainer"
 import ExplorerHero from "@/components/homepage/ExplorerHero"
 import PlanHero from "@/components/homepage/PlanHero"
 import InstallHero from "@/components/homepage/InstallHero"
-import { MobileNav } from "@/components/MobileNav"
 
 export default function Home() {
   return (
@@ -14,8 +13,6 @@ export default function Home() {
         <PlanHero />
         <InstallHero />
       </SnapContainer>
-
-      <MobileNav activePage="home" />
     </main>
   )
 }
