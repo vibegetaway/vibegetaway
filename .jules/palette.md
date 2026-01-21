@@ -5,3 +5,7 @@
 ## 2024-05-24 - Icon-Only Button Labels
 **Learning:** Using `title` attributes for tooltips on icon-only buttons is insufficient for accessibility. Screen readers may not consistently announce `title`, and it doesn't provide the same semantic weight as `aria-label`.
 **Action:** Always pair icon-only buttons with an explicit `aria-label` attribute describing the action (e.g., "Search", "Filter Settings"), even if a `title` is present.
+
+## 2024-05-24 - Custom Filter Bar Patterns
+**Learning:** Custom filter implementations (like in `FilterBar`) often lack semantic structure. Grouping filter controls without a `role="toolbar"` and using generic `div`s for dropdowns makes navigation difficult for screen readers.
+**Action:** Use `role="toolbar"` for the container and implement the WAI-ARIA disclosure pattern: `aria-expanded`/`aria-controls` on the button and `role='dialog'`/`aria-label` on the content container.

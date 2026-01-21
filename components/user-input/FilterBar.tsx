@@ -86,7 +86,11 @@ export function FilterBar({
     }, [isDateOpen, editingFilter])
 
     return (
-        <div className={cn("hidden md:flex items-center gap-2 flex-wrap", className)}>
+        <div
+            className={cn("hidden md:flex items-center gap-2 flex-wrap", className)}
+            role="toolbar"
+            aria-label="Filter options"
+        >
             {filters.map((filter) => {
                 const count = filterCounts[filter.id] || 0
                 const hasFilter = filter.id === 'date' 
@@ -103,6 +107,9 @@ export function FilterBar({
                                     setEditingFilter(null)
                                     setIsDateOpen(!isDateOpen)
                                 }}
+                                aria-expanded={isDateOpen}
+                                aria-haspopup="dialog"
+                                aria-label={month && month !== "Anytime" ? `Date filter, currently selected: ${month}` : "Date filter"}
                                 className={cn(
                                     "relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm",
                                     "bg-white/90 backdrop-blur-md border",
@@ -120,7 +127,12 @@ export function FilterBar({
                                         className="fixed inset-0 z-10"
                                         onClick={() => setIsDateOpen(false)}
                                     />
-                                    <div className="absolute top-full mt-2 left-0 w-[280px] bg-white rounded-xl shadow-xl border border-stone-100 overflow-hidden z-20 animate-in fade-in zoom-in-95 duration-200" data-date-dropdown>
+                                    <div
+                                        className="absolute top-full mt-2 left-0 w-[280px] bg-white rounded-xl shadow-xl border border-stone-100 overflow-hidden z-20 animate-in fade-in zoom-in-95 duration-200"
+                                        data-date-dropdown
+                                        role="dialog"
+                                        aria-label="Date selection"
+                                    >
                                         {/* Quick Options */}
                                         <div className="p-2 border-b border-stone-100">
                                             <div className="text-xs font-semibold text-stone-400 uppercase tracking-wider px-2 py-1 mb-1">
@@ -211,6 +223,7 @@ export function FilterBar({
                                         suggestionType="location"
                                         className="border-none bg-transparent p-0 focus-within:ring-0 focus-within:border-none max-h-[28px] rounded-none text-sm"
                                         autoFocus
+                                        ariaLabel="Filter by destination"
                                     />
                                 </div>
                             )}
