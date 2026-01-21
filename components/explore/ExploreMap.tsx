@@ -1,7 +1,7 @@
 'use client'
 
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
@@ -165,7 +165,8 @@ const createClusterPin = (imageUrl: string, locationName: string, count: number,
   })
 }
 
-function MapController({
+// Memoize MapController to prevent unnecessary re-renders when parent state changes (e.g. typing in search)
+const MapController = memo(function MapController({
   locations,
   onMarkerClick,
   searchBounds
@@ -367,7 +368,7 @@ function MapController({
       })}
     </>
   )
-}
+})
 
 const createOriginPin = (originName: string) => {
   return L.divIcon({
@@ -575,11 +576,12 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
     }
   }, [isDrawerOpen])
 
-  const handleMarkerClick = (items: DrawerItem[], isCluster: boolean) => {
+  // Memoize handler to ensure stable props for MapController optimization
+  const handleMarkerClick = useCallback((items: DrawerItem[], isCluster: boolean) => {
     setDrawerItems(items)
     setIsClusterView(isCluster)
     setIsDrawerOpen(true)
-  }
+  }, [])
 
   const handleShowAllLocations = () => {
     if (locations.length === 0) return
