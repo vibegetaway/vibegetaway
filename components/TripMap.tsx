@@ -129,7 +129,11 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
 
     if (markersToShow.length === 0 && !showDayView) {
         return (
-            <div className={`flex items-center justify-center bg-violet-50 text-violet-400 ${className}`}>
+            <div
+                className={`flex items-center justify-center bg-violet-50 text-violet-400 ${className}`}
+                role="status"
+                aria-live="polite"
+            >
                 <div className="text-center">
                     <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm font-medium">No locations to display</p>
