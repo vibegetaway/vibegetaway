@@ -57,7 +57,7 @@ async function fetchPixabayImages(
             }
         }
 
-        console.warn(`No images found for any fallback terms of: ${keywordString}`)
+        console.warn(`No images found for any fallback terms of: ${keywordString}. Status: ${keywords}`)
         return []
     } catch (error) {
         console.error('Error fetching Pixabay images:', error)

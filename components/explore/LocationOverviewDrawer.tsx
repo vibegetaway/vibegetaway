@@ -188,6 +188,29 @@ export function LocationOverviewDrawer({
                                         {item.description}
                                     </p>
 
+                                    {/* Enriched Content Pills */}
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {item.price_level && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                {item.price_level}
+                                            </span>
+                                        )}
+                                        {item.highlights && item.highlights.length > 0 && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                {item.highlights.length} Highlights
+                                            </span>
+                                        )}
+                                        {item.activities && item.activities.length > 0 && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                                {item.activities.length} Activities
+                                            </span>
+                                        )}
+                                        {item.tips && item.tips.length > 0 && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                                {item.tips.length} Tips
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </button>

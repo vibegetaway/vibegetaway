@@ -19,6 +19,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/city-search(.*)',
   '/api/locations(.*)',
   '/api/explore/search(.*)',
+  '/api/explore/enrich',
   '/api/explore/enrich(.*)',
 ])
 

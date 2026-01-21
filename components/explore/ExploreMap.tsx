@@ -31,6 +31,11 @@ export interface Location {
   prominence_score: number
   reddit_source_urls: string[]
   image_url: string
+  price_level?: string
+  highlights?: string[]
+  tips?: string[]
+  activities?: string[]
+  social_proof?: { quote: string; source: string }
 }
 
 interface ExploreMapProps {
@@ -48,9 +53,14 @@ interface LocationProperties {
   spot: string
   country: string
   description: string
+  highlights?: string[]
+  activities?: string[]
+  tips?: string[]
   image_keywords?: string
   prominence_score: number
   image_url: string
+  price_level?: string
+  social_proof?: { quote: string; source: string }
 }
 
 interface ProcessedMarker {
@@ -68,9 +78,14 @@ export interface DrawerItem {
   location: string
   country: string
   description: string
+  highlights?: string[]
+  activities?: string[]
+  tips?: string[]
   image_keywords?: string
   image_url: string
   prominence_score: number
+  price_level?: string
+  social_proof?: { quote: string; source: string }
 }
 
 // Convert prominence score to star rating (supports half stars)
@@ -80,7 +95,7 @@ const getStarsFromProminence = (score: number): number => {
 }
 
 // Create circular image pin
-const createCircularPin = (imageUrl: string, locationName: string, prominenceScore: number = 0, size: number = 50) => {
+const createCircularPin = (imageUrl: string, locationName: string, prominenceScore: number = 0, size: number = 50, priceLevel?: string) => {
   const isSpecialPin = prominenceScore === 10
   const starBadge = isSpecialPin ? `
     <div class="star-badge" style="
@@ -101,6 +116,25 @@ const createCircularPin = (imageUrl: string, locationName: string, prominenceSco
     ">⭐</div>
   ` : ''
 
+  const priceBadge = priceLevel ? `
+    <div class="price-badge" style="
+      position: absolute;
+      top: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #8b5cf6;
+      color: white;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 700;
+      z-index: 11;
+      width: max-content;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      border: 1px solid white;
+    ">${priceLevel}</div>
+  ` : ''
+
   return L.divIcon({
     className: 'custom-circular-marker',
     html: `
@@ -110,6 +144,7 @@ const createCircularPin = (imageUrl: string, locationName: string, prominenceSco
             <img src="${imageUrl}" alt="location" class="pin-image" />
           </div>
           ${starBadge}
+          ${priceBadge}
         </div>
         <div class="pin-label">${locationName}</div>
       </div>
@@ -234,8 +269,14 @@ function MapController({
         spot: loc.spot,
         country: loc.country,
         description: loc.description,
+        highlights: loc.highlights || loc.top_activities,
+        activities: loc.activities || loc.nearby_attractions,
+        tips: loc.tips || (loc.practical_tips ? [loc.practical_tips] : []),
+        image_keywords: loc.image_keywords,
         prominence_score: loc.prominence_score,
         image_url: loc.image_url,
+        price_level: loc.price_level,
+        social_proof: loc.social_proof,
       },
       geometry: {
         type: 'Point' as const,
@@ -331,6 +372,8 @@ function MapController({
                       match_reason: point.properties.match_reason,
                       image_url: point.properties.image_url,
                       prominence_score: point.properties.prominence_score,
+                      price_level: point.properties.price_level,
+                      social_proof: point.properties.social_proof,
                     }))
                     .sort((a, b) => b.prominence_score - a.prominence_score)
                   onMarkerClick(items, true)
@@ -343,7 +386,7 @@ function MapController({
             <Marker
               key={marker.id}
               position={marker.position}
-              icon={createCircularPin(marker.location.image_url, marker.location.spot, marker.location.prominence_score)}
+              icon={createCircularPin(marker.location.image_url, marker.location.spot, marker.location.prominence_score, 50, marker.location.price_level)}
               eventHandlers={{
                 click: () => {
                   // Single item
@@ -352,9 +395,14 @@ function MapController({
                     location: marker.location!.location,
                     country: marker.location!.country,
                     description: marker.location!.description,
+                    highlights: marker.location!.highlights,
+                    activities: marker.location!.activities,
+                    tips: marker.location!.tips,
                     image_keywords: marker.location!.image_keywords,
                     image_url: marker.location!.image_url,
                     prominence_score: marker.location!.prominence_score,
+                    price_level: marker.location!.price_level,
+                    social_proof: marker.location!.social_proof,
                   }]
                   onMarkerClick(items, false)
                 },
@@ -395,6 +443,7 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
   const [drawerItems, setDrawerItems] = useState<DrawerItem[]>([])
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isClusterView, setIsClusterView] = useState(false)
+  const [isShowingAllFromSearch, setIsShowingAllFromSearch] = useState(false)
   const [selectedDetailLocation, setSelectedDetailLocation] = useState<DrawerItem | null>(null)
 
   // Search state
@@ -445,6 +494,92 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
     }
   }
 
+  // Phase 2: Enrich locations
+  const streamEnrichmentLoop = async (locationsToEnrich: Location[]) => {
+    setLoadingStage('Gathering local details (Gemini Flash)...')
+
+    try {
+      const response = await fetch('/api/explore/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          locations: locationsToEnrich.map(l => ({
+            spot: l.spot,
+            location: l.location,
+            country: l.country
+          })),
+          query: searchQuery,
+          origin: origin,
+          budget: budget,
+          travelMonth: travelMonth
+        })
+      })
+
+      if (!response.ok) {
+        console.error(`Enrichment API failed with status: ${response.status} ${response.statusText}`)
+      }
+
+      if (!response.body) return
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const freshData = JSON.parse(line)
+
+            if (freshData.spot) {
+              setLocations(prev => prev.map(loc => {
+                const isMatch = (freshData.spot === loc.spot) ||
+                  (freshData.location === loc.location && freshData.country === loc.country)
+
+                if (isMatch) {
+                  let newImageUrl = loc.image_url
+                  // Update image if we have better keywords now
+                  if (freshData.image_keywords && !loc.image_keywords && freshData.image_keywords !== loc.image_keywords) {
+                    newImageUrl = `/api/images/cached-images?keywords=${encodeURIComponent(freshData.image_keywords)}`
+                  }
+
+                  return {
+                    ...loc,
+                    price_level: freshData.price_level,
+                    highlights: freshData.highlights,
+                    activities: freshData.activities,
+                    tips: freshData.tips,
+                    image_keywords: freshData.image_keywords,
+                    image_url: newImageUrl,
+                    social_proof: freshData.social_proof
+                  }
+                }
+                return loc
+              }))
+              // Increment progress slightly for visual feedback
+              setLoadingProgress(p => Math.min(95, p + 2))
+            }
+          } catch (e) {
+            // incomplete chunks are fine, wait for buffer
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Enrichment stream error", e)
+    } finally {
+      setIsLoading(false)
+      setLoadingProgress(100)
+      setLoadingStage('Search complete')
+    }
+  }
+
   const streamExploreSearch = async (query: string = '') => {
     if (!query.trim()) {
       setLocations([])
@@ -454,7 +589,7 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
 
     setIsLoading(true)
     setLoadingProgress(0)
-    setLoadingStage('Connecting to search...')
+    setLoadingStage('Connecting to Sonar-Pro...')
     setLocations([])
 
     const params = new URLSearchParams({ q: query })
@@ -464,6 +599,8 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
     if (travelMonth) params.append('travelMonth', travelMonth)
 
     const url = `/api/explore/search?${params.toString()}`
+
+    let collectedLocations: Location[] = []
 
     try {
       const response = await fetch(url)
@@ -477,7 +614,7 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
       let buffer = ''
       let locationCount = 0
 
-      setLoadingStage('Searching Reddit discussions...')
+      setLoadingStage('Discovering locations...')
 
       while (true) {
         const { done, value } = await reader.read()
@@ -493,6 +630,8 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
           const data = line.slice(6).trim()
           if (!data) continue
 
+          if (data === '[DONE]') continue
+
           try {
             const event = JSON.parse(data)
 
@@ -507,39 +646,35 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
                 latitude: loc.latitude || 0,
                 longitude: loc.longitude || 0,
                 description: loc.description || '',
-                extended_description: loc.extended_description,
-                best_time_to_visit: loc.best_time_to_visit,
-                why_now: loc.why_now,
-                top_activities: loc.top_activities,
-                nearby_attractions: loc.nearby_attractions,
-                practical_tips: loc.practical_tips,
-                travel_from_origin: loc.travel_from_origin,
-                image_keywords: loc.image_keywords,
-                match_reason: loc.match_reason,
                 prominence_score: loc.prominence_score || 5,
                 reddit_source_urls: loc.reddit_source_urls || [],
-                image_url: imageUrl
+                image_url: imageUrl,
+                highlights: [],
+                activities: [],
+                tips: [],
+                image_keywords: '',
+                price_level: ''
               }
 
               locationCount++
+              collectedLocations.push(location)
               setLocations(prev => [...prev, location])
-              setLoadingProgress(Math.min(90, locationCount * 6))
+              setLoadingProgress(Math.min(50, locationCount * 8))
               setLoadingStage(`Found ${locationCount} destination${locationCount > 1 ? 's' : ''}...`)
-            } else if (event.type === 'complete') {
-              setLoadingProgress(100)
-              setLoadingStage(`Complete! Found ${event.count} destinations`)
-            } else if (event.type === 'error') {
-              console.error('Stream error:', event.message)
             }
           } catch (e) {
-            console.error('Failed to parse SSE event data:', data, e)
+            // ignore parse errors
           }
         }
       }
 
-      setTimeout(() => {
+      // Phase 1 finished
+      if (collectedLocations.length > 0) {
+        await streamEnrichmentLoop(collectedLocations)
+      } else {
         setIsLoading(false)
-      }, 500)
+        setLoadingStage('No results found')
+      }
 
     } catch (error) {
       console.error('Error streaming locations:', error)
@@ -578,32 +713,51 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
   const handleMarkerClick = (items: DrawerItem[], isCluster: boolean) => {
     setDrawerItems(items)
     setIsClusterView(isCluster)
+    setIsShowingAllFromSearch(false)
     setIsDrawerOpen(true)
   }
 
-  const handleShowAllLocations = () => {
-    if (locations.length === 0) return
-
-    const allDrawerItems: DrawerItem[] = locations
+  // Map locations to drawer items helper
+  const mapLocationsToDrawerItems = (locationsList: Location[]): DrawerItem[] => {
+    return locationsList
       .map(loc => ({
         spot: loc.spot,
         location: loc.location,
         country: loc.country,
         description: loc.description,
+        highlights: loc.highlights,
+        activities: loc.activities,
+        tips: loc.tips,
         image_keywords: loc.image_keywords,
         image_url: loc.image_url,
         prominence_score: loc.prominence_score,
+        price_level: loc.price_level,
+        social_proof: loc.social_proof,
       }))
       .sort((a, b) => b.prominence_score - a.prominence_score)
+  }
 
-    setDrawerItems(allDrawerItems)
+  // Update handleShowAllLocations to pass new properties
+  const handleShowAllLocations = () => {
+    if (locations.length === 0) return
+
+    setDrawerItems(mapLocationsToDrawerItems(locations))
     setIsClusterView(true)
+    setIsShowingAllFromSearch(true)
     setIsDrawerOpen(true)
   }
 
   const closeDrawer = () => {
     setIsDrawerOpen(false)
+    setIsShowingAllFromSearch(false)
   }
+
+  // Keep drawer updated with new locations if showing all from search
+  useEffect(() => {
+    if (isShowingAllFromSearch && isDrawerOpen) {
+      setDrawerItems(mapLocationsToDrawerItems(locations))
+    }
+  }, [locations, isShowingAllFromSearch, isDrawerOpen])
 
   if (!isClient) {
     return <div className={className} />

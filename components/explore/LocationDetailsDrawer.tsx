@@ -100,72 +100,127 @@ export function LocationDetailsDrawer({
                     transition: dragStart === null ? 'transform 0.3s ease-out' : 'none',
                 }}
             >
-                {/* Cover Image & Header Area */}
-                <div className="relative h-[250px] flex-shrink-0 drag-handle-area cursor-grab active:cursor-grabbing">
-                    <img
-                        src={location.image_url}
-                        alt={location.spot}
-                        className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                {/* Drag Handle Area & Header */}
+                <div className="relative flex-shrink-0 bg-white z-20 drag-handle-area">
+                    {/* Drag Bar */}
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-200 rounded-full" />
 
                     {/* Close Button */}
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 bg-black/20 backdrop-blur-md rounded-full text-white hover:bg-black/40 transition-colors"
+                        className="absolute top-4 right-4 p-2 bg-gray-100/50 hover:bg-gray-100 rounded-full text-gray-500 transition-colors z-30"
                     >
-                        <X className="w-6 h-6" />
+                        <X className="w-5 h-5" />
                     </button>
-
-                    {/* Drag Handle */}
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/30 rounded-full" />
-
-                    {/* Title Overlay */}
-                    <div className="absolute bottom-6 left-6 right-6">
-                        <h1 className="text-2xl font-bold text-white mb-1">{location.spot}</h1>
-                        <div className="flex items-center gap-2 text-white/80 text-sm">
-                            <MapPin className="w-3.5 h-3.5" />
-                            <span>{location.location}, {location.country}</span>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Scrolling Content */}
-                <div ref={contentRef} className="flex-1 overflow-y-auto">
-                    <div className="p-6 space-y-8">
+                <div ref={contentRef} className="flex-1 overflow-y-auto pt-8">
+                    {/* Image Gallery Grid */}
+                    <div className="px-0 pb-6">
+                        <PixabayGallery
+                            keywords={location.image_keywords || `${location.spot} ${location.location}`}
+                            imageCount={8}
+                        />
+                    </div>
 
-
-
-
-
-                        {/* About Section */}
-                        <div className="space-y-6">
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                                    <Info className="w-5 h-5 text-gray-400" />
-                                    About {location.spot}
-                                </h3>
-                                <p className="text-gray-600 text-sm leading-relaxed">
-                                    {location.description}
-                                </p>
+                    <div className="px-6 pb-24 space-y-8">
+                        {/* Title Section */}
+                        <div className="space-y-2">
+                            <h1 className="text-3xl font-bold text-gray-900">{location.spot}</h1>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-gray-500 text-sm">
+                                <div className="flex items-center gap-1">
+                                    <MapPin className="w-4 h-4 text-gray-400" />
+                                    <span>{location.location}, {location.country}</span>
+                                </div>
+                                {location.price_level && (
+                                    <div className="px-2 py-0.5 bg-green-50 text-green-700 rounded-md font-medium text-xs border border-green-100">
+                                        {location.price_level}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Pixabay Gallery */}
-                        {location.image_keywords && (
-                            <div className="pt-4">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-bold text-gray-900">Experience the Vibe</h3>
-                                    <span className="text-xs font-medium text-gray-400">Photos via Pixabay</span>
+                        {/* Description */}
+                        <div>
+                            <p className="text-gray-600 leading-relaxed text-base">
+                                {location.description}
+                            </p>
+                        </div>
+
+                        {/* Social Proof Quote */}
+                        {location.social_proof && (
+                            <div className="bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-100 rounded-2xl p-5">
+                                <div className="flex gap-3">
+                                    <div className="flex-shrink-0 mt-1">
+                                        <svg className="w-6 h-6 text-violet-400 fill-current opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H15.017C14.4647 8 14.017 8.44772 14.017 9V11C14.017 11.5523 13.5693 12 13.017 12H12.017V5H22.017V15C22.017 18.3137 19.3307 21 16.017 21H14.017ZM5.0166 21L5.0166 18C5.0166 16.8954 5.91203 16 7.0166 16H10.0166C10.5689 16 11.0166 15.5523 11.0166 15V9C11.0166 8.44772 10.5689 8 10.0166 8H6.0166C5.46432 8 5.0166 8.44772 5.0166 9V11C5.0166 11.5523 4.56889 12 4.0166 12H3.0166V5H13.0166V15C13.0166 18.3137 10.3303 21 7.0166 21H5.0166Z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-700 italic font-medium mb-2">"{location.social_proof.quote}"</p>
+                                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">— via {location.social_proof.source}</p>
+                                    </div>
                                 </div>
-                                <PixabayGallery keywords={location.image_keywords} imageCount={6} />
                             </div>
                         )}
+
+                        {/* Highlights */}
+                        {location.highlights && location.highlights.length > 0 && (
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <Info className="w-5 h-5 text-gray-400" />
+                                    Highlights
+                                </h3>
+                                <ul className="grid gap-2">
+                                    {location.highlights.map((point, i) => (
+                                        <li key={i} className="flex gap-3 p-3 bg-gray-50 rounded-xl">
+                                            <span className="text-violet-600 font-bold">•</span>
+                                            <span className="text-gray-700 text-sm">{point}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {/* Activities */}
+                        {location.activities && location.activities.length > 0 && (
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <Zap className="w-5 h-5 text-yellow-500" />
+                                    Things to Do
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {location.activities.map((activity, i) => (
+                                        <div key={i} className="px-3 py-2 bg-white border border-gray-100 shadow-sm rounded-lg text-sm text-gray-600">
+                                            {activity}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Tips */}
+                        {location.tips && location.tips.length > 0 && (
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <Star className="w-5 h-5 text-amber-500" />
+                                    Local Tips
+                                </h3>
+                                <ul className="space-y-3">
+                                    {location.tips.map((tip, i) => (
+                                        <li key={i} className="flex gap-3 text-sm text-gray-600 bg-amber-50/50 p-3 rounded-xl border border-amber-100/50">
+                                            <Star className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                                            <span>{tip}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
                     </div>
                 </div>
 
                 {/* Footer Action */}
-                <div className="p-6 border-t border-gray-100 flex-shrink-0">
+                <div className="p-6 border-t border-gray-100 flex-shrink-0 bg-white bg-opacity-90 backdrop-blur-md absolute bottom-0 left-0 right-0 z-10">
                     <button
                         className="w-full py-4 bg-gradient-to-r from-violet-600 to-pink-600 text-white font-bold rounded-2xl shadow-xl shadow-violet-200 active:scale-[0.98] transition-all"
                     >
