@@ -1,7 +1,7 @@
 'use client'
 
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
@@ -61,6 +61,8 @@ interface LocationProperties {
   image_url: string
   price_level?: string
   social_proof?: { quote: string; source: string }
+  latitude?: number
+  longitude?: number
 }
 
 interface ProcessedMarker {
@@ -72,6 +74,103 @@ interface ProcessedMarker {
   location?: LocationProperties
   clusterId?: number
 }
+
+interface MemoizedMarkerProps {
+  id: string
+  position: [number, number]
+  type: 'cluster' | 'location'
+  clusterId?: number
+  count?: number
+  topLocation?: LocationProperties
+  location?: LocationProperties
+  supercluster: Supercluster | any
+  onMarkerClick: (items: DrawerItem[], isCluster: boolean) => void
+}
+
+const MemoizedMarker = memo(({
+  id,
+  position,
+  type,
+  clusterId,
+  count,
+  topLocation,
+  location,
+  supercluster,
+  onMarkerClick
+}: MemoizedMarkerProps) => {
+
+  const icon = useMemo(() => {
+    if (type === 'cluster' && topLocation && count !== undefined) {
+      return createClusterPin(topLocation.image_url, topLocation.spot, count, topLocation.prominence_score)
+    } else if (type === 'location' && location) {
+      return createCircularPin(location.image_url, location.spot, location.prominence_score, 50, location.price_level)
+    }
+    return L.divIcon({ className: '' })
+  }, [type, topLocation, count, location])
+
+  const eventHandlers = useMemo(() => {
+    return {
+      click: () => {
+        if (type === 'cluster' && supercluster && clusterId !== undefined) {
+          // Get all items in the cluster
+          const points = supercluster.getLeaves(clusterId, Infinity)
+          const items: DrawerItem[] = points
+            .map((point: any) => ({
+              spot: point.properties.spot,
+              location: point.properties.location,
+              country: point.properties.country,
+              description: point.properties.description,
+              extended_description: point.properties.extended_description,
+              best_time_to_visit: point.properties.best_time_to_visit,
+              why_now: point.properties.why_now,
+              top_activities: point.properties.top_activities,
+              nearby_attractions: point.properties.nearby_attractions,
+              practical_tips: point.properties.practical_tips,
+              travel_from_origin: point.properties.travel_from_origin,
+              image_keywords: point.properties.image_keywords,
+              match_reason: point.properties.match_reason,
+              image_url: point.properties.image_url,
+              prominence_score: point.properties.prominence_score,
+              price_level: point.properties.price_level,
+              social_proof: point.properties.social_proof,
+            }))
+            .sort((a: DrawerItem, b: DrawerItem) => b.prominence_score - a.prominence_score)
+          onMarkerClick(items, true)
+        } else if (type === 'location' && location) {
+          // Single item
+          const items: DrawerItem[] = [{
+            spot: location.spot,
+            location: location.location,
+            country: location.country,
+            description: location.description,
+            highlights: location.highlights,
+            activities: location.activities,
+            tips: location.tips,
+            image_keywords: location.image_keywords,
+            image_url: location.image_url,
+            prominence_score: location.prominence_score,
+            price_level: location.price_level,
+            social_proof: location.social_proof,
+          }]
+          onMarkerClick(items, false)
+        }
+      }
+    }
+  }, [type, supercluster, clusterId, topLocation, count, location, onMarkerClick])
+
+  return <Marker position={position} icon={icon} eventHandlers={eventHandlers} />
+}, (prev, next) => {
+  return (
+    prev.id === next.id &&
+    prev.position[0] === next.position[0] &&
+    prev.position[1] === next.position[1] &&
+    prev.count === next.count &&
+    prev.topLocation === next.topLocation &&
+    prev.location === next.location &&
+    prev.supercluster === next.supercluster &&
+    prev.onMarkerClick === next.onMarkerClick
+  )
+})
 
 export interface DrawerItem {
   spot: string
@@ -258,6 +357,20 @@ function MapController({
       radius: 120,
       maxZoom: 20,
       minZoom: 0,
+      map: (props) => ({
+        topLocation: props,
+        maxProminence: props.prominence_score,
+        topLat: props.latitude,
+        topLng: props.longitude
+      }),
+      reduce: (accumulated, props) => {
+        if (props.maxProminence > accumulated.maxProminence) {
+          accumulated.maxProminence = props.maxProminence
+          accumulated.topLocation = props.topLocation
+          accumulated.topLat = props.topLat
+          accumulated.topLng = props.topLng
+        }
+      }
     })
 
     // Convert locations to GeoJSON points
@@ -277,6 +390,9 @@ function MapController({
         image_url: loc.image_url,
         price_level: loc.price_level,
         social_proof: loc.social_proof,
+        // Add coordinates to properties for supercluster map/reduce
+        latitude: loc.latitude,
+        longitude: loc.longitude
       },
       geometry: {
         type: 'Point' as const,
@@ -306,29 +422,21 @@ function MapController({
   const markers = useMemo(() => {
     return clusters.map((cluster: any): ProcessedMarker => {
       const [longitude, latitude] = cluster.geometry.coordinates
-      const { cluster: isCluster, point_count } = cluster.properties
+      const { cluster: isCluster, point_count, topLocation, topLat, topLng } = cluster.properties
 
       if (isCluster) {
-        // Get all points in this cluster
-        const clusterId = cluster.id as number
-        const points = supercluster.getLeaves(clusterId, Infinity)
-
-        // Find the point with highest prominence_score
-        const topLocation = points.reduce((max: any, point: any) => {
-          return point.properties.prominence_score > max.properties.prominence_score ? point : max
-        }, points[0])
-
-        // Extract coordinates from the most prominent location
-        // GeoJSON uses [lng, lat], Leaflet uses [lat, lng]
-        const [topLng, topLat] = topLocation.geometry.coordinates
+        // Use pre-calculated topLocation and coordinates from Supercluster reduce
+        // Fallback to cluster centroid if topLat/topLng are missing (shouldn't happen)
+        const displayLat = topLat !== undefined ? topLat : latitude
+        const displayLng = topLng !== undefined ? topLng : longitude
 
         return {
-          id: `cluster-${clusterId}`,
-          position: [topLat, topLng] as [number, number],
+          id: `cluster-${cluster.id}`,
+          position: [displayLat, displayLng] as [number, number],
           isCluster: true,
           count: point_count,
-          topLocation: topLocation.properties as LocationProperties,
-          clusterId: clusterId,
+          topLocation: topLocation as LocationProperties,
+          clusterId: cluster.id as number,
         }
       } else {
         // Single location
@@ -344,75 +452,20 @@ function MapController({
 
   return (
     <>
-      {markers.map((marker: ProcessedMarker) => {
-        if (marker.isCluster && marker.topLocation && marker.clusterId !== undefined) {
-          return (
-            <Marker
-              key={marker.id}
-              position={marker.position}
-              icon={createClusterPin(marker.topLocation.image_url, marker.topLocation.spot, marker.count || 0, marker.topLocation.prominence_score)}
-              eventHandlers={{
-                click: () => {
-                  // Get all items in the cluster
-                  const points = supercluster.getLeaves(marker.clusterId!, Infinity)
-                  const items: DrawerItem[] = points
-                    .map((point: any) => ({
-                      spot: point.properties.spot,
-                      location: point.properties.location,
-                      country: point.properties.country,
-                      description: point.properties.description,
-                      extended_description: point.properties.extended_description,
-                      best_time_to_visit: point.properties.best_time_to_visit,
-                      why_now: point.properties.why_now,
-                      top_activities: point.properties.top_activities,
-                      nearby_attractions: point.properties.nearby_attractions,
-                      practical_tips: point.properties.practical_tips,
-                      travel_from_origin: point.properties.travel_from_origin,
-                      image_keywords: point.properties.image_keywords,
-                      match_reason: point.properties.match_reason,
-                      image_url: point.properties.image_url,
-                      prominence_score: point.properties.prominence_score,
-                      price_level: point.properties.price_level,
-                      social_proof: point.properties.social_proof,
-                    }))
-                    .sort((a, b) => b.prominence_score - a.prominence_score)
-                  onMarkerClick(items, true)
-                },
-              }}
-            />
-          )
-        } else if (marker.location) {
-          return (
-            <Marker
-              key={marker.id}
-              position={marker.position}
-              icon={createCircularPin(marker.location.image_url, marker.location.spot, marker.location.prominence_score, 50, marker.location.price_level)}
-              eventHandlers={{
-                click: () => {
-                  // Single item
-                  const items: DrawerItem[] = [{
-                    spot: marker.location!.spot,
-                    location: marker.location!.location,
-                    country: marker.location!.country,
-                    description: marker.location!.description,
-                    highlights: marker.location!.highlights,
-                    activities: marker.location!.activities,
-                    tips: marker.location!.tips,
-                    image_keywords: marker.location!.image_keywords,
-                    image_url: marker.location!.image_url,
-                    prominence_score: marker.location!.prominence_score,
-                    price_level: marker.location!.price_level,
-                    social_proof: marker.location!.social_proof,
-                  }]
-                  onMarkerClick(items, false)
-                },
-              }}
-            />
-          )
-        } else {
-          return null
-        }
-      })}
+      {markers.map((marker: ProcessedMarker) => (
+        <MemoizedMarker
+          key={marker.id}
+          id={marker.id}
+          position={marker.position}
+          type={marker.isCluster ? 'cluster' : 'location'}
+          clusterId={marker.clusterId}
+          count={marker.count}
+          topLocation={marker.topLocation}
+          location={marker.location}
+          supercluster={supercluster}
+          onMarkerClick={onMarkerClick}
+        />
+      ))}
     </>
   )
 }
@@ -710,12 +763,12 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
     }
   }, [isDrawerOpen])
 
-  const handleMarkerClick = (items: DrawerItem[], isCluster: boolean) => {
+  const handleMarkerClick = useCallback((items: DrawerItem[], isCluster: boolean) => {
     setDrawerItems(items)
     setIsClusterView(isCluster)
     setIsShowingAllFromSearch(false)
     setIsDrawerOpen(true)
-  }
+  }, [])
 
   // Map locations to drawer items helper
   const mapLocationsToDrawerItems = (locationsList: Location[]): DrawerItem[] => {
