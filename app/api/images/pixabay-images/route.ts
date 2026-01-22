@@ -65,11 +65,15 @@ async function fetchPixabayImages(
     }
 }
 
+const MAX_LIMIT = 50
+const MAX_KEYWORD_LENGTH = 100
+const MAX_KEYWORDS_COUNT = 10
+
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams
         const keywords = searchParams.get('keywords')
-        const limit = parseInt(searchParams.get('limit') || '10', 10)
+        let limit = parseInt(searchParams.get('limit') || '10', 10)
         const single = searchParams.get('single') === 'true'
         const size = (searchParams.get('size') || 'regular') as 'small' | 'regular' | 'full'
 
@@ -80,8 +84,35 @@ export async function GET(request: NextRequest) {
             )
         }
 
+        // Input validation
+        if (keywords.length > 500) {
+            return NextResponse.json(
+                { error: 'Keywords string too long' },
+                { status: 400 }
+            )
+        }
+
         const keywordArray = keywords.split(',').map(k => k.trim()).filter(k => k.length > 0)
+
+        if (keywordArray.length > MAX_KEYWORDS_COUNT) {
+            return NextResponse.json(
+                { error: `Too many keywords (max ${MAX_KEYWORDS_COUNT})` },
+                { status: 400 }
+            )
+        }
+
+        if (keywordArray.some(k => k.length > MAX_KEYWORD_LENGTH)) {
+            return NextResponse.json(
+                { error: `Keyword too long (max ${MAX_KEYWORD_LENGTH} chars)` },
+                { status: 400 }
+            )
+        }
+
         const keywordsToUse = keywordArray.length > 1 ? keywordArray : keywordArray[0]
+
+        // Validate and clamp limit
+        if (isNaN(limit) || limit < 1) limit = 10
+        limit = Math.min(limit, MAX_LIMIT)
 
         // Note: Pixabay pagination is per_page, but we pass limit to our internal function
         // If single is requested, we fetch a few and return the first one to be safe, 
