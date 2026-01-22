@@ -103,6 +103,8 @@ export function FilterBar({
                                     setEditingFilter(null)
                                     setIsDateOpen(!isDateOpen)
                                 }}
+                                aria-expanded={isDateOpen}
+                                aria-haspopup="true"
                                 className={cn(
                                     "relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm",
                                     "bg-white/90 backdrop-blur-md border",
@@ -211,6 +213,7 @@ export function FilterBar({
                                         suggestionType="location"
                                         className="border-none bg-transparent p-0 focus-within:ring-0 focus-within:border-none max-h-[28px] rounded-none text-sm"
                                         autoFocus
+                                        ariaLabel="Add destination"
                                     />
                                 </div>
                             )}
