@@ -5,11 +5,27 @@ import { generateText } from 'ai';
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
+const MAX_INPUT_LENGTH = 500;
+const MAX_CONTEXT_LENGTH = 1000;
+const ALLOWED_TYPES = ['vibe', 'event', 'exclusion', 'location'];
+
 export async function POST(req: Request) {
     const { input, context, type = 'vibe' } = await req.json();
 
     if (!input || typeof input !== 'string') {
-        return new Response('Input is required', { status: 400 });
+        return new Response(JSON.stringify({ error: 'Input is required and must be a string' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (input.length > MAX_INPUT_LENGTH) {
+        return new Response(JSON.stringify({ error: `Input exceeds maximum length of ${MAX_INPUT_LENGTH}` }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (context && (typeof context !== 'string' || context.length > MAX_CONTEXT_LENGTH)) {
+        return new Response(JSON.stringify({ error: `Context exceeds maximum length of ${MAX_CONTEXT_LENGTH} or is invalid` }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (!ALLOWED_TYPES.includes(type)) {
+        return new Response(JSON.stringify({ error: `Invalid type. Allowed types: ${ALLOWED_TYPES.join(', ')}` }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
     // Prioritize Groq for speed, fallback to Gemini
