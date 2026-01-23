@@ -771,7 +771,10 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
           {/* Shadow layer - matches search bar dimensions only */}
           <div className="absolute top-0 left-0 right-0 h-12 z-[1] rounded-full shadow-lg pointer-events-none" />
 
-          <div className="relative z-[20] flex items-center gap-2 bg-white rounded-full border border-gray-200 focus-within:ring-2 focus-within:ring-violet-500">
+          <div
+            className="relative z-[20] flex items-center gap-2 bg-white rounded-full border border-gray-200 focus-within:ring-2 focus-within:ring-violet-500"
+            role="search"
+          >
             {/* App icon on mobile */}
             <div className="md:hidden flex-shrink-0 pl-2">
               <Image
@@ -798,6 +801,7 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
                 }
               }}
               placeholder=""
+              aria-label="Search destinations"
               className="flex-1 md:pl-10 pr-10 py-3 bg-transparent text-gray-900 focus:outline-none"
             />
             {/* Typing animated placeholder */}
@@ -810,6 +814,7 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
               <button
                 onClick={handleClearSearch}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label="Clear search"
               >
                 <X className="w-5 h-5" />
               </button>
