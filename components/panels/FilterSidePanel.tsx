@@ -73,6 +73,7 @@ export function FilterSidePanel({
                     isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                 )}
                 onClick={onClose}
+                aria-hidden="true"
             />
 
             {/* Panel */}
@@ -81,6 +82,9 @@ export function FilterSidePanel({
                     "fixed top-0 left-0 h-screen w-full md:w-[28rem] bg-violet-50 shadow-2xl z-[90] transition-transform duration-300 ease-in-out flex flex-col",
                     isOpen ? "translate-x-0" : "-translate-x-full"
                 )}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Filter settings"
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-violet-200 bg-white">
@@ -88,6 +92,7 @@ export function FilterSidePanel({
                     <button
                         onClick={onClose}
                         className="p-2 hover:bg-violet-100 rounded-full transition-colors"
+                        aria-label="Close filters"
                     >
                         <X className="w-5 h-5 text-violet-500" />
                     </button>
@@ -117,7 +122,10 @@ export function FilterSidePanel({
                         {/* Origin */}
                         <div className="space-y-3">
                             <div className="flex items-center justify-between gap-4">
-                                <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide whitespace-nowrap">
+                                <label
+                                    htmlFor="origin-input"
+                                    className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide whitespace-nowrap"
+                                >
                                     <MapPin className="w-4 h-4" />
                                     Origin
                                 </label>
@@ -127,6 +135,7 @@ export function FilterSidePanel({
                             </div>
                             <div className="relative">
                                 <input
+                                    id="origin-input"
                                     type="text"
                                     value={origin}
                                     onChange={(e) => setOrigin(e.target.value)}
@@ -166,6 +175,7 @@ export function FilterSidePanel({
                                 placeholder="e.g. Bali, Asia, JFK, Paris"
                                 suggestionType="location"
                                 autoFocus={activeFilter === 'destination'}
+                                ariaLabel="Destination area"
                             />
                         </div>
                     </div>
@@ -187,6 +197,7 @@ export function FilterSidePanel({
                             placeholder="e.g. Crowds, Rainy Season"
                             suggestionType="exclusion"
                             autoFocus={activeFilter === 'exclusions'}
+                            ariaLabel="Exclusions"
                         />
                     </div>
 
