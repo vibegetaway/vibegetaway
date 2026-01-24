@@ -1,7 +1,7 @@
 'use client'
 
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useRef, useCallback, memo } from 'react'
 import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
@@ -200,7 +200,69 @@ const createClusterPin = (imageUrl: string, locationName: string, count: number,
   })
 }
 
-function MapController({
+// Optimized Marker Component to prevent unnecessary re-renders
+const MemoizedMarker = memo(({
+  id,
+  lat,
+  lng,
+  isCluster,
+  clusterId,
+  count,
+  location,
+  topLocation,
+  onClick,
+  priceLevel
+}: {
+  id: string
+  lat: number
+  lng: number
+  isCluster: boolean
+  clusterId?: number
+  count?: number
+  location?: LocationProperties
+  topLocation?: LocationProperties
+  onClick: (id: string, isCluster: boolean, clusterId?: number, location?: LocationProperties) => void
+  priceLevel?: string
+}) => {
+  // Memoize icon creation
+  const icon = useMemo(() => {
+    if (isCluster && topLocation) {
+      return createClusterPin(
+        topLocation.image_url,
+        topLocation.spot,
+        count || 0,
+        topLocation.prominence_score
+      )
+    } else if (location) {
+      return createCircularPin(
+        location.image_url,
+        location.spot,
+        location.prominence_score,
+        50,
+        location.price_level
+      )
+    }
+    return new L.DivIcon() // Fallback, should not happen based on logic
+  }, [isCluster, topLocation, count, location])
+
+  // Memoize event handlers
+  const eventHandlers = useMemo(() => ({
+    click: () => onClick(id, isCluster, clusterId, location)
+  }), [onClick, id, isCluster, clusterId, location])
+
+  return (
+    <Marker
+      position={[lat, lng]}
+      icon={icon}
+      eventHandlers={eventHandlers}
+    />
+  )
+})
+
+MemoizedMarker.displayName = 'MemoizedMarker'
+
+
+const MapController = memo(({
   locations,
   onMarkerClick,
   searchBounds
@@ -208,7 +270,7 @@ function MapController({
   locations: Location[]
   onMarkerClick: (items: DrawerItem[], isCluster: boolean) => void
   searchBounds: L.LatLngBounds | null
-}) {
+}) => {
   const map = useMap()
   const [bounds, setBounds] = useState<L.LatLngBounds | null>(null)
   const [zoom, setZoom] = useState(map.getZoom())
@@ -288,6 +350,12 @@ function MapController({
     return cluster
   }, [locations])
 
+  // Keep a ref to supercluster to access it in stable callbacks without re-creating them
+  const superclusterRef = useRef(supercluster)
+  useEffect(() => {
+    superclusterRef.current = supercluster
+  }, [supercluster])
+
   // Get clusters for current map bounds
   const clusters = useMemo(() => {
     if (!bounds || !supercluster) return []
@@ -342,71 +410,81 @@ function MapController({
     })
   }, [clusters, supercluster])
 
+  // Stable click handler that uses superclusterRef
+  const handleMarkerClick = useCallback((id: string, isCluster: boolean, clusterId?: number, location?: LocationProperties) => {
+    if (isCluster && clusterId !== undefined) {
+      // Get all items in the cluster using the ref
+      const points = superclusterRef.current.getLeaves(clusterId, Infinity)
+      const items: DrawerItem[] = points
+        .map((point: any) => ({
+          spot: point.properties.spot,
+          location: point.properties.location,
+          country: point.properties.country,
+          description: point.properties.description,
+          extended_description: point.properties.extended_description,
+          best_time_to_visit: point.properties.best_time_to_visit,
+          why_now: point.properties.why_now,
+          top_activities: point.properties.top_activities,
+          nearby_attractions: point.properties.nearby_attractions,
+          practical_tips: point.properties.practical_tips,
+          travel_from_origin: point.properties.travel_from_origin,
+          image_keywords: point.properties.image_keywords,
+          match_reason: point.properties.match_reason,
+          image_url: point.properties.image_url,
+          prominence_score: point.properties.prominence_score,
+          price_level: point.properties.price_level,
+          social_proof: point.properties.social_proof,
+        }))
+        .sort((a, b) => b.prominence_score - a.prominence_score)
+      onMarkerClick(items, true)
+    } else if (location) {
+      // Single item
+      const items: DrawerItem[] = [{
+        spot: location.spot,
+        location: location.location,
+        country: location.country,
+        description: location.description,
+        highlights: location.highlights,
+        activities: location.activities,
+        tips: location.tips,
+        image_keywords: location.image_keywords,
+        image_url: location.image_url,
+        prominence_score: location.prominence_score,
+        price_level: location.price_level,
+        social_proof: location.social_proof,
+      }]
+      onMarkerClick(items, false)
+    }
+  }, [onMarkerClick]) // superclusterRef is stable, no need to include in dependency
+
   return (
     <>
       {markers.map((marker: ProcessedMarker) => {
         if (marker.isCluster && marker.topLocation && marker.clusterId !== undefined) {
           return (
-            <Marker
+            <MemoizedMarker
               key={marker.id}
-              position={marker.position}
-              icon={createClusterPin(marker.topLocation.image_url, marker.topLocation.spot, marker.count || 0, marker.topLocation.prominence_score)}
-              eventHandlers={{
-                click: () => {
-                  // Get all items in the cluster
-                  const points = supercluster.getLeaves(marker.clusterId!, Infinity)
-                  const items: DrawerItem[] = points
-                    .map((point: any) => ({
-                      spot: point.properties.spot,
-                      location: point.properties.location,
-                      country: point.properties.country,
-                      description: point.properties.description,
-                      extended_description: point.properties.extended_description,
-                      best_time_to_visit: point.properties.best_time_to_visit,
-                      why_now: point.properties.why_now,
-                      top_activities: point.properties.top_activities,
-                      nearby_attractions: point.properties.nearby_attractions,
-                      practical_tips: point.properties.practical_tips,
-                      travel_from_origin: point.properties.travel_from_origin,
-                      image_keywords: point.properties.image_keywords,
-                      match_reason: point.properties.match_reason,
-                      image_url: point.properties.image_url,
-                      prominence_score: point.properties.prominence_score,
-                      price_level: point.properties.price_level,
-                      social_proof: point.properties.social_proof,
-                    }))
-                    .sort((a, b) => b.prominence_score - a.prominence_score)
-                  onMarkerClick(items, true)
-                },
-              }}
+              id={marker.id}
+              lat={marker.position[0]}
+              lng={marker.position[1]}
+              isCluster={true}
+              clusterId={marker.clusterId}
+              count={marker.count}
+              topLocation={marker.topLocation}
+              onClick={handleMarkerClick}
             />
           )
         } else if (marker.location) {
           return (
-            <Marker
+            <MemoizedMarker
               key={marker.id}
-              position={marker.position}
-              icon={createCircularPin(marker.location.image_url, marker.location.spot, marker.location.prominence_score, 50, marker.location.price_level)}
-              eventHandlers={{
-                click: () => {
-                  // Single item
-                  const items: DrawerItem[] = [{
-                    spot: marker.location!.spot,
-                    location: marker.location!.location,
-                    country: marker.location!.country,
-                    description: marker.location!.description,
-                    highlights: marker.location!.highlights,
-                    activities: marker.location!.activities,
-                    tips: marker.location!.tips,
-                    image_keywords: marker.location!.image_keywords,
-                    image_url: marker.location!.image_url,
-                    prominence_score: marker.location!.prominence_score,
-                    price_level: marker.location!.price_level,
-                    social_proof: marker.location!.social_proof,
-                  }]
-                  onMarkerClick(items, false)
-                },
-              }}
+              id={marker.id}
+              lat={marker.position[0]}
+              lng={marker.position[1]}
+              isCluster={false}
+              location={marker.location}
+              priceLevel={marker.location.price_level}
+              onClick={handleMarkerClick}
             />
           )
         } else {
@@ -415,7 +493,9 @@ function MapController({
       })}
     </>
   )
-}
+})
+
+MapController.displayName = 'MapController'
 
 const createOriginPin = (originName: string) => {
   return L.divIcon({
@@ -710,12 +790,12 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
     }
   }, [isDrawerOpen])
 
-  const handleMarkerClick = (items: DrawerItem[], isCluster: boolean) => {
+  const handleMarkerClick = useCallback((items: DrawerItem[], isCluster: boolean) => {
     setDrawerItems(items)
     setIsClusterView(isCluster)
     setIsShowingAllFromSearch(false)
     setIsDrawerOpen(true)
-  }
+  }, [])
 
   // Map locations to drawer items helper
   const mapLocationsToDrawerItems = (locationsList: Location[]): DrawerItem[] => {
