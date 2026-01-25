@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { PixabayImage } from './types'
+import type { PixabayImage } from '@/types/image'
+import { IMAGES, SEARCH } from '@/lib/constants'
 
 async function fetchPixabayImages(
     keywords: string | string[],
-    limit: number = 10
+    limit: number = IMAGES.PIXABAY.DEFAULT_LIMIT
 ): Promise<PixabayImage[]> {
     try {
         const PIXABAY_API_KEY = process.env.PIXABAY_API_KEY
@@ -69,7 +70,11 @@ export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams
         const keywords = searchParams.get('keywords')
-        const limit = parseInt(searchParams.get('limit') || '10', 10)
+
+        let limit = parseInt(searchParams.get('limit') || String(IMAGES.PIXABAY.DEFAULT_LIMIT), 10)
+        if (isNaN(limit) || limit < 1) limit = IMAGES.PIXABAY.DEFAULT_LIMIT
+        if (limit > IMAGES.PIXABAY.MAX_LIMIT) limit = IMAGES.PIXABAY.MAX_LIMIT
+
         const single = searchParams.get('single') === 'true'
         const size = (searchParams.get('size') || 'regular') as 'small' | 'regular' | 'full'
 
@@ -80,7 +85,31 @@ export async function GET(request: NextRequest) {
             )
         }
 
+        if (keywords.length > SEARCH.MAX_QUERY_LENGTH) {
+            return NextResponse.json(
+                { error: 'Keywords parameter too long' },
+                { status: 400 }
+            )
+        }
+
         const keywordArray = keywords.split(',').map(k => k.trim()).filter(k => k.length > 0)
+
+        if (keywordArray.length > IMAGES.PIXABAY.MAX_KEYWORDS_COUNT) {
+            return NextResponse.json(
+                { error: `Too many keywords. Max ${IMAGES.PIXABAY.MAX_KEYWORDS_COUNT} allowed.` },
+                { status: 400 }
+            )
+        }
+
+        for (const k of keywordArray) {
+            if (k.length > IMAGES.PIXABAY.MAX_KEYWORD_LENGTH) {
+                return NextResponse.json(
+                    { error: `Keyword '${k.substring(0, 20)}...' is too long. Max ${IMAGES.PIXABAY.MAX_KEYWORD_LENGTH} chars.` },
+                    { status: 400 }
+                )
+            }
+        }
+
         const keywordsToUse = keywordArray.length > 1 ? keywordArray : keywordArray[0]
 
         // Note: Pixabay pagination is per_page, but we pass limit to our internal function
