@@ -9,6 +9,7 @@ interface ExploreFilterChipsProps {
     destinations: string[]
     budget: number | null
     travelMonth: string | null
+    activeFilterType?: FilterType | null
     onFilterClick: (filterType: FilterType) => void
 }
 
@@ -17,6 +18,7 @@ export function ExploreFilterChips({
     destinations,
     budget,
     travelMonth,
+    activeFilterType,
     onFilterClick
 }: ExploreFilterChipsProps) {
     const formatBudget = (value: number | null): string => {
@@ -29,6 +31,9 @@ export function ExploreFilterChips({
         <div className="flex gap-2 overflow-x-auto pb-2 px-4 md:px-0 scrollbar-hide">
             <button
                 onClick={() => onFilterClick('origin')}
+                aria-haspopup="dialog"
+                aria-expanded={activeFilterType === 'origin'}
+                aria-controls="explore-filter-panel"
                 className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all active:scale-95 whitespace-nowrap"
                 style={{
                     borderColor: origin ? '#8b5cf6' : '#e5e7eb',
@@ -43,6 +48,9 @@ export function ExploreFilterChips({
 
             <button
                 onClick={() => onFilterClick('destination')}
+                aria-haspopup="dialog"
+                aria-expanded={activeFilterType === 'destination'}
+                aria-controls="explore-filter-panel"
                 className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all active:scale-95 whitespace-nowrap"
                 style={{
                     borderColor: destinations.length > 0 ? '#ec4899' : '#e5e7eb',
@@ -57,6 +65,9 @@ export function ExploreFilterChips({
 
             <button
                 onClick={() => onFilterClick('budget')}
+                aria-haspopup="dialog"
+                aria-expanded={activeFilterType === 'budget'}
+                aria-controls="explore-filter-panel"
                 className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all active:scale-95 whitespace-nowrap"
                 style={{
                     borderColor: budget !== null ? '#f59e0b' : '#e5e7eb',
@@ -71,6 +82,9 @@ export function ExploreFilterChips({
 
             <button
                 onClick={() => onFilterClick('when')}
+                aria-haspopup="dialog"
+                aria-expanded={activeFilterType === 'when'}
+                aria-controls="explore-filter-panel"
                 className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all active:scale-95 whitespace-nowrap"
                 style={{
                     borderColor: travelMonth ? '#10b981' : '#e5e7eb',

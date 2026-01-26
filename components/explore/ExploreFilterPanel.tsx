@@ -180,6 +180,10 @@ export function ExploreFilterPanel({
             />
 
             <div
+                id="explore-filter-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="filter-panel-title"
                 className="fixed inset-x-0 bottom-[84px] md:bottom-0 z-[10000] bg-white rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out"
                 style={{
                     transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
@@ -191,7 +195,7 @@ export function ExploreFilterPanel({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 {getFilterIcon()}
-                                <h2 className="text-lg font-bold text-gray-900">{getFilterTitle()}</h2>
+                                <h2 id="filter-panel-title" className="text-lg font-bold text-gray-900">{getFilterTitle()}</h2>
                             </div>
                             <button
                                 onClick={onClose}

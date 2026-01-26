@@ -57,6 +57,7 @@ export default function ExplorePage() {
           destinations={destinations}
           budget={budget}
           travelMonth={travelMonth}
+          activeFilterType={activeFilterType}
           onFilterClick={handleFilterClick}
         />
       </div>
