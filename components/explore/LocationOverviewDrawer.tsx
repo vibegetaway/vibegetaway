@@ -165,7 +165,7 @@ export function LocationOverviewDrawer({
                                 {/* Image */}
                                 <div className="flex-shrink-0">
                                     <img
-                                        src={item.image_url}
+                                        src={item.image_url || '/assets/icon.png'}
                                         alt={item.spot}
                                         className="w-24 h-24 object-cover rounded-xl"
                                     />
