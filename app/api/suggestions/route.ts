@@ -5,11 +5,27 @@ import { generateText } from 'ai';
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
+const MAX_INPUT_LENGTH = 100;
+const MAX_CONTEXT_LENGTH = 1000;
+const ALLOWED_TYPES = ['vibe', 'event', 'exclusion', 'location'];
+
 export async function POST(req: Request) {
     const { input, context, type = 'vibe' } = await req.json();
 
     if (!input || typeof input !== 'string') {
         return new Response('Input is required', { status: 400 });
+    }
+
+    if (input.length > MAX_INPUT_LENGTH) {
+        return new Response(`Input exceeds maximum length of ${MAX_INPUT_LENGTH} characters`, { status: 400 });
+    }
+
+    if (context && typeof context === 'string' && context.length > MAX_CONTEXT_LENGTH) {
+        return new Response(`Context exceeds maximum length of ${MAX_CONTEXT_LENGTH} characters`, { status: 400 });
+    }
+
+    if (!ALLOWED_TYPES.includes(type)) {
+        return new Response(`Invalid type. Allowed types: ${ALLOWED_TYPES.join(', ')}`, { status: 400 });
     }
 
     // Prioritize Groq for speed, fallback to Gemini
