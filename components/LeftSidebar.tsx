@@ -8,9 +8,10 @@ import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 interface LeftSidebarProps {
   onSearchClick?: () => void
   onItineraryClick?: () => void
+  activePanel?: 'none' | 'search' | 'recent' | 'itinerary'
 }
 
-export function LeftSidebar({ onSearchClick, onItineraryClick }: LeftSidebarProps) {
+export function LeftSidebar({ onSearchClick, onItineraryClick, activePanel }: LeftSidebarProps) {
   const { isSignedIn } = useUser()
   const savedCount = 0
 
@@ -29,9 +30,13 @@ export function LeftSidebar({ onSearchClick, onItineraryClick }: LeftSidebarProp
       {/* Search icon */}
       <button
         type="button"
-        className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-pink-100/60 transition-colors cursor-pointer"
+        className={`w-12 h-12 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+          activePanel === 'search' ? 'bg-pink-100' : 'hover:bg-pink-100/60'
+        }`}
         onClick={onSearchClick}
         aria-label="Search Results"
+        aria-expanded={activePanel === 'search'}
+        title="Search Results"
       >
         <Search className="w-5 h-5 text-pink-500" strokeWidth={2} />
       </button>
@@ -39,9 +44,13 @@ export function LeftSidebar({ onSearchClick, onItineraryClick }: LeftSidebarProp
       {/* Itinerary icon with counter badge */}
       <button
         type="button"
-        className="relative w-12 h-12 flex items-center justify-center rounded-lg hover:bg-pink-100/60 transition-colors cursor-pointer"
+        className={`relative w-12 h-12 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+          activePanel === 'itinerary' ? 'bg-pink-100' : 'hover:bg-pink-100/60'
+        }`}
         onClick={onItineraryClick}
         aria-label="Trip Plan"
+        aria-expanded={activePanel === 'itinerary'}
+        title="My Trip"
       >
         <Calendar className="w-5 h-5 text-pink-500" strokeWidth={2} />
         {savedCount > 0 && (
