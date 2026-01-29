@@ -18,7 +18,6 @@ export interface Location {
   reddit_source_urls: string[]
   image_url?: string
   price_level?: string
-  price_class?: string // Included for backward compatibility with perplexity-search
   highlights?: string[]
   tips?: string[]
   activities?: string[]

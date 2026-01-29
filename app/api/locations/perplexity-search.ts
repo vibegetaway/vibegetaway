@@ -31,11 +31,11 @@ export async function searchRedditWithPerplexity(query: string): Promise<Locatio
               latitude: { type: "number", description: "Accurate decimal latitude" },
               longitude: { type: "number", description: "Accurate decimal longitude" },
               description: { type: "string", description: "1-2 sentence compelling description" },
-              price_class: { type: "string", enum: ["$", "$$", "$$$", "$$$$", "$$$$$"], description: "Price range" },
+              price_level: { type: "string", enum: ["$", "$$", "$$$", "$$$$", "$$$$$"], description: "Price range" },
               prominence_score: { type: "number", minimum: 1, maximum: 10, description: "Score based on Reddit mention frequency and enthusiasm" },
               reddit_source_urls: { type: "array", items: { type: "string" }, description: "URLs of Reddit posts that mentioned this" }
             },
-            required: ["location", "spot", "country", "latitude", "longitude", "description", "price_class", "prominence_score", "reddit_source_urls"]
+            required: ["location", "spot", "country", "latitude", "longitude", "description", "price_level", "prominence_score", "reddit_source_urls"]
           }
         }
       },
@@ -63,7 +63,7 @@ For each destination mentioned in Reddit discussions, provide:
 - Full country name
 - Accurate geographic coordinates (latitude/longitude)
 - Compelling 1-2 sentence description highlighting what makes it special
-- Price range based on Reddit discussions ($ to $$$$$)
+- Price level based on Reddit discussions ($ to $$$$$)
 - Prominence score (1-10) based on how frequently and enthusiastically it's mentioned
 - URLs of the Reddit posts that mentioned this destination
 
