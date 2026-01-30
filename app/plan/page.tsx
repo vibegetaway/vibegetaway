@@ -8,36 +8,13 @@ import { useTypingAnimation } from "@/hooks/useTypingAnimation"
 import { InspirationModal } from "@/components/inspiration/InspirationModal"
 import type { InspirationCard } from "@/components/SwipeCard"
 import { saveItineraryToHistory, getItineraryById, getItineraryHistory, deleteItineraryFromHistory } from "@/lib/itineraryHistory"
-import type { DayBreakdown } from "@/lib/itineraryHistory"
 import { useRouter, useSearchParams } from "next/navigation"
 import dynamic from 'next/dynamic'
 import type { Destination } from "@/lib/generateDestinationInfo"
+import type { TimeSlotActivity, DayItinerary, TimeSlot, LockedSlots, DayBreakdown } from "@/types/itinerary"
+import { fetchActivityImages } from "@/lib/imageUtils"
 
 const TripMap = dynamic(() => import('@/components/TripMap'), { ssr: false })
-
-interface TimeSlotActivity {
-  title: string
-  description: string
-  reason: string
-  imageUrl?: string
-  imageUrls?: string[]
-}
-
-interface DayItinerary {
-  day: number
-  location: string
-  morning: TimeSlotActivity
-  midday: TimeSlotActivity
-  evening: TimeSlotActivity
-}
-
-type TimeSlot = 'morning' | 'midday' | 'evening'
-
-interface LockedSlots {
-  morning: boolean
-  midday: boolean
-  evening: boolean
-}
 
 const ACTIVITY_PHRASES = [
   "swimming",
@@ -329,9 +306,9 @@ function PlanContent() {
 
       const itinerariesWithImages = await Promise.all(
         data.plan.map(async (dayPlan: any, dayIndex: number) => {
-          const morning = await fetchImages(dayPlan.morning.activity, locations[dayIndex])
-          const midday = await fetchImages(dayPlan.midday.activity, locations[dayIndex])
-          const evening = await fetchImages(dayPlan.evening.activity, locations[dayIndex])
+          const morning = await fetchActivityImages(dayPlan.morning.activity, locations[dayIndex])
+          const midday = await fetchActivityImages(dayPlan.midday.activity, locations[dayIndex])
+          const evening = await fetchActivityImages(dayPlan.evening.activity, locations[dayIndex])
 
           return {
             day: dayIndex + 1,
@@ -359,25 +336,6 @@ function PlanContent() {
     } finally {
       setIsGenerating(false)
     }
-  }
-
-  const fetchImages = async (activityTitle: string, location: string) => {
-    try {
-      const imageResponse = await fetch(
-        `/api/images/pixabay-images?keywords=${encodeURIComponent(`${activityTitle} ${location}`)}&limit=4`
-      )
-      if (imageResponse.ok) {
-        const imageData = await imageResponse.json()
-        const images = imageData.images || []
-        return {
-          imageUrl: images[0]?.urls?.regular,
-          imageUrls: images.map((img: any) => img.urls?.regular).filter(Boolean)
-        }
-      }
-    } catch (error) {
-      console.error(`Error fetching images:`, error)
-    }
-    return { imageUrl: undefined, imageUrls: [] }
   }
 
   const regenerateFullDay = async () => {
@@ -422,7 +380,7 @@ function PlanContent() {
       const data = await response.json()
       const newActivity = data.activity
 
-      const images = await fetchImages(newActivity.title, currentDay.location)
+      const images = await fetchActivityImages(newActivity.title, currentDay.location)
       newActivity.imageUrl = images.imageUrl
       newActivity.imageUrls = images.imageUrls
 
@@ -499,9 +457,9 @@ function PlanContent() {
       const itinerariesWithImages = await Promise.all(
         data.plan.map(async (dayPlan: any, dayIndex: number) => {
           const lockedDay = itineraries[dayIndex]
-          const morning = lockedSlots.morning && lockedDay ? lockedDay.morning : { ...dayPlan.morning, ...(await fetchImages(dayPlan.morning.activity, locations[dayIndex])) }
-          const midday = lockedSlots.midday && lockedDay ? lockedDay.midday : { ...dayPlan.midday, ...(await fetchImages(dayPlan.midday.activity, locations[dayIndex])) }
-          const evening = lockedSlots.evening && lockedDay ? lockedDay.evening : { ...dayPlan.evening, ...(await fetchImages(dayPlan.evening.activity, locations[dayIndex])) }
+          const morning = lockedSlots.morning && lockedDay ? lockedDay.morning : { ...dayPlan.morning, ...(await fetchActivityImages(dayPlan.morning.activity, locations[dayIndex])) }
+          const midday = lockedSlots.midday && lockedDay ? lockedDay.midday : { ...dayPlan.midday, ...(await fetchActivityImages(dayPlan.midday.activity, locations[dayIndex])) }
+          const evening = lockedSlots.evening && lockedDay ? lockedDay.evening : { ...dayPlan.evening, ...(await fetchActivityImages(dayPlan.evening.activity, locations[dayIndex])) }
 
           return {
             day: dayIndex + 1,

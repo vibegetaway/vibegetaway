@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { X, Calendar, MapPin, Navigation, Info, Zap, Map as MapIcon, Star } from 'lucide-react'
-import type { DrawerItem } from './ExploreMap'
+import type { DrawerItem } from '@/types/location'
 import PixabayGallery from './PixabayGallery'
 
 interface LocationDetailsDrawerProps {

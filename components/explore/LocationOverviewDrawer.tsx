@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
-import type { DrawerItem } from './ExploreMap'
+import type { DrawerItem } from '@/types/location'
 
 interface LocationOverviewDrawerProps {
     isOpen: boolean
