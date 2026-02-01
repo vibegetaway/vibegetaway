@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+const MAX_KEYWORDS_LENGTH = 500
+
 /**
  * Image proxy endpoint that caches Pixabay images for 24 hours
  * Complies with Pixabay terms: images are served from our domain with CDN caching
@@ -17,6 +19,13 @@ export async function GET(request: NextRequest) {
     if (!keywords) {
       return NextResponse.json(
         { error: 'Keywords parameter is required' },
+        { status: 400 }
+      )
+    }
+
+    if (keywords.length > MAX_KEYWORDS_LENGTH) {
+      return NextResponse.json(
+        { error: 'Keywords too long' },
         { status: 400 }
       )
     }
