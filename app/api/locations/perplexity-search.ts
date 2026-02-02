@@ -1,21 +1,11 @@
-export interface Location {
-  location: string      // City/area
-  spot: string         // Specific landmark
-  country: string
-  latitude: number
-  longitude: number
-  description: string
-  price_class: string
-  prominence_score: number
-  reddit_source_urls: string[]  // URLs of Reddit posts that mentioned this destination
-}
+import { Location } from '@/types/location'
 
 /**
  * Search Reddit for travel destination recommendations using Perplexity API
  * @param query - User's search query (e.g., "beaches", "temples in asia")
  * @returns Array of Location objects with geographic and travel data
  */
-export async function searchRedditWithPerplexity(query: string): Promise<Location[]> {
+export async function searchRedditWithPerplexity(query: string): Promise<Omit<Location, 'image_url'>[]> {
   try {
     const apiKey = process.env.PERPLEXITY_API_KEY
     
@@ -118,7 +108,7 @@ IMPORTANT:
     
     // Extract locations from structured response
     const content = data.choices?.[0]?.message?.content || '{}'
-    let parsedData: { locations: Location[] }
+    let parsedData: { locations: Omit<Location, 'image_url'>[] }
     
     try {
       parsedData = JSON.parse(content)
