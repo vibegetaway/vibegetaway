@@ -5,3 +5,7 @@
 ## 2024-05-24 - Icon-Only Button Labels
 **Learning:** Using `title` attributes for tooltips on icon-only buttons is insufficient for accessibility. Screen readers may not consistently announce `title`, and it doesn't provide the same semantic weight as `aria-label`.
 **Action:** Always pair icon-only buttons with an explicit `aria-label` attribute describing the action (e.g., "Search", "Filter Settings"), even if a `title` is present.
+
+## 2024-05-25 - Active State for Navigation
+**Learning:** Visual active states (color changes) on navigation buttons are not perceived by screen reader users.
+**Action:** Use `aria-current="page"` on the currently active navigation item to programmatically communicate the active state.
