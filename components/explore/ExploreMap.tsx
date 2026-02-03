@@ -11,32 +11,7 @@ import { useExploreTyping } from '@/hooks/useExploreTyping'
 import Image from 'next/image'
 import { LocationOverviewDrawer } from './LocationOverviewDrawer'
 import { LocationDetailsDrawer } from './LocationDetailsDrawer'
-
-export interface Location {
-  location: string      // City/area
-  spot: string         // Specific landmark
-  country: string
-  latitude: number
-  longitude: number
-  description: string
-  extended_description?: string
-  best_time_to_visit?: string
-  why_now?: string
-  top_activities?: string[]
-  nearby_attractions?: string[]
-  practical_tips?: string
-  travel_from_origin?: string
-  image_keywords?: string
-  match_reason?: string
-  prominence_score: number
-  reddit_source_urls: string[]
-  image_url: string
-  price_level?: string
-  highlights?: string[]
-  tips?: string[]
-  activities?: string[]
-  social_proof?: { quote: string; source: string }
-}
+import type { Location, DrawerItem } from '@/types/location'
 
 interface ExploreMapProps {
   className?: string
@@ -58,7 +33,7 @@ interface LocationProperties {
   tips?: string[]
   image_keywords?: string
   prominence_score: number
-  image_url: string
+  image_url?: string
   price_level?: string
   social_proof?: { quote: string; source: string }
 }
@@ -71,21 +46,6 @@ interface ProcessedMarker {
   topLocation?: LocationProperties
   location?: LocationProperties
   clusterId?: number
-}
-
-export interface DrawerItem {
-  spot: string
-  location: string
-  country: string
-  description: string
-  highlights?: string[]
-  activities?: string[]
-  tips?: string[]
-  image_keywords?: string
-  image_url: string
-  prominence_score: number
-  price_level?: string
-  social_proof?: { quote: string; source: string }
 }
 
 // Convert prominence score to star rating (supports half stars)
@@ -350,7 +310,7 @@ function MapController({
             <Marker
               key={marker.id}
               position={marker.position}
-              icon={createClusterPin(marker.topLocation.image_url, marker.topLocation.spot, marker.count || 0, marker.topLocation.prominence_score)}
+              icon={createClusterPin(marker.topLocation.image_url || '', marker.topLocation.spot, marker.count || 0, marker.topLocation.prominence_score)}
               eventHandlers={{
                 click: () => {
                   // Get all items in the cluster
@@ -370,7 +330,7 @@ function MapController({
                       travel_from_origin: point.properties.travel_from_origin,
                       image_keywords: point.properties.image_keywords,
                       match_reason: point.properties.match_reason,
-                      image_url: point.properties.image_url,
+                      image_url: point.properties.image_url || '',
                       prominence_score: point.properties.prominence_score,
                       price_level: point.properties.price_level,
                       social_proof: point.properties.social_proof,
@@ -386,7 +346,7 @@ function MapController({
             <Marker
               key={marker.id}
               position={marker.position}
-              icon={createCircularPin(marker.location.image_url, marker.location.spot, marker.location.prominence_score, 50, marker.location.price_level)}
+              icon={createCircularPin(marker.location.image_url || '', marker.location.spot, marker.location.prominence_score, 50, marker.location.price_level)}
               eventHandlers={{
                 click: () => {
                   // Single item
@@ -399,7 +359,7 @@ function MapController({
                     activities: marker.location!.activities,
                     tips: marker.location!.tips,
                     image_keywords: marker.location!.image_keywords,
-                    image_url: marker.location!.image_url,
+                    image_url: marker.location!.image_url || '',
                     prominence_score: marker.location!.prominence_score,
                     price_level: marker.location!.price_level,
                     social_proof: marker.location!.social_proof,
@@ -729,7 +689,7 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
         activities: loc.activities,
         tips: loc.tips,
         image_keywords: loc.image_keywords,
-        image_url: loc.image_url,
+        image_url: loc.image_url || '',
         prominence_score: loc.prominence_score,
         price_level: loc.price_level,
         social_proof: loc.social_proof,
