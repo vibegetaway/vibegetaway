@@ -53,6 +53,9 @@ export function Header() {
                 onClick={() => setShowMenu(!showMenu)}
                 className="p-2 hover:bg-muted rounded-lg transition-colors"
                 aria-label="Menu"
+                aria-expanded={showMenu}
+                aria-controls="mobile-menu"
+                aria-haspopup="dialog"
               >
                 {showMenu ? (
                   <X className="w-6 h-6 text-foreground" />
@@ -66,18 +69,20 @@ export function Header() {
       </nav>
 
       {showMenu && (
-        <div className="fixed inset-0 z-50 md:z-[60]">
+        <div className="fixed inset-0 z-50 md:z-[60]" role="dialog" aria-modal="true" id="mobile-menu" aria-labelledby="mobile-menu-title">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowMenu(false)}
+            aria-hidden="true"
           />
           <div className="absolute top-0 right-0 h-full w-80 bg-card border-l border-border shadow-2xl transform transition-transform duration-300 ease-in-out">
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between p-6 border-b border-border">
-                <h2 className="text-xl font-bold text-foreground">Menu</h2>
+                <h2 id="mobile-menu-title" className="text-xl font-bold text-foreground">Menu</h2>
                 <button
                   onClick={() => setShowMenu(false)}
                   className="p-2 hover:bg-muted rounded-lg transition-colors"
+                  aria-label="Close menu"
                 >
                   <X className="w-5 h-5" />
                 </button>

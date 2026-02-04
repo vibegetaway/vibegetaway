@@ -23,6 +23,8 @@ export function MobileNav({ activePage, hidePlanButton = false }: MobileNavProps
             ? 'text-primary'
             : 'text-muted-foreground hover:text-foreground'
             }`}
+          aria-label="Home"
+          aria-current={activePage === 'home' ? 'page' : undefined}
         >
           <Home className="w-5 h-5" strokeWidth={2.5} />
         </button>
@@ -34,6 +36,8 @@ export function MobileNav({ activePage, hidePlanButton = false }: MobileNavProps
             ? 'text-secondary'
             : 'text-muted-foreground hover:text-foreground'
             }`}
+          aria-label="Search"
+          aria-current={activePage === 'search' ? 'page' : undefined}
         >
           <Sparkles className="w-5 h-5" strokeWidth={2.5} />
         </button>
@@ -43,6 +47,8 @@ export function MobileNav({ activePage, hidePlanButton = false }: MobileNavProps
           <button
             onClick={() => router.push("/plan")}
             className="flex flex-col items-center -mt-8"
+            aria-label="Create Day Trip"
+            aria-current={activePage === 'plan' ? 'page' : undefined}
           >
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/30 flex items-center justify-center border-2 border-background active:scale-90 transition-transform hover:scale-105">
               <Plus className="w-6 h-6 text-primary-foreground" strokeWidth={3} />
@@ -57,6 +63,8 @@ export function MobileNav({ activePage, hidePlanButton = false }: MobileNavProps
             ? 'text-accent'
             : 'text-muted-foreground hover:text-foreground'
             }`}
+          aria-label="Itineraries"
+          aria-current={activePage === 'itineraries' ? 'page' : undefined}
         >
           <BookOpen className="w-5 h-5" strokeWidth={2.5} />
         </button>
@@ -76,7 +84,10 @@ export function MobileNav({ activePage, hidePlanButton = false }: MobileNavProps
             </div>
           ) : (
             <SignInButton mode="modal">
-              <button className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-90">
+              <button
+                className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-90"
+                aria-label="Sign in"
+              >
                 <div className="w-6 h-6 bg-secondary/10 rounded-full flex items-center justify-center">
                   <svg className="w-4 h-4 text-secondary" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
