@@ -2,3 +2,8 @@
 **Vulnerability:** The `/api/plan-trip` endpoint lacked input validation for `tripDuration`, `locations` count, and string lengths in `filters`. This exposed the application to Denial of Service (DoS) attacks via payload bloat and potential cost exhaustion (LLM token usage).
 **Learning:** Public endpoints that trigger expensive operations (like LLM calls) must have strict, early validation boundaries. Validating types (`Array.isArray`) is crucial to prevent runtime 500 errors.
 **Prevention:** Implement strict schema validation (using Zod or manual checks) at the top of every API route handler. Define explicit constants for maximum limits (e.g., `maxDuration`, `maxLocations`).
+
+## 2025-02-26 - Log Injection in Search APIs
+**Vulnerability:** The `/api/locations` endpoint directly logged unsanitized user input (`query`), allowing attackers to forge log entries via newline injection (`\n`).
+**Learning:** Simple `console.log` debugging in API routes is a security vector if input isn't sanitized. This affects downstream analysis tools and can mask attacks.
+**Prevention:** Sanitize all user inputs (e.g., `.replace(/[\n\r]/g, ' ')`) before logging, or use a structured logger that escapes special characters.

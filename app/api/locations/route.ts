@@ -22,20 +22,27 @@ async function fetchPixabayImage(spot: string, location: string): Promise<string
 
 export async function GET(request: Request) {
   try {
+    const MAX_QUERY_LENGTH = 500
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q') || ''
 
+    if (query.length > MAX_QUERY_LENGTH) {
+      return NextResponse.json({ error: 'Query too long' }, { status: 400 })
+    }
+
+    const sanitizedQuery = query.replace(/[\n\r]/g, ' ').trim()
+
     // If no query, return empty array (user hasn't searched yet)
-    if (!query.trim()) {
+    if (!sanitizedQuery) {
       console.log('[Locations API] No query provided, returning empty array')
       return NextResponse.json({ locations: [] })
     }
 
-    console.log(`[Locations API] Processing query: "${query}"`)
+    console.log(`[Locations API] Processing query: "${sanitizedQuery}"`)
 
     // Step 1: Search Reddit using Perplexity with structured output
     const startTime = Date.now()
-    const locations = await searchRedditWithPerplexity(query)
+    const locations = await searchRedditWithPerplexity(sanitizedQuery)
     const perplexityDuration = Date.now() - startTime
     console.log(`[Locations API] Perplexity search completed in ${perplexityDuration}ms, found ${locations.length} locations`)
 
