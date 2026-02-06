@@ -1,9 +1,12 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { generateText } from 'ai'
-import { validatePlanTripRequest, MAX_DURATION } from './validation'
+import { validatePlanTripRequest } from './validation'
 import type { DayBreakdown, DayActivity } from '@/lib/itineraryHistory'
 
-export const maxDuration = MAX_DURATION
+// This must be a literal or locally defined value for Next.js static analysis to work for route config.
+// It sets the execution timeout in seconds.
+// The logic validation in validatePlanTripRequest uses its own MAX_DURATION constant for day limits.
+export const maxDuration = 60
 
 function stripMarkdownFences(text: string): string {
   let cleaned = text.trim()
