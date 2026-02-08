@@ -1,9 +1,1 @@
-export interface PixabayImage {
-    id: number
-    urls: {
-        small: string
-        regular: string
-        full: string
-    }
-    altDescription: string
-}
+export type { PixabayImage } from '@/lib/types'
