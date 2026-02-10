@@ -2,12 +2,12 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createGroq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
 
-import { MAX_DURATION, validatePlanTripRequest } from './validation'
+import { validatePlanTripRequest } from './validation'
 import type { PlanTripRequest } from './validation'
 import type { DayBreakdown, DayActivity } from '@/lib/types'
 
-// Re-export for potential consumers (though usages should migrate)
-export const maxDuration = MAX_DURATION
+// Allow up to 60 seconds for execution
+export const maxDuration = 60
 
 function stripMarkdownFences(text: string): string {
   let cleaned = text.trim()
