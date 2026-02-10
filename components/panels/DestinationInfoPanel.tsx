@@ -1,7 +1,7 @@
 'use client'
 
 import { X, ArrowRight, CalendarPlus, CalendarCheck } from 'lucide-react'
-import type { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/lib/types'
 import { getCountryName } from '@/lib/countryCodeMapping'
 import type { UnsplashImage } from '@/app/api/images/unsplash-images/types'
 import type { SimplifiedFlight } from '@/lib/getRapidApiFlights'

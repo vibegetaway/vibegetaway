@@ -1,9 +1,5 @@
-export interface PixabayImage {
+import type { Image } from '@/lib/types'
+
+export interface PixabayImage extends Omit<Image, 'id'> {
     id: number
-    urls: {
-        small: string
-        regular: string
-        full: string
-    }
-    altDescription: string
 }
