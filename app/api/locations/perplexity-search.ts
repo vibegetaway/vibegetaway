@@ -24,7 +24,9 @@ export async function searchRedditWithPerplexity(query: string): Promise<Locatio
       return []
     }
 
-    console.log(`[Perplexity] Searching Reddit for travel destinations: "${query}"`)
+    // Sanitize query to prevent log injection and basic prompt injection
+    const sanitizedQuery = query.replace(/[\n\r]/g, ' ').trim()
+    console.log(`[Perplexity] Searching Reddit for travel destinations: "${sanitizedQuery}"`)
     
     // Define JSON schema for structured output
     const responseSchema = {
@@ -87,7 +89,7 @@ IMPORTANT:
           },
           {
             role: 'user',
-            content: `Find travel destinations related to: "${query}". Search Reddit discussions and extract specific locations with all required details including coordinates, activities, descriptions, and source URLs.`
+            content: `Find travel destinations related to: "${sanitizedQuery}". Search Reddit discussions and extract specific locations with all required details including coordinates, activities, descriptions, and source URLs.`
           }
         ],
         max_tokens: 8000,

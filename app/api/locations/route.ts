@@ -4,6 +4,9 @@ import { searchRedditWithPerplexity } from './perplexity-search'
 // Allow up to 120 seconds for Perplexity search with structured output
 export const maxDuration = 120
 
+// Limit query length to prevent DoS and abuse
+const MAX_QUERY_LENGTH = 500
+
 async function fetchPixabayImage(spot: string, location: string): Promise<string> {
   try {
     // Use the most specific search term as the cache key
@@ -25,13 +28,22 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q') || ''
 
+    if (query.length > MAX_QUERY_LENGTH) {
+      return NextResponse.json({
+        error: `Query too long (max ${MAX_QUERY_LENGTH} chars)`,
+        locations: []
+      }, { status: 400 })
+    }
+
     // If no query, return empty array (user hasn't searched yet)
     if (!query.trim()) {
       console.log('[Locations API] No query provided, returning empty array')
       return NextResponse.json({ locations: [] })
     }
 
-    console.log(`[Locations API] Processing query: "${query}"`)
+    // Sanitize query for logging to prevent log injection
+    const sanitizedQuery = query.replace(/[\n\r]/g, ' ')
+    console.log(`[Locations API] Processing query: "${sanitizedQuery}"`)
 
     // Step 1: Search Reddit using Perplexity with structured output
     const startTime = Date.now()
