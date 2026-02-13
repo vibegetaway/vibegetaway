@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Sparkles, Calendar, AlertTriangle, MapPin, Info } from 'lucide-react'
-import type { DayBreakdown } from '@/lib/itineraryHistory'
+import type { DayBreakdown } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface TripDetailsPanelProps {
