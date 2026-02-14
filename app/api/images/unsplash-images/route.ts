@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { UnsplashImage } from './types'
+import type { Image } from '@/lib/types'
 
 const MAX_LIMIT = 30
 const MAX_KEYWORD_LENGTH = 100
@@ -8,7 +8,7 @@ const MAX_KEYWORDS_COUNT = 10
 async function fetchUnsplashImages(
   keywords: string | string[],
   limit: number = 10
-): Promise<UnsplashImage[]> {
+): Promise<Image[]> {
   try {
     const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY
 
