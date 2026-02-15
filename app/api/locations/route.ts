@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { searchRedditWithPerplexity } from './perplexity-search'
+import { validateSearchQuery } from './validation'
 
 // Allow up to 120 seconds for Perplexity search with structured output
 export const maxDuration = 120
@@ -23,10 +24,19 @@ async function fetchPixabayImage(spot: string, location: string): Promise<string
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const query = searchParams.get('q') || ''
+
+    let query: string
+    try {
+      query = validateSearchQuery(searchParams.get('q'))
+    } catch (error) {
+      return NextResponse.json({
+        error: error instanceof Error ? error.message : 'Invalid query',
+        locations: []
+      }, { status: 400 })
+    }
 
     // If no query, return empty array (user hasn't searched yet)
-    if (!query.trim()) {
+    if (!query) {
       console.log('[Locations API] No query provided, returning empty array')
       return NextResponse.json({ locations: [] })
     }
