@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { generateText } from 'ai'
+import { stripMarkdownFences } from '@/lib/utils'
 
 export const maxDuration = 30
 
@@ -17,13 +18,6 @@ interface InspirationRequest {
   activity: string
   location: string
   excludeActivities?: string[]
-}
-
-function stripMarkdownFences(text: string): string {
-  let cleaned = text.trim()
-  cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  cleaned = cleaned.replace(/\n?```$/, '')
-  return cleaned.trim()
 }
 
 const SYSTEM_PROMPT = `You are a travel inspiration generator. Create diverse, exciting activity suggestions that combine specific activities with real locations.
@@ -177,4 +171,3 @@ Generate 5 diverse suggestions mixing different categories.`
     )
   }
 }
-
