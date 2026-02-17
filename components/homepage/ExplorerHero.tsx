@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
-import { Globe, ArrowDown } from "lucide-react"
+import { Globe, ArrowDown, Sparkles } from "lucide-react"
 
 export default function ExplorerHero() {
     const router = useRouter()
@@ -61,19 +61,31 @@ export default function ExplorerHero() {
                     </h1>
                 </motion.div>
 
+                {/* Center: VIBEGETAWAY Brand */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="flex-1 flex flex-row items-center justify-center text-center z-20 gap-3 sm:gap-6"
+                >
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-purple-500 blur-xl opacity-50 animate-pulse" />
+                        <Sparkles className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 text-purple-300 relative z-10" />
+                    </div>
+                    <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-cyan-400">
+                        VIBEGETAWAY
+                    </h1>
+                </motion.div>
+
                 {/* Bottom Center/Right: Call to Action */}
                 <motion.div
                     initial={{ opacity: 0, y: 50, scale: 0.9 }}
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-                    className="self-center sm:self-end text-center sm:text-right max-w-lg w-full"
+                    className="self-center sm:self-end text-center sm:text-right max-w-2xl w-full"
                 >
                     <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-6 text-white drop-shadow-2xl">
-                        Find your next
-                        <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                            getaway!
-                        </span>
+                        Find your next <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">getaway!</span>
                     </h3>
 
                     <div className="flex flex-col items-center sm:items-end gap-4">
