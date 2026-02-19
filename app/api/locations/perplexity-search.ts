@@ -17,6 +17,9 @@ export interface Location {
  */
 export async function searchRedditWithPerplexity(query: string): Promise<Location[]> {
   try {
+    // Sanitize input to prevent log injection and limit length
+    const sanitizedQuery = query.slice(0, 500).replace(/[\n\r]/g, ' ').trim()
+
     const apiKey = process.env.PERPLEXITY_API_KEY
     
     if (!apiKey) {
@@ -24,7 +27,7 @@ export async function searchRedditWithPerplexity(query: string): Promise<Locatio
       return []
     }
 
-    console.log(`[Perplexity] Searching Reddit for travel destinations: "${query}"`)
+    console.log(`[Perplexity] Searching Reddit for travel destinations: "${sanitizedQuery}"`)
     
     // Define JSON schema for structured output
     const responseSchema = {
@@ -87,7 +90,7 @@ IMPORTANT:
           },
           {
             role: 'user',
-            content: `Find travel destinations related to: "${query}". Search Reddit discussions and extract specific locations with all required details including coordinates, activities, descriptions, and source URLs.`
+            content: `Find travel destinations related to: "${sanitizedQuery}". Search Reddit discussions and extract specific locations with all required details including coordinates, activities, descriptions, and source URLs.`
           }
         ],
         max_tokens: 8000,
