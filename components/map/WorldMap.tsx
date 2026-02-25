@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback, memo } from 'react'
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import type { Destination } from '@/lib/generateDestinationInfo'
@@ -47,6 +47,17 @@ const createPurpleIcon = (isSelected: boolean, hasDetails: boolean) => {
   })
 }
 
+// Pre-create icons to avoid recreation on every render
+const ICON_SELECTED = createPurpleIcon(true, false)
+const ICON_DETAILS = createPurpleIcon(false, true)
+const ICON_DEFAULT = createPurpleIcon(false, false)
+
+const getMarkerIcon = (isSelected: boolean, hasDetails: boolean) => {
+  if (isSelected) return ICON_SELECTED
+  if (hasDetails) return ICON_DETAILS
+  return ICON_DEFAULT
+}
+
 // Handles map events and hides overlay on interaction
 function MapEventHandler({ onMapInteraction }: { onMapInteraction: () => void }) {
   const map = useMap()
@@ -84,7 +95,8 @@ function MapEventHandler({ onMapInteraction }: { onMapInteraction: () => void })
 }
 
 // Component to update map when destinations change
-function DestinationMarkers({
+// Memoized to prevent re-renders of all markers when parent state changes (e.g. hover)
+const DestinationMarkers = memo(function DestinationMarkers({
   destinations,
   selectedDestination,
   onMarkerClick,
@@ -128,7 +140,7 @@ function DestinationMarkers({
           <Marker
             key={`${dest.country}-${dest.region}-${index}`}
             position={position}
-            icon={createPurpleIcon(isSelected, hasDetails)}
+            icon={getMarkerIcon(isSelected, hasDetails)}
             eventHandlers={{
               click: (e) => {
                 // Stop event propagation to prevent map click handler from interfering
@@ -148,7 +160,7 @@ function DestinationMarkers({
       })}
     </>
   )
-}
+})
 
 export default function WorldMap({
   loading,
@@ -208,7 +220,7 @@ export default function WorldMap({
     }
   }, [destinations, hoveredDestination])
 
-  const handleMarkerClick = (destination: Destination) => {
+  const handleMarkerClick = useCallback((destination: Destination) => {
     // Clear hover state when clicking
     setHoveredDestination(null)
     
@@ -221,7 +233,7 @@ export default function WorldMap({
     
     // Always open the panel
     setIsPanelOpen(true)
-  }
+  }, [onDestinationSelect])
 
   const handleClosePanel = () => {
     setIsPanelOpen(false)
@@ -232,7 +244,7 @@ export default function WorldMap({
     }
   }
 
-  const handleMarkerHover = (destination: Destination, e: L.LeafletMouseEvent) => {
+  const handleMarkerHover = useCallback((destination: Destination, e: L.LeafletMouseEvent) => {
     // Clear any pending hide timeout when hovering
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current)
@@ -244,14 +256,14 @@ export default function WorldMap({
       y: e.originalEvent.clientY
     })
     setHoveredDestination(destination)
-  }
+  }, [])
 
-  const handleMarkerLeave = () => {
+  const handleMarkerLeave = useCallback(() => {
     // Add a delay before hiding to allow cursor to move to overlay
     hideTimeoutRef.current = setTimeout(() => {
       setHoveredDestination(null)
     }, 150) // 150ms delay
-  }
+  }, [])
 
   const cancelHideOverlay = () => {
     // Cancel hide when cursor enters overlay
