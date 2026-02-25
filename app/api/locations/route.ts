@@ -31,11 +31,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ locations: [] })
     }
 
-    console.log(`[Locations API] Processing query: "${query}"`)
+    const MAX_QUERY_LENGTH = 500
+    if (query.length > MAX_QUERY_LENGTH) {
+      console.warn(`[Locations API] Query too long: ${query.length} characters`)
+      return NextResponse.json({ error: 'Query is too long' }, { status: 400 })
+    }
+
+    // Sanitize query for logging and processing to prevent log injection
+    const sanitizedQuery = query.replace(/[\n\r]/g, ' ')
+    console.log(`[Locations API] Processing query: "${sanitizedQuery}"`)
 
     // Step 1: Search Reddit using Perplexity with structured output
     const startTime = Date.now()
-    const locations = await searchRedditWithPerplexity(query)
+    const locations = await searchRedditWithPerplexity(sanitizedQuery)
     const perplexityDuration = Date.now() - startTime
     console.log(`[Locations API] Perplexity search completed in ${perplexityDuration}ms, found ${locations.length} locations`)
 
