@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { generateText } from 'ai'
+import { validateInspirationRequest, type InspirationRequest } from './validation'
 
 export const maxDuration = 30
 
@@ -11,12 +12,6 @@ interface InspirationCard {
   category: 'adventure' | 'culture' | 'food' | 'relaxation' | 'nightlife'
   imageKeywords: string
   imageUrl?: string
-}
-
-interface InspirationRequest {
-  activity: string
-  location: string
-  excludeActivities?: string[]
 }
 
 function stripMarkdownFences(text: string): string {
@@ -47,21 +42,16 @@ CRITICAL: Return ONLY a valid JSON array with no additional text, markdown, or e
 export async function POST(req: Request) {
   try {
     const body: InspirationRequest = await req.json()
+
+    const validationError = validateInspirationRequest(body)
+    if (validationError) {
+      return new Response(JSON.stringify({ error: validationError }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     const { activity, location, excludeActivities = [] } = body
-
-    if (!activity || typeof activity !== 'string' || activity.trim().length === 0) {
-      return new Response(JSON.stringify({ error: 'Activity is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
-    }
-
-    if (!location || typeof location !== 'string' || location.trim().length === 0) {
-      return new Response(JSON.stringify({ error: 'Location is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
-    }
 
     const google = createGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
