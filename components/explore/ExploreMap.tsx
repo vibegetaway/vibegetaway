@@ -1,7 +1,7 @@
 'use client'
 
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import L from 'leaflet'
 import Supercluster from 'supercluster'
 import 'leaflet/dist/leaflet.css'
@@ -200,7 +200,7 @@ const createClusterPin = (imageUrl: string, locationName: string, count: number,
   })
 }
 
-function MapController({
+const MapController = memo(function MapController({
   locations,
   onMarkerClick,
   searchBounds
@@ -415,7 +415,7 @@ function MapController({
       })}
     </>
   )
-}
+})
 
 const createOriginPin = (originName: string) => {
   return L.divIcon({
@@ -435,6 +435,26 @@ const createOriginPin = (originName: string) => {
     iconAnchor: [30, 50],
     popupAnchor: [0, -50],
   })
+}
+
+// Map locations to drawer items helper
+const mapLocationsToDrawerItems = (locationsList: Location[]): DrawerItem[] => {
+  return locationsList
+    .map(loc => ({
+      spot: loc.spot,
+      location: loc.location,
+      country: loc.country,
+      description: loc.description,
+      highlights: loc.highlights,
+      activities: loc.activities,
+      tips: loc.tips,
+      image_keywords: loc.image_keywords,
+      image_url: loc.image_url,
+      prominence_score: loc.prominence_score,
+      price_level: loc.price_level,
+      social_proof: loc.social_proof,
+    }))
+    .sort((a, b) => b.prominence_score - a.prominence_score)
 }
 
 export default function ExploreMap({ className, origin, originCoords, destinations, budget, travelMonth }: ExploreMapProps) {
@@ -710,42 +730,22 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
     }
   }, [isDrawerOpen])
 
-  const handleMarkerClick = (items: DrawerItem[], isCluster: boolean) => {
+  const handleMarkerClick = useCallback((items: DrawerItem[], isCluster: boolean) => {
     setDrawerItems(items)
     setIsClusterView(isCluster)
     setIsShowingAllFromSearch(false)
     setIsDrawerOpen(true)
-  }
-
-  // Map locations to drawer items helper
-  const mapLocationsToDrawerItems = (locationsList: Location[]): DrawerItem[] => {
-    return locationsList
-      .map(loc => ({
-        spot: loc.spot,
-        location: loc.location,
-        country: loc.country,
-        description: loc.description,
-        highlights: loc.highlights,
-        activities: loc.activities,
-        tips: loc.tips,
-        image_keywords: loc.image_keywords,
-        image_url: loc.image_url,
-        prominence_score: loc.prominence_score,
-        price_level: loc.price_level,
-        social_proof: loc.social_proof,
-      }))
-      .sort((a, b) => b.prominence_score - a.prominence_score)
-  }
+  }, [])
 
   // Update handleShowAllLocations to pass new properties
-  const handleShowAllLocations = () => {
+  const handleShowAllLocations = useCallback(() => {
     if (locations.length === 0) return
 
     setDrawerItems(mapLocationsToDrawerItems(locations))
     setIsClusterView(true)
     setIsShowingAllFromSearch(true)
     setIsDrawerOpen(true)
-  }
+  }, [locations])
 
   const closeDrawer = () => {
     setIsDrawerOpen(false)

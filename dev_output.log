@@ -1,0 +1,45 @@
+
+> best-trip@0.1.0 dev
+> next dev --webpack
+
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /app/node_modules/.pnpm/next-pwa@5.6.0_@babel+core@7.29.0_next@16.1.6_@babel+core@7.29.0_@opentelemetry+api@1.9_70b65e7cd051a67bc5ef2397a27f6329/node_modules/next-pwa/register.js
+> [PWA] Service worker: /app/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+> [PWA] Build in develop mode, cache and precache are mostly disabled. This means offline support is disabled, but you can continue developing other functions in service worker.
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 3.7s
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+○ Compiling / ...
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+
+[35m
+[Clerk]:[0m You are running in keyless mode.
+You can [35mclaim your keys[0m by visiting https://dashboard.clerk.com/apps/claim?token=koluyhgogpiqjdtvbu9rma72ce7qbg5s2n51zuag&return_url=http%3A%2F%2Flocalhost%3A3000%2F
+
+ GET / 200 in 14.1s (compile: 12.7s, proxy.ts: 256ms, render: 1138ms)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (187kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /explore 200 in 6.2s (compile: 5.6s, proxy.ts: 25ms, render: 516ms)
+ POST /explore 200 in 57ms (compile: 12ms, proxy.ts: 19ms, render: 25ms)
+ GET /explore 200 in 104ms (compile: 16ms, proxy.ts: 42ms, render: 46ms)
+ POST /explore 303 in 203ms (compile: 7ms, proxy.ts: 17ms, render: 179ms)
+ GET /explore 200 in 61ms (compile: 16ms, proxy.ts: 19ms, render: 26ms)
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
