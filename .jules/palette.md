@@ -5,3 +5,7 @@
 ## 2024-05-24 - Icon-Only Button Labels
 **Learning:** Using `title` attributes for tooltips on icon-only buttons is insufficient for accessibility. Screen readers may not consistently announce `title`, and it doesn't provide the same semantic weight as `aria-label`.
 **Action:** Always pair icon-only buttons with an explicit `aria-label` attribute describing the action (e.g., "Search", "Filter Settings"), even if a `title` is present.
+
+## 2024-05-24 - Custom Modal Roles
+**Learning:** Custom modal or side-panel components (implemented as `div`s) often lack semantic roles, making them invisible or confusing to screen readers.
+**Action:** Ensure custom panels have `role="dialog"`, `aria-modal="true"`, and a descriptive `aria-label` or `aria-labelledby`. Also ensure the backdrop has `aria-hidden="true"`.
