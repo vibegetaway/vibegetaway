@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { PixabayImage } from './types'
+import type { PixabayImage } from '@/types/images'
 
 async function fetchPixabayImages(
     keywords: string | string[],
