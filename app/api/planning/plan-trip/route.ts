@@ -1,30 +1,12 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import { createGroq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
-
-export const maxDuration = 60
-const maxLocations = 10
-const maxStringLength = 500
-
+import { validatePlanTripRequest } from './validation'
 import type { DayBreakdown, DayActivity } from '@/lib/itineraryHistory'
 
-interface TripFilters {
-  origin: string
-  budget: number
-  exclusions: string[]
-  styles: string[]
-}
-
-interface PlanTripRequest {
-  locations: Array<{
-    region?: string
-    country: string
-    recommendedDuration?: string
-    searchVibe?: string
-  }>
-  tripDuration: number
-  filters?: TripFilters
-}
+// This must be a literal or locally defined value for Next.js static analysis to work for route config.
+// It sets the execution timeout in seconds.
+// The logic validation in validatePlanTripRequest uses its own MAX_DURATION constant for day limits.
+export const maxDuration = 60
 
 function stripMarkdownFences(text: string): string {
   let cleaned = text.trim()
@@ -113,51 +95,19 @@ Example format:
 
 export async function POST(req: Request) {
   try {
-    const body: PlanTripRequest = await req.json()
-    const { locations, tripDuration, filters } = body
+    const rawBody = await req.json()
 
-    if (!locations || !Array.isArray(locations) || locations.length === 0) {
-      return new Response(JSON.stringify({ error: 'No locations provided' }), {
+    // Use centralized validation
+    const { isValid, error, sanitizedBody } = validatePlanTripRequest(rawBody)
+
+    if (!isValid || !sanitizedBody) {
+      return new Response(JSON.stringify({ error: error || 'Invalid request' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       })
     }
 
-    if (locations.length > maxLocations) {
-      return new Response(JSON.stringify({ error: `Too many locations. Max ${maxLocations} allowed.` }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
-    }
-
-    if (!tripDuration || tripDuration < 1 || tripDuration > maxDuration) {
-      return new Response(JSON.stringify({ error: `Trip duration must be between 1 and ${maxDuration} days` }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
-    }
-
-    if (filters && typeof filters === 'object') {
-        if (filters.origin && typeof filters.origin === 'string' && filters.origin.length > maxStringLength) {
-             return new Response(JSON.stringify({ error: 'Origin input too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
-        }
-        if (filters.exclusions) {
-             if (!Array.isArray(filters.exclusions)) {
-                 return new Response(JSON.stringify({ error: 'Exclusions must be an array' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
-             }
-             if (filters.exclusions.some(s => typeof s === 'string' && s.length > maxStringLength)) {
-                 return new Response(JSON.stringify({ error: 'Exclusion input too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
-             }
-        }
-        if (filters.styles) {
-             if (!Array.isArray(filters.styles)) {
-                 return new Response(JSON.stringify({ error: 'Styles must be an array' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
-             }
-             if (filters.styles.some(s => typeof s === 'string' && s.length > maxStringLength)) {
-                 return new Response(JSON.stringify({ error: 'Style input too long' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
-             }
-        }
-    }
+    const { locations, tripDuration, filters } = sanitizedBody
 
     // Always use Gemini Flash Lite (2.5)
     const google = createGoogleGenerativeAI({
