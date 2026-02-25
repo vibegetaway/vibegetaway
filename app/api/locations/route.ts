@@ -3,6 +3,7 @@ import { searchRedditWithPerplexity } from './perplexity-search'
 
 // Allow up to 120 seconds for Perplexity search with structured output
 export const maxDuration = 120
+const MAX_QUERY_LENGTH = 100
 
 async function fetchPixabayImage(spot: string, location: string): Promise<string> {
   try {
@@ -24,6 +25,14 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q') || ''
+
+    // Security: Prevent DoS/cost exhaustion by limiting query length
+    if (query.length > MAX_QUERY_LENGTH) {
+      return NextResponse.json(
+        { error: `Query too long. Max length is ${MAX_QUERY_LENGTH} characters.` },
+        { status: 400 }
+      )
+    }
 
     // If no query, return empty array (user hasn't searched yet)
     if (!query.trim()) {
