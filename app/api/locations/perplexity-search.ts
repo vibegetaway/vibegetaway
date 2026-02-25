@@ -24,7 +24,9 @@ export async function searchRedditWithPerplexity(query: string): Promise<Locatio
       return []
     }
 
-    console.log(`[Perplexity] Searching Reddit for travel destinations: "${query}"`)
+    // Sanitize query for logging to prevent log injection
+    const sanitizedQuery = query.replace(/[\n\r]/g, ' ')
+    console.log(`[Perplexity] Searching Reddit for travel destinations: "${sanitizedQuery}"`)
     
     // Define JSON schema for structured output
     const responseSchema = {
