@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useMemo, memo } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
@@ -47,7 +47,7 @@ function MapController({ markers }: { markers: { lat: number; lng: number }[] })
     return null
 }
 
-export default function TripMap({ locations, selectedDay, className }: TripMapProps) {
+function TripMap({ locations, selectedDay, className }: TripMapProps) {
     // Logic to determine what to show
     // If selectedDay is active and has valid coords/POIs, show those.
     // Otherwise show the overview of all locations.
@@ -178,3 +178,5 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
         </div>
     )
 }
+
+export default memo(TripMap)
