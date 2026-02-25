@@ -360,6 +360,7 @@ export default function Home() {
       <LeftSidebar
         onSearchClick={() => handlePanelToggle('search')}
         onItineraryClick={() => handlePanelToggle('itinerary')}
+        activePanel={activePanel}
       />
       <MobileNav activePage="search" hidePlanButton />
       <RecentSearchPanel
