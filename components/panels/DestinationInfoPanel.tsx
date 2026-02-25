@@ -1,9 +1,8 @@
 'use client'
 
 import { X, ArrowRight, CalendarPlus, CalendarCheck } from 'lucide-react'
-import type { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination, UnsplashImage } from '@/lib/types'
 import { getCountryName } from '@/lib/countryCodeMapping'
-import type { UnsplashImage } from '@/app/api/images/unsplash-images/types'
 import type { SimplifiedFlight } from '@/lib/getRapidApiFlights'
 import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
@@ -335,4 +334,3 @@ export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOp
     </>
   )
 }
-

@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { MapPin } from 'lucide-react'
-import type { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/lib/types'
 import type { DayBreakdown } from '@/lib/itineraryHistory'
 
 // Fix default marker icon issues in Next.js/Leaflet

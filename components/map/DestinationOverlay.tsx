@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import type { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/lib/types'
 import { getCountryName } from '@/lib/countryCodeMapping'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -131,4 +131,3 @@ export function DestinationOverlay({ destination, mousePosition }: DestinationOv
     </div>
   )
 }
-
