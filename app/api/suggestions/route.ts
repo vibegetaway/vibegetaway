@@ -1,16 +1,38 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText } from 'ai';
+import { NextResponse } from 'next/server';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
-export async function POST(req: Request) {
-    const { input, context, type = 'vibe' } = await req.json();
+const MAX_INPUT_LENGTH = 100;
+const MAX_CONTEXT_LENGTH = 1000;
+const VALID_TYPES = ['vibe', 'event', 'exclusion', 'location'];
 
-    if (!input || typeof input !== 'string') {
-        return new Response('Input is required', { status: 400 });
+export async function POST(req: Request) {
+    const { input: rawInput, context: rawContext, type = 'vibe' } = await req.json();
+
+    if (!rawInput || typeof rawInput !== 'string') {
+        return NextResponse.json({ error: 'Input is required and must be a string' }, { status: 400 });
     }
+
+    // Security: Validate lengths and type
+    if (rawInput.length > MAX_INPUT_LENGTH) {
+        return NextResponse.json({ error: `Input too long. Max ${MAX_INPUT_LENGTH} characters.` }, { status: 400 });
+    }
+
+    if (rawContext && (typeof rawContext !== 'string' || rawContext.length > MAX_CONTEXT_LENGTH)) {
+        return NextResponse.json({ error: `Context too long. Max ${MAX_CONTEXT_LENGTH} characters.` }, { status: 400 });
+    }
+
+    if (!VALID_TYPES.includes(type)) {
+        return NextResponse.json({ error: 'Invalid type parameter' }, { status: 400 });
+    }
+
+    // Security: Sanitize input (remove newlines)
+    const input = rawInput.replace(/[\n\r]/g, ' ');
+    const context = rawContext ? rawContext.replace(/[\n\r]/g, ' ') : rawContext;
 
     // Prioritize Groq for speed, fallback to Gemini
     const groq = createGroq({

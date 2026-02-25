@@ -4,6 +4,8 @@ import { searchRedditWithPerplexity } from './perplexity-search'
 // Allow up to 120 seconds for Perplexity search with structured output
 export const maxDuration = 120
 
+const MAX_QUERY_LENGTH = 500
+
 async function fetchPixabayImage(spot: string, location: string): Promise<string> {
   try {
     // Use the most specific search term as the cache key
@@ -23,10 +25,21 @@ async function fetchPixabayImage(spot: string, location: string): Promise<string
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const query = searchParams.get('q') || ''
+    const rawQuery = searchParams.get('q') || ''
+
+    // Security: Validate query length
+    if (rawQuery.length > MAX_QUERY_LENGTH) {
+      return NextResponse.json(
+        { error: `Query is too long. Max ${MAX_QUERY_LENGTH} characters.` },
+        { status: 400 }
+      )
+    }
+
+    // Security: Sanitize input (remove newlines/carriage returns) to prevent log injection
+    const query = rawQuery.replace(/[\n\r]/g, ' ').trim()
 
     // If no query, return empty array (user hasn't searched yet)
-    if (!query.trim()) {
+    if (!query) {
       console.log('[Locations API] No query provided, returning empty array')
       return NextResponse.json({ locations: [] })
     }
