@@ -15,8 +15,8 @@ import {
   getItineraryHistory,
   deleteItineraryFromHistory,
   formatTimeAgo,
-  type SavedItinerary
 } from '@/lib/itineraryHistory'
+import type { SavedItinerary } from '@/lib/types'
 
 interface RecentSearchPanelProps {
   isOpen: boolean
