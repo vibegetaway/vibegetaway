@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { UnsplashImage } from './types'
-
-const MAX_LIMIT = 30
-const MAX_KEYWORD_LENGTH = 100
-const MAX_KEYWORDS_COUNT = 10
+import type { UnsplashImage } from '@/types/image'
+import { IMAGES, SEARCH } from '@/lib/constants'
 
 async function fetchUnsplashImages(
   keywords: string | string[],
@@ -61,9 +58,9 @@ export async function GET(request: NextRequest) {
     const keywords = searchParams.get('keywords')
 
     // Security: Validate limit
-    let limit = parseInt(searchParams.get('limit') || '10', 10)
-    if (isNaN(limit) || limit < 1) limit = 10
-    if (limit > MAX_LIMIT) limit = MAX_LIMIT
+    let limit = parseInt(searchParams.get('limit') || String(IMAGES.UNSPLASH.DEFAULT_LIMIT), 10)
+    if (isNaN(limit) || limit < 1) limit = IMAGES.UNSPLASH.DEFAULT_LIMIT
+    if (limit > IMAGES.UNSPLASH.MAX_LIMIT) limit = IMAGES.UNSPLASH.MAX_LIMIT
 
     const single = searchParams.get('single') === 'true'
 
@@ -81,7 +78,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    if (keywords.length > 500) { // Hard cap on raw string length
+    if (keywords.length > SEARCH.MAX_QUERY_LENGTH) { // Hard cap on raw string length
         return NextResponse.json(
             { error: 'Keywords parameter too long' },
             { status: 400 }
@@ -93,17 +90,17 @@ export async function GET(request: NextRequest) {
       .filter(k => k.length > 0)
 
     // Security: Limit number of keywords and length of each
-    if (keywordArray.length > MAX_KEYWORDS_COUNT) {
+    if (keywordArray.length > IMAGES.UNSPLASH.MAX_KEYWORDS_COUNT) {
          return NextResponse.json(
-            { error: `Too many keywords. Max ${MAX_KEYWORDS_COUNT} allowed.` },
+            { error: `Too many keywords. Max ${IMAGES.UNSPLASH.MAX_KEYWORDS_COUNT} allowed.` },
             { status: 400 }
         )
     }
 
     for (const k of keywordArray) {
-        if (k.length > MAX_KEYWORD_LENGTH) {
+        if (k.length > IMAGES.UNSPLASH.MAX_KEYWORD_LENGTH) {
             return NextResponse.json(
-                { error: `Keyword '${k.substring(0, 20)}...' is too long. Max ${MAX_KEYWORD_LENGTH} chars.` },
+                { error: `Keyword '${k.substring(0, 20)}...' is too long. Max ${IMAGES.UNSPLASH.MAX_KEYWORD_LENGTH} chars.` },
                 { status: 400 }
             )
         }

@@ -1,6 +1,7 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createGroq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
+import { stripMarkdownFences } from '@/lib/utils'
 
 export const maxDuration = 60
 const maxLocations = 10
@@ -26,12 +27,6 @@ interface PlanTripRequest {
   filters?: TripFilters
 }
 
-function stripMarkdownFences(text: string): string {
-  let cleaned = text.trim()
-  cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  cleaned = cleaned.replace(/\n?```$/, '')
-  return cleaned.trim()
-}
 
 const SYSTEM_PROMPT = `You are an expert travel itinerary planner. Create realistic day-by-day trip plans that account for:
 - Travel logistics between locations (include travel days when switching destinations)
