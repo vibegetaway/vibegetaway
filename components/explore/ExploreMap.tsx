@@ -11,32 +11,7 @@ import { useExploreTyping } from '@/hooks/useExploreTyping'
 import Image from 'next/image'
 import { LocationOverviewDrawer } from './LocationOverviewDrawer'
 import { LocationDetailsDrawer } from './LocationDetailsDrawer'
-
-export interface Location {
-  location: string      // City/area
-  spot: string         // Specific landmark
-  country: string
-  latitude: number
-  longitude: number
-  description: string
-  extended_description?: string
-  best_time_to_visit?: string
-  why_now?: string
-  top_activities?: string[]
-  nearby_attractions?: string[]
-  practical_tips?: string
-  travel_from_origin?: string
-  image_keywords?: string
-  match_reason?: string
-  prominence_score: number
-  reddit_source_urls: string[]
-  image_url: string
-  price_level?: string
-  highlights?: string[]
-  tips?: string[]
-  activities?: string[]
-  social_proof?: { quote: string; source: string }
-}
+import type { Location } from '@/types/location'
 
 interface ExploreMapProps {
   className?: string
@@ -58,7 +33,7 @@ interface LocationProperties {
   tips?: string[]
   image_keywords?: string
   prominence_score: number
-  image_url: string
+  image_url?: string
   price_level?: string
   social_proof?: { quote: string; source: string }
 }
@@ -95,7 +70,7 @@ const getStarsFromProminence = (score: number): number => {
 }
 
 // Create circular image pin
-const createCircularPin = (imageUrl: string, locationName: string, prominenceScore: number = 0, size: number = 50, priceLevel?: string) => {
+const createCircularPin = (imageUrl: string | undefined, locationName: string, prominenceScore: number = 0, size: number = 50, priceLevel?: string) => {
   const isSpecialPin = prominenceScore === 10
   const starBadge = isSpecialPin ? `
     <div class="star-badge" style="
@@ -141,7 +116,7 @@ const createCircularPin = (imageUrl: string, locationName: string, prominenceSco
       <div class="circular-pin-container">
         <div class="circular-pin" style="width: ${size}px; height: ${size}px;">
           <div class="pin-image-wrapper" style="width: ${size}px; height: ${size}px;">
-            <img src="${imageUrl}" alt="location" class="pin-image" />
+            <img src="${imageUrl || '/assets/icon.png'}" alt="location" class="pin-image" />
           </div>
           ${starBadge}
           ${priceBadge}
@@ -156,7 +131,7 @@ const createCircularPin = (imageUrl: string, locationName: string, prominenceSco
 }
 
 // Create cluster icon (looks same as leaf pin - white border, no number)
-const createClusterPin = (imageUrl: string, locationName: string, count: number, prominenceScore: number = 0) => {
+const createClusterPin = (imageUrl: string | undefined, locationName: string, count: number, prominenceScore: number = 0) => {
   const size = 50
   const isSpecialPin = prominenceScore === 10
   const starBadge = isSpecialPin ? `
@@ -184,7 +159,7 @@ const createClusterPin = (imageUrl: string, locationName: string, count: number,
       <div class="circular-pin-container">
         <div class="circular-pin" style="width: ${size}px; height: ${size}px;">
           <div class="pin-image-wrapper" style="width: ${size}px; height: ${size}px;">
-            <img src="${imageUrl}" alt="location" class="pin-image" />
+            <img src="${imageUrl || '/assets/icon.png'}" alt="location" class="pin-image" />
           </div>
           ${starBadge}
         </div>
@@ -370,7 +345,7 @@ function MapController({
                       travel_from_origin: point.properties.travel_from_origin,
                       image_keywords: point.properties.image_keywords,
                       match_reason: point.properties.match_reason,
-                      image_url: point.properties.image_url,
+                      image_url: point.properties.image_url || '/assets/icon.png',
                       prominence_score: point.properties.prominence_score,
                       price_level: point.properties.price_level,
                       social_proof: point.properties.social_proof,
@@ -399,7 +374,7 @@ function MapController({
                     activities: marker.location!.activities,
                     tips: marker.location!.tips,
                     image_keywords: marker.location!.image_keywords,
-                    image_url: marker.location!.image_url,
+                    image_url: marker.location!.image_url || '/assets/icon.png',
                     prominence_score: marker.location!.prominence_score,
                     price_level: marker.location!.price_level,
                     social_proof: marker.location!.social_proof,
@@ -729,7 +704,7 @@ export default function ExploreMap({ className, origin, originCoords, destinatio
         activities: loc.activities,
         tips: loc.tips,
         image_keywords: loc.image_keywords,
-        image_url: loc.image_url,
+        image_url: loc.image_url || '/assets/icon.png',
         prominence_score: loc.prominence_score,
         price_level: loc.price_level,
         social_proof: loc.social_proof,
