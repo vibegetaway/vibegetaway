@@ -20,16 +20,21 @@ async function fetchPixabayImage(spot: string, location: string): Promise<string
   }
 }
 
+const MAX_QUERY_LENGTH = 500
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const query = searchParams.get('q') || ''
+    const rawQuery = searchParams.get('q') || ''
 
     // If no query, return empty array (user hasn't searched yet)
-    if (!query.trim()) {
+    if (!rawQuery.trim()) {
       console.log('[Locations API] No query provided, returning empty array')
       return NextResponse.json({ locations: [] })
     }
+
+    // Sanitize and validate input to prevent log injection and DoS
+    const query = rawQuery.slice(0, MAX_QUERY_LENGTH).replace(/[\n\r]/g, ' ')
 
     console.log(`[Locations API] Processing query: "${query}"`)
 
