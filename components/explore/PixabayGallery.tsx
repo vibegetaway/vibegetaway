@@ -2,24 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import type { Image as ImageType } from '@/app/api/images/types'
 
 interface PixabayGalleryProps {
     keywords: string
     imageCount?: number
 }
 
-interface PixabayImage {
-    id: number
-    urls: {
-        small: string
-        regular: string
-        full: string
-    }
-    altDescription: string
-}
-
 export default function PixabayGallery({ keywords, imageCount = 8 }: PixabayGalleryProps) {
-    const [images, setImages] = useState<PixabayImage[]>([])
+    const [images, setImages] = useState<ImageType[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(false)
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)

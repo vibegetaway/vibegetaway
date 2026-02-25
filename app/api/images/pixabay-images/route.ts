@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { PixabayImage } from './types'
+import { cleanKeywords, getFallbackSearchTerms } from '@/lib/image-utils'
+import type { Image } from '../types'
 
 async function fetchPixabayImages(
     keywords: string | string[],
     limit: number = 10
-): Promise<PixabayImage[]> {
+): Promise<Image[]> {
     try {
         const PIXABAY_API_KEY = process.env.PIXABAY_API_KEY
 
@@ -13,9 +14,7 @@ async function fetchPixabayImages(
             return []
         }
 
-        const keywordString = Array.isArray(keywords)
-            ? keywords.filter(k => k && k.trim().length > 0).join(' ')
-            : keywords
+        const keywordString = cleanKeywords(keywords)
 
         if (!keywordString || keywordString.trim().length === 0) {
             console.warn('No keywords provided for Pixabay search')
@@ -23,12 +22,7 @@ async function fetchPixabayImages(
         }
 
         // Try progressive fallback strategy if initial search fails
-        const searchTerms = [
-            keywordString, // Original search
-            keywordString.split(' ').slice(0, 2).join(' '), // First 2 words
-            keywordString.split(' ')[0], // First word only
-            'travel destination' // Ultimate fallback
-        ]
+        const searchTerms = getFallbackSearchTerms(keywordString)
 
         for (const searchTerm of searchTerms) {
             if (!searchTerm || searchTerm.trim().length === 0) continue

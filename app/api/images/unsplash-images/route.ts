@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { UnsplashImage } from './types'
+import { cleanKeywords } from '@/lib/image-utils'
+import type { Image } from '../types'
 
 const MAX_LIMIT = 30
 const MAX_KEYWORD_LENGTH = 100
@@ -8,7 +9,7 @@ const MAX_KEYWORDS_COUNT = 10
 async function fetchUnsplashImages(
   keywords: string | string[],
   limit: number = 10
-): Promise<UnsplashImage[]> {
+): Promise<Image[]> {
   try {
     const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY
 
@@ -17,9 +18,7 @@ async function fetchUnsplashImages(
       return []
     }
 
-    const keywordString = Array.isArray(keywords) 
-      ? keywords.filter(k => k && k.trim().length > 0).join(' ')
-      : keywords
+    const keywordString = cleanKeywords(keywords)
 
     if (!keywordString || keywordString.trim().length === 0) {
       console.warn('No keywords provided for Unsplash search')

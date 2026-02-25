@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getFallbackSearchTerms } from '@/lib/image-utils'
 
 /**
  * Image proxy endpoint that caches Pixabay images for 24 hours
@@ -29,12 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Try progressive fallback strategy if initial search fails
-    const searchTerms = [
-      keywords, // Original search
-      keywords.split(' ').slice(0, 2).join(' '), // First 2 words
-      keywords.split(' ')[0], // First word only
-      'travel destination' // Ultimate fallback
-    ]
+    const searchTerms = getFallbackSearchTerms(keywords)
 
     let imageUrl: string | null = null
 

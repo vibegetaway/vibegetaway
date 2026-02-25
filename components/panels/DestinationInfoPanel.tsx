@@ -3,7 +3,7 @@
 import { X, ArrowRight, CalendarPlus, CalendarCheck } from 'lucide-react'
 import type { Destination } from '@/lib/generateDestinationInfo'
 import { getCountryName } from '@/lib/countryCodeMapping'
-import type { UnsplashImage } from '@/app/api/images/unsplash-images/types'
+import type { Image } from '@/app/api/images/types'
 import type { SimplifiedFlight } from '@/lib/getRapidApiFlights'
 import { fetchRapidApiFlights } from '@/lib/getRapidApiFlights'
 import ReactMarkdown from 'react-markdown'
@@ -40,9 +40,9 @@ function formatDate(isoString: string): string {
 }
 
 export function DestinationInfoPanel({ destination, isOpen, onClose, isSidebarOpen = false }: DestinationInfoPanelProps) {
-  const [images, setImages] = useState<UnsplashImage[]>([])
+  const [images, setImages] = useState<Image[]>([])
   const [loadingImages, setLoadingImages] = useState(false)
-  const [coverImage, setCoverImage] = useState<UnsplashImage | null>(null)
+  const [coverImage, setCoverImage] = useState<Image | null>(null)
   const [loadingCover, setLoadingCover] = useState(false)
   const [flights, setFlights] = useState<SimplifiedFlight[]>([])
   const [loadingFlights, setLoadingFlights] = useState(false)
