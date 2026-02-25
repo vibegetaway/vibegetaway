@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, Suspense } from "react"
+import { useState, useEffect, useRef, Suspense, useMemo } from "react"
 import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X, Heart, Image as ImageIcon, ChevronDown, ChevronUp, BookmarkCheck, CalendarDays, Plus, Trash2 } from "lucide-react"
 import { Header } from "@/components/Header"
 import { MobileNav } from "@/components/MobileNav"
@@ -656,7 +656,8 @@ function PlanContent() {
   }
 
   const currentDayItinerary = itineraries[selectedDayTab - 1]
-  const selectedDayForMap = itineraries.length > 0 && currentDayItinerary ? {
+  // Memoize selectedDayForMap to prevent expensive TripMap re-renders while typing in form inputs
+  const selectedDayForMap = useMemo(() => itineraries.length > 0 && currentDayItinerary ? {
     day: selectedDayTab,
     location: currentDayItinerary.location,
     morning: {
@@ -679,7 +680,7 @@ function PlanContent() {
     },
     coordinates: savedLocations[selectedDayTab - 1]?.coordinates,
     points_of_interest: []
-  } as DayBreakdown : null
+  } as DayBreakdown : null, [itineraries.length, currentDayItinerary, selectedDayTab, savedLocations])
 
   return (
     <>
