@@ -17,7 +17,7 @@ export function Header() {
         <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-primary/30 via-secondary/30 to-transparent" />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 relative">
-            <button onClick={() => router.push("/")} className="flex items-center gap-2 group">
+            <button onClick={() => router.push("/")} className="flex items-center gap-2 group" aria-label="Home">
               <div className="h-8 sm:h-10 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <Image
                   src="/assets/branding/banner.png"
@@ -53,6 +53,8 @@ export function Header() {
                 onClick={() => setShowMenu(!showMenu)}
                 className="p-2 hover:bg-muted rounded-lg transition-colors"
                 aria-label="Menu"
+                aria-expanded={showMenu}
+                aria-controls="mobile-menu"
               >
                 {showMenu ? (
                   <X className="w-6 h-6 text-foreground" />
@@ -66,10 +68,17 @@ export function Header() {
       </nav>
 
       {showMenu && (
-        <div className="fixed inset-0 z-50 md:z-[60]">
+        <div
+          id="mobile-menu"
+          className="fixed inset-0 z-50 md:z-[60]"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation Menu"
+        >
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowMenu(false)}
+            aria-hidden="true"
           />
           <div className="absolute top-0 right-0 h-full w-80 bg-card border-l border-border shadow-2xl transform transition-transform duration-300 ease-in-out">
             <div className="flex flex-col h-full">
@@ -78,6 +87,7 @@ export function Header() {
                 <button
                   onClick={() => setShowMenu(false)}
                   className="p-2 hover:bg-muted rounded-lg transition-colors"
+                  aria-label="Close menu"
                 >
                   <X className="w-5 h-5" />
                 </button>
