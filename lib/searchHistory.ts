@@ -1,22 +1,6 @@
 'use client'
 
-import type { Destination } from './generateDestinationInfo'
-
-export interface SearchHistoryItem {
-  id: string
-  vibe: string
-  timePeriod: string
-  timestamp: number
-  destinations?: Destination[]
-  filters?: {
-    origin?: string
-    destinations?: string[]
-    duration?: [number, number]
-    budget?: number
-    exclusions?: string[]
-    styles?: string[]
-  }
-}
+import type { Destination, SearchHistoryItem } from './types'
 
 const STORAGE_KEY = 'best-trip-search-history'
 const MAX_HISTORY_ITEMS = 20

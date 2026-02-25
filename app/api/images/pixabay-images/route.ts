@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { PixabayImage } from './types'
+import type { Image } from '@/lib/types'
 
 async function fetchPixabayImages(
     keywords: string | string[],
     limit: number = 10
-): Promise<PixabayImage[]> {
+): Promise<Image[]> {
     try {
         const PIXABAY_API_KEY = process.env.PIXABAY_API_KEY
 
