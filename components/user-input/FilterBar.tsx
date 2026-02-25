@@ -77,10 +77,19 @@ export function FilterBar({
             }
         }
 
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                if (isDateOpen) setIsDateOpen(false)
+                if (editingFilter) setEditingFilter(null)
+            }
+        }
+
         if (isDateOpen || editingFilter) {
             document.addEventListener('mousedown', handleClickOutside)
+            document.addEventListener('keydown', handleKeyDown)
             return () => {
                 document.removeEventListener('mousedown', handleClickOutside)
+                document.removeEventListener('keydown', handleKeyDown)
             }
         }
     }, [isDateOpen, editingFilter])
@@ -103,6 +112,9 @@ export function FilterBar({
                                     setEditingFilter(null)
                                     setIsDateOpen(!isDateOpen)
                                 }}
+                                aria-expanded={isDateOpen}
+                                aria-haspopup="dialog"
+                                aria-label="Filter by date"
                                 className={cn(
                                     "relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm",
                                     "bg-white/90 backdrop-blur-md border",
@@ -119,8 +131,16 @@ export function FilterBar({
                                     <div
                                         className="fixed inset-0 z-10"
                                         onClick={() => setIsDateOpen(false)}
+                                        aria-hidden="true"
+                                        tabIndex={-1}
                                     />
-                                    <div className="absolute top-full mt-2 left-0 w-[280px] bg-white rounded-xl shadow-xl border border-stone-100 overflow-hidden z-20 animate-in fade-in zoom-in-95 duration-200" data-date-dropdown>
+                                    <div
+                                        className="absolute top-full mt-2 left-0 w-[280px] bg-white rounded-xl shadow-xl border border-stone-100 overflow-hidden z-20 animate-in fade-in zoom-in-95 duration-200"
+                                        data-date-dropdown
+                                        role="dialog"
+                                        aria-modal="true"
+                                        aria-label="Select travel month"
+                                    >
                                         {/* Quick Options */}
                                         <div className="p-2 border-b border-stone-100">
                                             <div className="text-xs font-semibold text-stone-400 uppercase tracking-wider px-2 py-1 mb-1">
