@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { PixabayImage } from './types'
 
+const MAX_KEYWORD_LENGTH = 100
+const MAX_KEYWORDS_COUNT = 10
+const MAX_LIMIT = 50
+
 async function fetchPixabayImages(
     keywords: string | string[],
     limit: number = 10
@@ -80,7 +84,29 @@ export async function GET(request: NextRequest) {
             )
         }
 
+        if (limit > MAX_LIMIT) {
+            return NextResponse.json(
+                { error: `Limit cannot exceed ${MAX_LIMIT}` },
+                { status: 400 }
+            )
+        }
+
         const keywordArray = keywords.split(',').map(k => k.trim()).filter(k => k.length > 0)
+
+        if (keywordArray.length > MAX_KEYWORDS_COUNT) {
+            return NextResponse.json(
+                { error: `Too many keywords. Max ${MAX_KEYWORDS_COUNT}` },
+                { status: 400 }
+            )
+        }
+
+        if (keywordArray.some(k => k.length > MAX_KEYWORD_LENGTH)) {
+            return NextResponse.json(
+                { error: `Keyword too long. Max ${MAX_KEYWORD_LENGTH} characters per keyword` },
+                { status: 400 }
+            )
+        }
+
         const keywordsToUse = keywordArray.length > 1 ? keywordArray : keywordArray[0]
 
         // Note: Pixabay pagination is per_page, but we pass limit to our internal function

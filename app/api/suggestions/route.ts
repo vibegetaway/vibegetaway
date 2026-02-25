@@ -5,12 +5,32 @@ import { generateText } from 'ai';
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
+const MAX_INPUT_LENGTH = 100;
+const MAX_CONTEXT_LENGTH = 1000;
+const ALLOWED_TYPES = ['vibe', 'event', 'exclusion', 'location'];
+
 export async function POST(req: Request) {
     const { input, context, type = 'vibe' } = await req.json();
 
     if (!input || typeof input !== 'string') {
         return new Response('Input is required', { status: 400 });
     }
+
+    if (input.length > MAX_INPUT_LENGTH) {
+        return new Response('Input too long', { status: 400 });
+    }
+
+    if (context && typeof context === 'string' && context.length > MAX_CONTEXT_LENGTH) {
+        return new Response('Context too long', { status: 400 });
+    }
+
+    if (!ALLOWED_TYPES.includes(type)) {
+        return new Response('Invalid suggestion type', { status: 400 });
+    }
+
+    // Sanitize input to prevent log injection and prompt injection
+    const sanitizedInput = input.replace(/[\n\r]/g, ' ');
+    const sanitizedContext = context && typeof context === 'string' ? context.replace(/[\n\r]/g, ' ') : '';
 
     // Prioritize Groq for speed, fallback to Gemini
     const groq = createGroq({
@@ -38,8 +58,8 @@ export async function POST(req: Request) {
       Input: "Jazz" -> Output: " Festival" (Jazz Festival)
       Input: "Food" -> Output: " market" (Food market)
       
-      Context (already selected events): ${context || 'none'}
-      Current Input: "${input}"
+      Context (already selected events): ${sanitizedContext || 'none'}
+      Current Input: "${sanitizedInput}"
       Output only the completion suffix.`;
             break;
         case 'exclusion':
@@ -52,8 +72,8 @@ export async function POST(req: Request) {
       Input: "Crow" -> Output: "ds" (Crowds)
       Input: "Mosq" -> Output: "uitoes" (Mosquitoes)
       
-      Context (already selected exclusions): ${context || 'none'}
-      Current Input: "${input}"
+      Context (already selected exclusions): ${sanitizedContext || 'none'}
+      Current Input: "${sanitizedInput}"
       Output only the completion suffix.`;
             break;
         case 'location':
@@ -67,8 +87,8 @@ export async function POST(req: Request) {
       Input: "JF" -> Output: "K" (JFK)
       Input: "South East A" -> Output: "sia" (South East Asia)
       
-      Context (already selected locations): ${context || 'none'}
-      Current Input: "${input}"
+      Context (already selected locations): ${sanitizedContext || 'none'}
+      Current Input: "${sanitizedInput}"
       Output only the completion suffix.`;
             break;
         case 'vibe':
@@ -84,8 +104,8 @@ export async function POST(req: Request) {
       Input: "chi" -> Output: "ll" (chill)
       Input: "food" -> Output: "ie tour" (foodie tour)
       
-      Context (already selected vibes): ${context || 'none'}
-      Current Input: "${input}"
+      Context (already selected vibes): ${sanitizedContext || 'none'}
+      Current Input: "${sanitizedInput}"
       Output only the completion suffix.`;
             break;
     }
@@ -94,7 +114,7 @@ export async function POST(req: Request) {
         const { text } = await generateText({
             model,
             system: systemPrompt,
-            prompt: input,
+            prompt: sanitizedInput,
             temperature: 0.1,
         });
 
