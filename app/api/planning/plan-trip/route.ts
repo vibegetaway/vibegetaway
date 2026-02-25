@@ -130,6 +130,40 @@ export async function POST(req: Request) {
       })
     }
 
+    // Validate individual locations
+    for (const loc of locations) {
+      if (!loc.country || typeof loc.country !== 'string') {
+        return new Response(JSON.stringify({ error: 'Invalid location: Country is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      if (loc.country.length > maxStringLength) {
+        return new Response(JSON.stringify({ error: 'Invalid location: Country name too long' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      if (loc.region && (typeof loc.region !== 'string' || loc.region.length > maxStringLength)) {
+        return new Response(JSON.stringify({ error: 'Invalid location: Region name too long or invalid' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      if (loc.searchVibe && (typeof loc.searchVibe !== 'string' || loc.searchVibe.length > maxStringLength)) {
+        return new Response(JSON.stringify({ error: 'Invalid location: Search vibe too long or invalid' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      if (loc.recommendedDuration && (typeof loc.recommendedDuration !== 'string' || loc.recommendedDuration.length > 100)) {
+        return new Response(JSON.stringify({ error: 'Invalid location: Duration string too long or invalid' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
     if (!tripDuration || tripDuration < 1 || tripDuration > maxDuration) {
       return new Response(JSON.stringify({ error: `Trip duration must be between 1 and ${maxDuration} days` }), {
         status: 400,
