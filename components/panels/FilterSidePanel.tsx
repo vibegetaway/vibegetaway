@@ -88,6 +88,7 @@ export function FilterSidePanel({
                     <button
                         onClick={onClose}
                         className="p-2 hover:bg-violet-100 rounded-full transition-colors"
+                        aria-label="Close filters"
                     >
                         <X className="w-5 h-5 text-violet-500" />
                     </button>
@@ -117,7 +118,10 @@ export function FilterSidePanel({
                         {/* Origin */}
                         <div className="space-y-3">
                             <div className="flex items-center justify-between gap-4">
-                                <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide whitespace-nowrap">
+                                <label
+                                    htmlFor="filter-origin-input"
+                                    className="flex items-center gap-2 text-sm font-semibold text-violet-700 uppercase tracking-wide whitespace-nowrap"
+                                >
                                     <MapPin className="w-4 h-4" />
                                     Origin
                                 </label>
@@ -127,6 +131,7 @@ export function FilterSidePanel({
                             </div>
                             <div className="relative">
                                 <input
+                                    id="filter-origin-input"
                                     type="text"
                                     value={origin}
                                     onChange={(e) => setOrigin(e.target.value)}
@@ -166,6 +171,7 @@ export function FilterSidePanel({
                                 placeholder="e.g. Bali, Asia, JFK, Paris"
                                 suggestionType="location"
                                 autoFocus={activeFilter === 'destination'}
+                                ariaLabel="Add destination or region"
                             />
                         </div>
                     </div>
@@ -187,6 +193,7 @@ export function FilterSidePanel({
                             placeholder="e.g. Crowds, Rainy Season"
                             suggestionType="exclusion"
                             autoFocus={activeFilter === 'exclusions'}
+                            ariaLabel="Add exclusion"
                         />
                     </div>
 
