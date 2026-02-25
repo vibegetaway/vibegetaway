@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { MapPin, X, Sparkles } from 'lucide-react'
-import { Destination } from '@/lib/generateDestinationInfo'
+import type { Destination } from '@/lib/types'
 import { getCountryName } from '@/lib/countryCodeMapping'
 
 interface ItineraryPanelProps {

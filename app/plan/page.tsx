@@ -8,27 +8,18 @@ import { useTypingAnimation } from "@/hooks/useTypingAnimation"
 import { InspirationModal } from "@/components/inspiration/InspirationModal"
 import type { InspirationCard } from "@/components/SwipeCard"
 import { saveItineraryToHistory, getItineraryById, getItineraryHistory, deleteItineraryFromHistory } from "@/lib/itineraryHistory"
-import type { DayBreakdown } from "@/lib/itineraryHistory"
 import { useRouter, useSearchParams } from "next/navigation"
 import dynamic from 'next/dynamic'
-import type { Destination } from "@/lib/generateDestinationInfo"
+import type { Destination, DayBreakdown, QuickstartActivity } from "@/lib/types"
 
 const TripMap = dynamic(() => import('@/components/TripMap'), { ssr: false })
-
-interface TimeSlotActivity {
-  title: string
-  description: string
-  reason: string
-  imageUrl?: string
-  imageUrls?: string[]
-}
 
 interface DayItinerary {
   day: number
   location: string
-  morning: TimeSlotActivity
-  midday: TimeSlotActivity
-  evening: TimeSlotActivity
+  morning: QuickstartActivity
+  midday: QuickstartActivity
+  evening: QuickstartActivity
 }
 
 type TimeSlot = 'morning' | 'midday' | 'evening'
@@ -70,9 +61,9 @@ function PlanContent() {
   const [regeneratingSlot, setRegeneratingSlot] = useState<TimeSlot | null>(null)
   const [detailView, setDetailView] = useState<{
     slot: TimeSlot
-    activity: TimeSlotActivity
+    activity: QuickstartActivity
   } | null>(null)
-  const [alternatives, setAlternatives] = useState<TimeSlotActivity[]>([])
+  const [alternatives, setAlternatives] = useState<QuickstartActivity[]>([])
   const [loadingAlternatives, setLoadingAlternatives] = useState(false)
   const [isLocating, setIsLocating] = useState(false)
   const [showInspirationModal, setShowInspirationModal] = useState(false)
@@ -535,7 +526,7 @@ function PlanContent() {
     }
   }
 
-  const openDetailView = async (slot: TimeSlot, activityData: TimeSlotActivity) => {
+  const openDetailView = async (slot: TimeSlot, activityData: QuickstartActivity) => {
     setDetailView({ slot, activity: activityData })
     setLoadingAlternatives(true)
 
@@ -571,7 +562,7 @@ function PlanContent() {
     }
   }
 
-  const selectAlternative = (alternative: TimeSlotActivity) => {
+  const selectAlternative = (alternative: QuickstartActivity) => {
     if (detailView) {
       const updatedItineraries = itineraries.map((day, index) => {
         if (index === selectedDayTab - 1) {

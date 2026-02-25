@@ -1,0 +1,55 @@
+
+> best-trip@0.1.0 dev /app
+> next dev --webpack
+
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /app/node_modules/.pnpm/next-pwa@5.6.0_@babel+core@7.29.0_next@16.1.6_@babel+core@7.29.0_@opentelemetry+api@1.9_70b65e7cd051a67bc5ef2397a27f6329/node_modules/next-pwa/register.js
+> [PWA] Service worker: /app/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+> [PWA] Build in develop mode, cache and precache are mostly disabled. This means offline support is disabled, but you can continue developing other functions in service worker.
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 4.3s
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+○ Compiling / ...
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+
+[35m
+[Clerk]:[0m You are running in keyless mode.
+You can [35mclaim your keys[0m by visiting https://dashboard.clerk.com/apps/claim?token=8sf9xpqvegdohdycl3fvsteix0n47qun152to3kc&return_url=http%3A%2F%2Flocalhost%3A3000%2F
+
+ GET / 200 in 21.6s (compile: 18.9s, proxy.ts: 399ms, render: 2.3s)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (187kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ GET / 200 in 209ms (compile: 16ms, proxy.ts: 44ms, render: 149ms)
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /assets/homepage/grid.svg 404 in 4.9s (compile: 4.5s, render: 340ms)
+ POST / 200 in 68ms (compile: 21ms, proxy.ts: 24ms, render: 24ms)
+ GET / 200 in 117ms (compile: 9ms, proxy.ts: 46ms, render: 63ms)
+ POST / 303 in 379ms (compile: 25ms, proxy.ts: 42ms, render: 312ms)
+ GET / 200 in 43ms (compile: 5ms, proxy.ts: 17ms, render: 21ms)
+ GET /assets/homepage/grid.svg 404 in 101ms (compile: 7ms, render: 94ms)
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /search 200 in 15.0s (compile: 14.2s, proxy.ts: 15ms, render: 740ms)
+⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ POST /search 200 in 8.7s (compile: 8.1s, proxy.ts: 132ms, render: 493ms)
+ GET /plan 200 in 9.1s (compile: 8.4s, proxy.ts: 40ms, render: 611ms)
+ POST /plan 200 in 107ms (compile: 21ms, proxy.ts: 51ms, render: 34ms)

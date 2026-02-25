@@ -1,56 +1,12 @@
 'use client'
 
-import type { Destination } from './generateDestinationInfo'
-
-export interface DayActivity {
-  activity: string
-  description: string
-  imageUrl?: string
-  imageUrls?: string[]
-}
-
-export interface DayBreakdown {
-  day: number
-  location: string
-  coordinates?: {
-    lat: number
-    lng: number
-  }
-  best_time_to_visit?: string
-  why_its_nice?: string
-  events?: Array<{
-    name: string
-    description: string
-  }>
-  alerts?: Array<{
-    type: 'warning' | 'info'
-    message: string
-  }>
-  points_of_interest?: Array<{
-    name: string
-    description: string
-    insight?: string
-    tags?: string[]
-    cost?: string
-    duration?: string
-    coordinates: {
-      lat: number
-      lng: number
-    }
-  }>
-  morning: DayActivity
-  midday: DayActivity
-  evening: DayActivity
-}
-
-export interface SavedItinerary {
-  id: string
-  name: string
-  timestamp: number
-  locations: Destination[]
-  tripDuration: number
-  generatedPlan: DayBreakdown[]
-}
+import type {
+  Destination,
+  DayBreakdown,
+  SavedItinerary,
+  QuickstartItinerary,
+  DayActivity
+} from './types'
 
 const STORAGE_KEY = 'vibegetaway-itinerary-history'
 const MAX_HISTORY = 20
@@ -150,20 +106,6 @@ export function formatTimeAgo(timestamp: number): string {
     return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`
   }
   return 'Just now'
-}
-
-export interface QuickstartActivity {
-  title: string
-  description: string
-  reason: string
-  imageUrl?: string
-  imageUrls?: string[]
-}
-
-export interface QuickstartItinerary {
-  morning: QuickstartActivity
-  midday: QuickstartActivity
-  evening: QuickstartActivity
 }
 
 function parseLocation(locationString: string): { region: string; country: string } {
@@ -293,4 +235,3 @@ export function updateItineraryById(
     console.error('Error updating itinerary:', error)
   }
 }
-
