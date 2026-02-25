@@ -40,6 +40,7 @@ export function MapZoomControls({ initialZoom }: MapZoomControlsProps) {
                     onClick={handleZoomIn}
                     className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-lg shadow-lg flex items-center justify-center font-bold text-xl transition-all hover:scale-105 border-none cursor-pointer"
                     title="Zoom In"
+                    aria-label="Zoom In"
                     type="button"
                 >
                     +
@@ -48,6 +49,7 @@ export function MapZoomControls({ initialZoom }: MapZoomControlsProps) {
                     onClick={handleZoomOut}
                     className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-lg shadow-lg flex items-center justify-center font-bold text-xl transition-all hover:scale-105 border-none cursor-pointer"
                     title="Zoom Out"
+                    aria-label="Zoom Out"
                     type="button"
                 >
                     −
@@ -56,6 +58,7 @@ export function MapZoomControls({ initialZoom }: MapZoomControlsProps) {
                     onClick={handleRecenter}
                     className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-lg shadow-lg flex items-center justify-center transition-all hover:scale-105 border-none cursor-pointer"
                     title="Recenter Map"
+                    aria-label="Recenter Map"
                     type="button"
                 >
                     <RotateCcw className="w-4 h-4" />
