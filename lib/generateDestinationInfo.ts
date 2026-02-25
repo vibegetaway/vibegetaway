@@ -3,6 +3,7 @@
 import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
 import { groq } from '@ai-sdk/groq'
+import { stripMarkdownFences } from '@/lib/utils'
 
 
 export interface DestinationPricing {
@@ -41,13 +42,6 @@ export interface GenerateDestinationParams {
   budget?: number
   exclusions?: string[]
   styles?: string[]
-}
-
-function stripMarkdownFences(text: string): string {
-  let cleaned = text.trim()
-  cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  cleaned = cleaned.replace(/\n?```$/, '')
-  return cleaned.trim()
 }
 
 const DESTINATION_NAMES_SYSTEM_PROMPT = `
