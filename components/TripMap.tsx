@@ -52,31 +52,49 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
     // If selectedDay is active and has valid coords/POIs, show those.
     // Otherwise show the overview of all locations.
 
-    const showDayView = selectedDay && (selectedDay.coordinates || (selectedDay.points_of_interest && selectedDay.points_of_interest.length > 0))
+    const markersToShow = useMemo(() => {
+        const showDayView = selectedDay && (selectedDay.coordinates || (selectedDay.points_of_interest && selectedDay.points_of_interest.length > 0))
 
-    // Prepare markers for Day View
-    const dayMarkers = showDayView ? [
-        ...(selectedDay?.coordinates ? [{
-            lat: selectedDay.coordinates.lat,
-            lng: selectedDay.coordinates.lng,
-            title: selectedDay.location,
-            subtitle: "Main Location",
-            isMain: true
-        }] : []),
-        ...(selectedDay?.points_of_interest || []).map(poi => ({
-            lat: poi.coordinates.lat,
-            lng: poi.coordinates.lng,
-            title: poi.name,
-            subtitle: poi.description,
-            isMain: false
-        }))
-    ] : []
+        if (showDayView) {
+            // Prepare markers for Day View
+            const dayMarkers = [
+                ...(selectedDay?.coordinates ? [{
+                    lat: selectedDay.coordinates.lat,
+                    lng: selectedDay.coordinates.lng,
+                    title: selectedDay.location,
+                    subtitle: "Main Location",
+                    isMain: true
+                }] : []),
+                ...(selectedDay?.points_of_interest || []).map(poi => ({
+                    lat: poi.coordinates.lat,
+                    lng: poi.coordinates.lng,
+                    title: poi.name,
+                    subtitle: poi.description,
+                    isMain: false
+                }))
+            ]
 
-    // Filter out markers with invalid coordinates to prevent Leaflet crashes
-    const validDayMarkers = dayMarkers.filter(m =>
-        typeof m.lat === 'number' && !isNaN(m.lat) &&
-        typeof m.lng === 'number' && !isNaN(m.lng)
-    )
+            // Filter out markers with invalid coordinates to prevent Leaflet crashes
+            return dayMarkers.filter(m =>
+                typeof m.lat === 'number' && !isNaN(m.lat) &&
+                typeof m.lng === 'number' && !isNaN(m.lng)
+            )
+        } else {
+             // Prepare markers for Overview View (existing logic)
+            const validLocations = locations.filter(l =>
+                l.coordinates &&
+                typeof l.coordinates.lat === 'number' && !isNaN(l.coordinates.lat) &&
+                typeof l.coordinates.lng === 'number' && !isNaN(l.coordinates.lng)
+            )
+            return validLocations.map(loc => ({
+                lat: loc.coordinates!.lat,
+                lng: loc.coordinates!.lng,
+                title: loc.region || loc.country,
+                subtitle: loc.country,
+                isMain: true
+            }))
+        }
+    }, [locations, selectedDay])
 
     // Memoize custom icons to prevent re-creation on every render
     const icons = useMemo(() => {
@@ -103,29 +121,15 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
         }
     }, [])
 
-    // Prepare markers for Overview View (existing logic)
-    const validLocations = locations.filter(l =>
-        l.coordinates &&
-        typeof l.coordinates.lat === 'number' && !isNaN(l.coordinates.lat) &&
-        typeof l.coordinates.lng === 'number' && !isNaN(l.coordinates.lng)
-    )
-    const overviewMarkers = validLocations.map(loc => ({
-        lat: loc.coordinates!.lat,
-        lng: loc.coordinates!.lng,
-        title: loc.region || loc.country,
-        subtitle: loc.country,
-        isMain: true
-    }))
-
-    const markersToShow = showDayView ? validDayMarkers : overviewMarkers
-
     // Helper for center calculation (initial view fallback)
-    const getCenter = () => {
-        if (markersToShow.length === 0) return [20, 0]
+    const center = useMemo(() => {
+        if (markersToShow.length === 0) return [20, 0] as [number, number]
         const lat = markersToShow.reduce((sum, m) => sum + m.lat, 0) / markersToShow.length
         const lng = markersToShow.reduce((sum, m) => sum + m.lng, 0) / markersToShow.length
-        return [lat, lng]
-    }
+        return [lat, lng] as [number, number]
+    }, [markersToShow])
+
+    const showDayView = selectedDay && (selectedDay.coordinates || (selectedDay.points_of_interest && selectedDay.points_of_interest.length > 0))
 
     if (markersToShow.length === 0 && !showDayView) {
         return (
@@ -141,7 +145,7 @@ export default function TripMap({ locations, selectedDay, className }: TripMapPr
     return (
         <div className={`relative w-full h-full bg-violet-50 ${className}`}>
             <MapContainer
-                center={getCenter() as [number, number]}
+                center={center}
                 zoom={2}
                 scrollWheelZoom={true}
                 zoomSnap={0.25}
