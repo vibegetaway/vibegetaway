@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { searchRedditWithPerplexity } from './perplexity-search'
 
+const MAX_QUERY_LENGTH = 500
+
 // Allow up to 120 seconds for Perplexity search with structured output
 export const maxDuration = 120
 
@@ -24,6 +26,10 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q') || ''
+
+    if (query.length > MAX_QUERY_LENGTH) {
+      return NextResponse.json({ error: 'Query too long' }, { status: 400 })
+    }
 
     // If no query, return empty array (user hasn't searched yet)
     if (!query.trim()) {
