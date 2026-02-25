@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, Suspense } from "react"
+import { useState, useEffect, useRef, Suspense, useMemo } from "react"
 import { MapPin, Sparkles, Lock, Unlock, RefreshCw, Loader2, Navigation, X, Heart, Image as ImageIcon, ChevronDown, ChevronUp, BookmarkCheck, CalendarDays, Plus, Trash2 } from "lucide-react"
 import { Header } from "@/components/Header"
 import { MobileNav } from "@/components/MobileNav"
@@ -656,30 +656,34 @@ function PlanContent() {
   }
 
   const currentDayItinerary = itineraries[selectedDayTab - 1]
-  const selectedDayForMap = itineraries.length > 0 && currentDayItinerary ? {
-    day: selectedDayTab,
-    location: currentDayItinerary.location,
-    morning: {
-      activity: currentDayItinerary.morning.title,
-      description: currentDayItinerary.morning.description,
-      imageUrl: currentDayItinerary.morning.imageUrl,
-      imageUrls: currentDayItinerary.morning.imageUrls
-    },
-    midday: {
-      activity: currentDayItinerary.midday.title,
-      description: currentDayItinerary.midday.description,
-      imageUrl: currentDayItinerary.midday.imageUrl,
-      imageUrls: currentDayItinerary.midday.imageUrls
-    },
-    evening: {
-      activity: currentDayItinerary.evening.title,
-      description: currentDayItinerary.evening.description,
-      imageUrl: currentDayItinerary.evening.imageUrl,
-      imageUrls: currentDayItinerary.evening.imageUrls
-    },
-    coordinates: savedLocations[selectedDayTab - 1]?.coordinates,
-    points_of_interest: []
-  } as DayBreakdown : null
+  const selectedDayForMap = useMemo(() => {
+    if (!itineraries.length || !currentDayItinerary) return null
+
+    return {
+      day: selectedDayTab,
+      location: currentDayItinerary.location,
+      morning: {
+        activity: currentDayItinerary.morning.title,
+        description: currentDayItinerary.morning.description,
+        imageUrl: currentDayItinerary.morning.imageUrl,
+        imageUrls: currentDayItinerary.morning.imageUrls
+      },
+      midday: {
+        activity: currentDayItinerary.midday.title,
+        description: currentDayItinerary.midday.description,
+        imageUrl: currentDayItinerary.midday.imageUrl,
+        imageUrls: currentDayItinerary.midday.imageUrls
+      },
+      evening: {
+        activity: currentDayItinerary.evening.title,
+        description: currentDayItinerary.evening.description,
+        imageUrl: currentDayItinerary.evening.imageUrl,
+        imageUrls: currentDayItinerary.evening.imageUrls
+      },
+      coordinates: savedLocations[selectedDayTab - 1]?.coordinates,
+      points_of_interest: []
+    } as DayBreakdown
+  }, [itineraries, selectedDayTab, currentDayItinerary, savedLocations])
 
   return (
     <>
