@@ -3,6 +3,7 @@
 import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
 import { groq } from '@ai-sdk/groq'
+import { stripMarkdownFences } from './utils'
 
 
 export interface DestinationPricing {
@@ -43,12 +44,6 @@ export interface GenerateDestinationParams {
   styles?: string[]
 }
 
-function stripMarkdownFences(text: string): string {
-  let cleaned = text.trim()
-  cleaned = cleaned.replace(/^```(?:json|JSON)?\n?/, '')
-  cleaned = cleaned.replace(/\n?```$/, '')
-  return cleaned.trim()
-}
 
 const DESTINATION_NAMES_SYSTEM_PROMPT = `
 You are a travel destination expert. Analyze free-form text about travel preferences and generate the 10 most suitable destinations ranked by relevance.
