@@ -8,15 +8,14 @@ import {
   deleteSearchFromHistory,
   clearSearchHistory,
   formatSearchText,
-  formatTimestamp,
-  type SearchHistoryItem
+  formatTimestamp
 } from '@/lib/searchHistory'
 import {
   getItineraryHistory,
   deleteItineraryFromHistory,
-  formatTimeAgo,
-  type SavedItinerary
+  formatTimeAgo
 } from '@/lib/itineraryHistory'
+import type { SearchHistoryItem, SavedItinerary } from '@/lib/types'
 
 interface RecentSearchPanelProps {
   isOpen: boolean

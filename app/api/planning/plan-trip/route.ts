@@ -6,7 +6,7 @@ export const maxDuration = 60
 const maxLocations = 10
 const maxStringLength = 500
 
-import type { DayBreakdown, DayActivity } from '@/lib/itineraryHistory'
+import type { DayBreakdown, DayActivity } from '@/lib/types'
 
 interface TripFilters {
   origin: string

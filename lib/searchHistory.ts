@@ -1,22 +1,8 @@
 'use client'
 
-import type { Destination } from './generateDestinationInfo'
+import type { Destination, SearchHistoryItem } from './types'
 
-export interface SearchHistoryItem {
-  id: string
-  vibe: string
-  timePeriod: string
-  timestamp: number
-  destinations?: Destination[]
-  filters?: {
-    origin?: string
-    destinations?: string[]
-    duration?: [number, number]
-    budget?: number
-    exclusions?: string[]
-    styles?: string[]
-  }
-}
+export type { SearchHistoryItem }
 
 const STORAGE_KEY = 'best-trip-search-history'
 const MAX_HISTORY_ITEMS = 20
@@ -97,7 +83,6 @@ export function saveSearchToHistory(
  */
 export function clearSearchHistory(): void {
   if (typeof window === 'undefined') return
-
   try {
     localStorage.removeItem(STORAGE_KEY)
   } catch (error) {
@@ -110,7 +95,6 @@ export function clearSearchHistory(): void {
  */
 export function deleteSearchFromHistory(id: string): void {
   if (typeof window === 'undefined') return
-
   try {
     const history = getSearchHistory()
     const filtered = history.filter(item => item.id !== id)
@@ -150,4 +134,3 @@ export function formatTimestamp(timestamp: number): string {
   }
   return 'Just now'
 }
-

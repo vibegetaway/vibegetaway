@@ -8,20 +8,11 @@ import { useTypingAnimation } from "@/hooks/useTypingAnimation"
 import { InspirationModal } from "@/components/inspiration/InspirationModal"
 import type { InspirationCard } from "@/components/SwipeCard"
 import { saveItineraryToHistory, getItineraryById, getItineraryHistory, deleteItineraryFromHistory } from "@/lib/itineraryHistory"
-import type { DayBreakdown } from "@/lib/itineraryHistory"
 import { useRouter, useSearchParams } from "next/navigation"
 import dynamic from 'next/dynamic'
-import type { Destination } from "@/lib/generateDestinationInfo"
+import type { Destination, DayBreakdown, QuickstartActivity as TimeSlotActivity } from "@/lib/types"
 
 const TripMap = dynamic(() => import('@/components/TripMap'), { ssr: false })
-
-interface TimeSlotActivity {
-  title: string
-  description: string
-  reason: string
-  imageUrl?: string
-  imageUrls?: string[]
-}
 
 interface DayItinerary {
   day: number
