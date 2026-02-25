@@ -1,25 +1,16 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { generateText } from 'ai'
+import { TimeSlotActivity, TimeSlot, ItinerarySlots } from '@/types/itinerary'
 
 export const maxDuration = 30
 
 interface QuickstartRequest {
   activity: string
   location: string
-  regenerateSlot?: 'morning' | 'midday' | 'evening'
-  currentItinerary?: {
-    morning: TimeSlotActivity
-    midday: TimeSlotActivity
-    evening: TimeSlotActivity
-  }
+  regenerateSlot?: TimeSlot
+  currentItinerary?: ItinerarySlots
   getAlternatives?: boolean
-  targetSlot?: 'morning' | 'midday' | 'evening'
-}
-
-interface TimeSlotActivity {
-  title: string
-  description: string
-  reason: string
+  targetSlot?: TimeSlot
 }
 
 function stripMarkdownFences(text: string): string {

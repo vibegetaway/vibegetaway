@@ -9,28 +9,8 @@ import { InspirationModal } from "@/components/inspiration/InspirationModal"
 import type { InspirationCard } from "@/components/SwipeCard"
 import { saveQuickstartToHistory, updateItineraryById, getItineraryById } from "@/lib/itineraryHistory"
 import { useRouter, useSearchParams } from "next/navigation"
-
-interface TimeSlotActivity {
-  title: string
-  description: string
-  reason: string
-  imageUrl?: string
-  imageUrls?: string[]
-}
-
-interface Itinerary {
-  morning: TimeSlotActivity
-  midday: TimeSlotActivity
-  evening: TimeSlotActivity
-}
-
-type TimeSlot = 'morning' | 'midday' | 'evening'
-
-interface LockedSlots {
-  morning: boolean
-  midday: boolean
-  evening: boolean
-}
+import { TimeSlotActivity, ItinerarySlots as Itinerary, TimeSlot, LockedSlots } from '@/types/itinerary'
+import { fetchActivityImages } from '@/lib/imageUtils'
 
 const ACTIVITY_PHRASES = [
   "swimming",
@@ -271,23 +251,11 @@ function QuickStartContent() {
       const itineraryWithImages = await Promise.all(
         (['morning', 'midday', 'evening'] as TimeSlot[]).map(async (slot) => {
           const activity = itineraryData[slot]
-          try {
-            const imageResponse = await fetch(
-              `/api/images/pixabay-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&limit=4`
-            )
-            if (imageResponse.ok) {
-              const imageData = await imageResponse.json()
-              const images = imageData.images || []
-              return {
-                ...activity,
-                imageUrl: images[0]?.urls?.regular,
-                imageUrls: images.map((img: any) => img.urls.regular).filter(Boolean)
-              }
-            }
-          } catch (error) {
-            console.error(`Error fetching image for ${slot}:`, error)
+          const images = await fetchActivityImages(activity.title, location)
+          return {
+            ...activity,
+            ...images
           }
-          return activity
         })
       )
 
@@ -344,23 +312,11 @@ function QuickStartContent() {
         (['morning', 'midday', 'evening'] as TimeSlot[]).map(async (slot) => {
           const activity = itineraryData[slot]
           if (activity.imageUrl) return activity
-          try {
-            const imageResponse = await fetch(
-              `/api/images/pixabay-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&limit=4`
-            )
-            if (imageResponse.ok) {
-              const imageData = await imageResponse.json()
-              const images = imageData.images || []
-              return {
-                ...activity,
-                imageUrl: images[0]?.urls?.regular,
-                imageUrls: images.map((img: any) => img.urls.regular).filter(Boolean)
-              }
-            }
-          } catch (error) {
-            console.error(`Error fetching image for ${slot}:`, error)
+          const images = await fetchActivityImages(activity.title, location)
+          return {
+            ...activity,
+            ...images
           }
-          return activity
         })
       )
 
@@ -411,19 +367,9 @@ function QuickStartContent() {
       const data = await response.json()
       const newActivity = data.activity
 
-      try {
-        const imageResponse = await fetch(
-          `/api/images/pixabay-images?keywords=${encodeURIComponent(`${newActivity.title} ${location}`)}&limit=4`
-        )
-        if (imageResponse.ok) {
-          const imageData = await imageResponse.json()
-          const images = imageData.images || []
-          newActivity.imageUrl = images[0]?.urls?.regular
-          newActivity.imageUrls = images.map((img: any) => img.urls.regular).filter(Boolean)
-        }
-      } catch (error) {
-        console.error(`Error fetching image for ${slot}:`, error)
-      }
+      const images = await fetchActivityImages(newActivity.title, location)
+      newActivity.imageUrl = images.imageUrl
+      newActivity.imageUrls = images.imageUrls
 
       const updatedItinerary = {
         ...itinerary,
@@ -490,23 +436,11 @@ function QuickStartContent() {
         (['morning', 'midday', 'evening'] as TimeSlot[]).map(async (slot) => {
           const activity = itineraryData[slot]
           if (activity.imageUrl) return activity
-          try {
-            const imageResponse = await fetch(
-              `/api/images/pixabay-images?keywords=${encodeURIComponent(`${activity.title} ${location}`)}&limit=4`
-            )
-            if (imageResponse.ok) {
-              const imageData = await imageResponse.json()
-              const images = imageData.images || []
-              return {
-                ...activity,
-                imageUrl: images[0]?.urls?.regular,
-                imageUrls: images.map((img: any) => img.urls.regular).filter(Boolean)
-              }
-            }
-          } catch (error) {
-            console.error(`Error fetching image for ${slot}:`, error)
+          const images = await fetchActivityImages(activity.title, location)
+          return {
+            ...activity,
+            ...images
           }
-          return activity
         })
       )
 

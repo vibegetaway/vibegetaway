@@ -2,20 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { PixabayImage } from '@/types/images'
 
 interface PixabayGalleryProps {
     keywords: string
     imageCount?: number
-}
-
-interface PixabayImage {
-    id: number
-    urls: {
-        small: string
-        regular: string
-        full: string
-    }
-    altDescription: string
 }
 
 export default function PixabayGallery({ keywords, imageCount = 8 }: PixabayGalleryProps) {
